@@ -1,0 +1,345 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ab_tests {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id            String        @db.Uuid
+  name               String        @db.VarChar(255)
+  description        String?
+  variants           Json
+  traffic_allocation Int?          @default(100)
+  is_active          Boolean?      @default(false)
+  start_date         DateTime?     @db.Timestamptz(6)
+  end_date           DateTime?     @db.Timestamptz(6)
+  created_at         DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?     @default(now()) @db.Timestamptz(6)
+  feature_flags      feature_flags @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model alert_incidents {
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  alert_rule_id String         @db.Uuid
+  flag_id       String?        @db.Uuid
+  severity      String         @db.VarChar(20)
+  title         String         @db.VarChar(255)
+  description   String?
+  status        String?        @default("OPEN") @db.VarChar(20)
+  triggered_at  DateTime?      @default(now()) @db.Timestamptz(6)
+  resolved_at   DateTime?      @db.Timestamptz(6)
+  resolved_by   String?        @db.Uuid
+  alert_rules   alert_rules    @relation(fields: [alert_rule_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  feature_flags feature_flags? @relation(fields: [flag_id], references: [id], onUpdate: NoAction)
+  users         users?         @relation(fields: [resolved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+
+model alert_rules {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id         String?           @db.Uuid
+  organization_id String            @db.Uuid
+  name            String            @db.VarChar(255)
+  description     String?
+  condition       Json
+  channels        Json
+  is_active       Boolean?          @default(true)
+  created_by      String            @db.Uuid
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  alert_incidents alert_incidents[]
+  users           users             @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  feature_flags   feature_flags?    @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  organizations   organizations     @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+
+model feature_feedback {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id         String            @db.Uuid
+  user_identifier String            @db.VarChar(255)
+  feedback_type   String            @db.VarChar(50)
+  content         String
+  metadata        Json?
+  environment     environment_type?
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  feature_flags   feature_flags     @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+
+model feature_flags {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id      String                 @db.Uuid
+  name                 String                 @db.VarChar(255)
+  key                  String                 @db.VarChar(255)
+  description          String?
+  flag_type            flag_type
+  is_active            Boolean?               @default(false)
+  created_by           String                 @db.Uuid
+  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  tags                 String[]
+  ab_tests             ab_tests[]
+  alert_incidents      alert_incidents[]
+  alert_rules          alert_rules[]
+  feature_feedback     feature_feedback[]
+  users                users                  @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organizations        organizations          @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  flag_audit_log       flag_audit_log[]
+  flag_environments    flag_environments[]
+  flag_evaluations     flag_evaluations[]
+  progressive_rollouts progressive_rollouts[]
+  query_tests          query_tests[]
+
+  @@unique([organization_id, key])
+  @@index([organization_id, key], map: "idx_feature_flags_org_key")
+}
+
+
+model flag_audit_log {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id       String?           @db.Uuid
+  user_id       String?           @db.Uuid
+  action        audit_action
+  old_value     Json?
+  new_value     Json?
+  environment   environment_type?
+  metadata      Json?
+  ip_address    String?           @db.Inet
+  user_agent    String?
+  created_at    DateTime?         @default(now()) @db.Timestamptz(6)
+  feature_flags feature_flags?    @relation(fields: [flag_id], references: [id], onUpdate: NoAction)
+  users         users?            @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+
+  @@index([flag_id, created_at(sort: Desc)], map: "idx_flag_audit_log_flag_created")
+}
+
+
+model flag_environments {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id        String           @db.Uuid
+  environment    environment_type
+  is_enabled     Boolean?         @default(false)
+  default_value  Json?
+  created_at     DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime?        @default(now()) @db.Timestamptz(6)
+  feature_flags  feature_flags    @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  flag_rules     flag_rules[]
+  flag_schedules flag_schedules[]
+
+  @@unique([flag_id, environment])
+  @@index([flag_id, environment], map: "idx_flag_environments_flag_env")
+}
+
+
+model flag_evaluations {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id         String           @db.Uuid
+  user_identifier String           @db.VarChar(255)
+  environment     environment_type
+  value           Json
+  rule_id         String?          @db.Uuid
+  evaluated_at    DateTime?        @default(now()) @db.Timestamptz(6)
+  expires_at      DateTime?        @db.Timestamptz(6)
+  feature_flags   feature_flags    @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  flag_rules      flag_rules?      @relation(fields: [rule_id], references: [id], onUpdate: NoAction)
+
+  @@index([flag_id, user_identifier, environment, expires_at], map: "idx_flag_evaluations_lookup")
+}
+
+
+model flag_rules {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_environment_id String             @db.Uuid
+  name                String             @db.VarChar(255)
+  conditions          Json
+  value               Json
+  priority            Int?               @default(0)
+  is_active           Boolean?           @default(true)
+  created_at          DateTime?          @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?          @default(now()) @db.Timestamptz(6)
+  flag_evaluations    flag_evaluations[]
+  flag_environments   flag_environments  @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([flag_environment_id, priority(sort: Desc)], map: "idx_flag_rules_environment_priority")
+}
+
+
+model flag_schedules {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_environment_id String            @db.Uuid
+  action              String            @db.VarChar(50)
+  scheduled_at        DateTime          @db.Timestamptz(6)
+  executed_at         DateTime?         @db.Timestamptz(6)
+  new_value           Json?
+  is_executed         Boolean?          @default(false)
+  created_by          String            @db.Uuid
+  created_at          DateTime?         @default(now()) @db.Timestamptz(6)
+  users               users             @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  flag_environments   flag_environments @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([scheduled_at, is_executed], map: "idx_flag_schedules_execution")
+}
+
+
+model flag_templates {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id String        @db.Uuid
+  name            String        @db.VarChar(255)
+  description     String?
+  template_type   String        @db.VarChar(50)
+  configuration   Json
+  is_public       Boolean?      @default(false)
+  created_by      String        @db.Uuid
+  created_at      DateTime?     @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?     @default(now()) @db.Timestamptz(6)
+  users           users         @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organizations   organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+
+model organizations {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String               @db.VarChar(255)
+  slug               String               @unique @db.VarChar(100)
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  alert_rules        alert_rules[]
+  feature_flags      feature_flags[]
+  flag_templates     flag_templates[]
+  user_organizations user_organizations[]
+}
+
+
+model progressive_rollouts {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id            String           @db.Uuid
+  name               String           @db.VarChar(255)
+  description        String?
+  status             rollout_status?  @default(DRAFT)
+  current_percentage Int?             @default(0)
+  target_percentage  Int?             @default(100)
+  created_at         DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?        @default(now()) @db.Timestamptz(6)
+  feature_flags      feature_flags    @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  rollout_stages     rollout_stages[]
+}
+
+
+model query_test_results {
+  id                   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  query_test_id        String           @db.Uuid
+  environment          environment_type
+  original_result_hash String?          @db.VarChar(64)
+  new_result_hash      String?          @db.VarChar(64)
+  results_match        Boolean?
+  execution_time_ms    Int?
+  error_message        String?
+  executed_at          DateTime?        @default(now()) @db.Timestamptz(6)
+  query_tests          query_tests      @relation(fields: [query_test_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+
+model query_tests {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id            String               @db.Uuid
+  name               String               @db.VarChar(255)
+  description        String?
+  original_query     String
+  new_query          String
+  is_active          Boolean?             @default(false)
+  created_by         String               @db.Uuid
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  query_test_results query_test_results[]
+  users              users                @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  feature_flags      feature_flags        @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+
+model rollout_stages {
+  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rollout_id           String               @db.Uuid
+  stage_number         Int
+  percentage           Int
+  duration_hours       Int?
+  scheduled_at         DateTime?            @db.Timestamptz(6)
+  executed_at          DateTime?            @db.Timestamptz(6)
+  is_completed         Boolean?             @default(false)
+  created_at           DateTime?            @default(now()) @db.Timestamptz(6)
+  progressive_rollouts progressive_rollouts @relation(fields: [rollout_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([rollout_id, stage_number])
+  @@index([scheduled_at, is_completed], map: "idx_rollout_stages_scheduled")
+}
+
+
+model user_organizations {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String        @db.Uuid
+  organization_id String        @db.Uuid
+  role            String        @default("MEMBER") @db.VarChar(50)
+  created_at      DateTime?     @default(now()) @db.Timestamptz(6)
+  organizations   organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, organization_id])
+}
+
+
+model users {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email              String               @unique @db.VarChar(255)
+  name               String               @db.VarChar(255)
+  role               user_role            @default(MEMBER)
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  is_active          Boolean?             @default(true)
+  alert_incidents    alert_incidents[]
+  alert_rules        alert_rules[]
+  feature_flags      feature_flags[]
+  flag_audit_log     flag_audit_log[]
+  flag_schedules     flag_schedules[]
+  flag_templates     flag_templates[]
+  query_tests        query_tests[]
+  user_organizations user_organizations[]
+}
+
+enum audit_action {
+  CREATE
+  UPDATE
+  DELETE
+  ENABLE
+  DISABLE
+}
+
+enum environment_type {
+  DEV
+  STAGING
+  PROD
+}
+
+enum flag_type {
+  BOOLEAN
+  PERCENTAGE
+  AB_TEST
+  KILL_SWITCH
+}
+
+enum rollout_status {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum user_role {
+  ADMIN
+  VIEWER
+  MEMBER
+}
