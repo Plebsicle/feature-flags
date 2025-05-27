@@ -38,7 +38,6 @@ model alert_incidents {
   users         users?         @relation(fields: [resolved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-
 model alert_rules {
   id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flag_id         String?           @db.Uuid
@@ -57,7 +56,6 @@ model alert_rules {
   organizations   organizations     @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-
 model feature_feedback {
   id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flag_id         String            @db.Uuid
@@ -69,7 +67,6 @@ model feature_feedback {
   created_at      DateTime?         @default(now()) @db.Timestamptz(6)
   feature_flags   feature_flags     @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
-
 
 model feature_flags {
   id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -99,7 +96,6 @@ model feature_flags {
   @@index([organization_id, key], map: "idx_feature_flags_org_key")
 }
 
-
 model flag_audit_log {
   id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flag_id       String?           @db.Uuid
@@ -118,7 +114,6 @@ model flag_audit_log {
   @@index([flag_id, created_at(sort: Desc)], map: "idx_flag_audit_log_flag_created")
 }
 
-
 model flag_environments {
   id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flag_id        String           @db.Uuid
@@ -135,7 +130,6 @@ model flag_environments {
   @@index([flag_id, environment], map: "idx_flag_environments_flag_env")
 }
 
-
 model flag_evaluations {
   id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flag_id         String           @db.Uuid
@@ -150,7 +144,6 @@ model flag_evaluations {
 
   @@index([flag_id, user_identifier, environment, expires_at], map: "idx_flag_evaluations_lookup")
 }
-
 
 model flag_rules {
   id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -168,7 +161,6 @@ model flag_rules {
   @@index([flag_environment_id, priority(sort: Desc)], map: "idx_flag_rules_environment_priority")
 }
 
-
 model flag_schedules {
   id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flag_environment_id String            @db.Uuid
@@ -177,14 +169,13 @@ model flag_schedules {
   executed_at         DateTime?         @db.Timestamptz(6)
   new_value           Json?
   is_executed         Boolean?          @default(false)
-  created_by          String            @db.Uuid
+  created_by          String?           @db.Uuid
   created_at          DateTime?         @default(now()) @db.Timestamptz(6)
-  users               users             @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users               users?            @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
   flag_environments   flag_environments @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([scheduled_at, is_executed], map: "idx_flag_schedules_execution")
 }
-
 
 model flag_templates {
   id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -201,19 +192,22 @@ model flag_templates {
   organizations   organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-
 model organizations {
   id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name               String               @db.VarChar(255)
   slug               String               @unique @db.VarChar(100)
+  owner_id           String               @db.Uuid
   created_at         DateTime?            @default(now()) @db.Timestamptz(6)
   updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
   alert_rules        alert_rules[]
   feature_flags      feature_flags[]
   flag_templates     flag_templates[]
   user_organizations user_organizations[]
-}
+  invitations        invitations[]
+  owner              users                @relation("OrganizationOwner", fields: [owner_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
 
+  @@index([owner_id], map: "idx_organizations_owner")
+}
 
 model progressive_rollouts {
   id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -229,7 +223,6 @@ model progressive_rollouts {
   rollout_stages     rollout_stages[]
 }
 
-
 model query_test_results {
   id                   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   query_test_id        String           @db.Uuid
@@ -242,7 +235,6 @@ model query_test_results {
   executed_at          DateTime?        @default(now()) @db.Timestamptz(6)
   query_tests          query_tests      @relation(fields: [query_test_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
-
 
 model query_tests {
   id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -260,7 +252,6 @@ model query_tests {
   feature_flags      feature_flags        @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-
 model rollout_stages {
   id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   rollout_id           String               @db.Uuid
@@ -277,6 +268,37 @@ model rollout_stages {
   @@index([scheduled_at, is_completed], map: "idx_rollout_stages_scheduled")
 }
 
+model invitations {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String        @db.VarChar(255)
+  token           String        @unique @db.VarChar(255)
+  organization_id String        @db.Uuid
+  invited_by      String        @db.Uuid
+  role            String        @default("MEMBER") @db.VarChar(50)
+  expires_at      DateTime      @db.Timestamptz(6)
+  is_used         Boolean       @default(false)
+  used_at         DateTime?     @db.Timestamptz(6)
+  created_at      DateTime?     @default(now()) @db.Timestamptz(6)
+  organizations   organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  inviter         users         @relation(fields: [invited_by], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([token], map: "idx_invitations_token")
+  @@index([email, organization_id], map: "idx_invitations_email_org")
+  @@index([expires_at, is_used], map: "idx_invitations_expiry")
+}
+
+model owner_members {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  owner_id   String    @db.Uuid
+  member_id  String    @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  owner      users     @relation("OwnerMembers", fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  member     users     @relation("MemberOfOwner", fields: [member_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([owner_id, member_id])
+  @@index([owner_id], map: "idx_owner_members_owner")
+  @@index([member_id], map: "idx_owner_members_member")
+}
 
 model user_organizations {
   id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -288,25 +310,29 @@ model user_organizations {
   users           users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([user_id, organization_id])
+  @@index([organization_id, role], map: "idx_user_organizations_org_role")
 }
 
-
 model users {
-  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email              String               @unique @db.VarChar(255)
-  name               String               @db.VarChar(255)
-  role               user_role            @default(MEMBER)
-  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
-  is_active          Boolean?             @default(true)
-  alert_incidents    alert_incidents[]
-  alert_rules        alert_rules[]
-  feature_flags      feature_flags[]
-  flag_audit_log     flag_audit_log[]
-  flag_schedules     flag_schedules[]
-  flag_templates     flag_templates[]
-  query_tests        query_tests[]
-  user_organizations user_organizations[]
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email               String               @unique @db.VarChar(255)
+  name                String               @db.VarChar(255)
+  role                user_role            @default(MEMBER)
+  created_at          DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?            @default(now()) @db.Timestamptz(6)
+  is_active           Boolean?             @default(true)
+  alert_incidents     alert_incidents[]
+  alert_rules         alert_rules[]
+  feature_flags       feature_flags[]
+  flag_audit_log      flag_audit_log[]
+  flag_schedules      flag_schedules[]
+  flag_templates      flag_templates[]
+  query_tests         query_tests[]
+  user_organizations  user_organizations[]
+  owned_organizations organizations[]      @relation("OrganizationOwner")
+  owned_members       owner_members[]      @relation("OwnerMembers")
+  member_of_owner     owner_members[]      @relation("MemberOfOwner")
+  sent_invitations    invitations[]
 }
 
 enum audit_action {
@@ -342,4 +368,5 @@ enum user_role {
   ADMIN
   VIEWER
   MEMBER
+  OWNER
 }

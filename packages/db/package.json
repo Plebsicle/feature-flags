@@ -1,0 +1,14 @@
+{
+  "name": "db",
+  "version": "1.0.0",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.8.2",
+    "prisma": "^6.8.2"
+  }
+}
