@@ -3,6 +3,7 @@ import { Express } from 'express';
 import cors from 'cors'
 import helmet from 'helmet';
 import corsConfiguration from './cors-config/cors';
+import { sessionMiddleware } from './middlewares/session';
 
 
 // Standard Contansts for express application
@@ -14,6 +15,7 @@ const PORT : number = parseInt(process.env.PORT!) || 8000;
 app.use(cors(corsConfiguration));
 app.use(helmet());
 app.use(express.json());
+app.use(sessionMiddleware);
 
 //Routes
 
