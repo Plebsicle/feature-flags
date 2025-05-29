@@ -7,296 +7,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model ab_tests {
-  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id            String        @db.Uuid
-  name               String        @db.VarChar(255)
-  description        String?
-  variants           Json
-  traffic_allocation Int?          @default(100)
-  is_active          Boolean?      @default(false)
-  start_date         DateTime?     @db.Timestamptz(6)
-  end_date           DateTime?     @db.Timestamptz(6)
-  created_at         DateTime?     @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime?     @default(now()) @db.Timestamptz(6)
-  feature_flags      feature_flags @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-}
-
-model alert_incidents {
-  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  alert_rule_id String         @db.Uuid
-  flag_id       String?        @db.Uuid
-  severity      String         @db.VarChar(20)
-  title         String         @db.VarChar(255)
-  description   String?
-  status        String?        @default("OPEN") @db.VarChar(20)
-  triggered_at  DateTime?      @default(now()) @db.Timestamptz(6)
-  resolved_at   DateTime?      @db.Timestamptz(6)
-  resolved_by   String?        @db.Uuid
-  alert_rules   alert_rules    @relation(fields: [alert_rule_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  feature_flags feature_flags? @relation(fields: [flag_id], references: [id], onUpdate: NoAction)
-  users         users?         @relation(fields: [resolved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
-model alert_rules {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id         String?           @db.Uuid
-  organization_id String            @db.Uuid
-  name            String            @db.VarChar(255)
-  description     String?
-  condition       Json
-  channels        Json
-  is_active       Boolean?          @default(true)
-  created_by      String            @db.Uuid
-  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime?         @default(now()) @db.Timestamptz(6)
-  alert_incidents alert_incidents[]
-  users           users             @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  feature_flags   feature_flags?    @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  organizations   organizations     @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-}
-
-model feature_feedback {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id         String            @db.Uuid
-  user_identifier String            @db.VarChar(255)
-  feedback_type   String            @db.VarChar(50)
-  content         String
-  metadata        Json?
-  environment     environment_type?
-  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
-  feature_flags   feature_flags     @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-}
-
-model feature_flags {
-  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organization_id      String                 @db.Uuid
-  name                 String                 @db.VarChar(255)
-  key                  String                 @db.VarChar(255)
-  description          String?
-  flag_type            flag_type
-  is_active            Boolean?               @default(false)
-  created_by           String                 @db.Uuid
-  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
-  tags                 String[]
-  ab_tests             ab_tests[]
-  alert_incidents      alert_incidents[]
-  alert_rules          alert_rules[]
-  feature_feedback     feature_feedback[]
-  users                users                  @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  organizations        organizations          @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  flag_audit_log       flag_audit_log[]
-  flag_environments    flag_environments[]
-  flag_evaluations     flag_evaluations[]
-  progressive_rollouts progressive_rollouts[]
-  query_tests          query_tests[]
-
-  @@unique([organization_id, key])
-  @@index([organization_id, key], map: "idx_feature_flags_org_key")
-}
-
-model flag_audit_log {
-  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id       String?           @db.Uuid
-  user_id       String?           @db.Uuid
-  action        audit_action
-  old_value     Json?
-  new_value     Json?
-  environment   environment_type?
-  metadata      Json?
-  ip_address    String?           @db.Inet
-  user_agent    String?
-  created_at    DateTime?         @default(now()) @db.Timestamptz(6)
-  feature_flags feature_flags?    @relation(fields: [flag_id], references: [id], onUpdate: NoAction)
-  users         users?            @relation(fields: [user_id], references: [id], onUpdate: NoAction)
-
-  @@index([flag_id, created_at(sort: Desc)], map: "idx_flag_audit_log_flag_created")
-}
-
-model flag_environments {
-  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id        String           @db.Uuid
-  environment    environment_type
-  is_enabled     Boolean?         @default(false)
-  default_value  Json?
-  created_at     DateTime?        @default(now()) @db.Timestamptz(6)
-  updated_at     DateTime?        @default(now()) @db.Timestamptz(6)
-  feature_flags  feature_flags    @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  flag_rules     flag_rules[]
-  flag_schedules flag_schedules[]
-
-  @@unique([flag_id, environment])
-  @@index([flag_id, environment], map: "idx_flag_environments_flag_env")
-}
-
-model flag_evaluations {
-  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id         String           @db.Uuid
-  user_identifier String           @db.VarChar(255)
-  environment     environment_type
-  value           Json
-  rule_id         String?          @db.Uuid
-  evaluated_at    DateTime?        @default(now()) @db.Timestamptz(6)
-  expires_at      DateTime?        @db.Timestamptz(6)
-  feature_flags   feature_flags    @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  flag_rules      flag_rules?      @relation(fields: [rule_id], references: [id], onUpdate: NoAction)
-
-  @@index([flag_id, user_identifier, environment, expires_at], map: "idx_flag_evaluations_lookup")
-}
-
-model flag_rules {
-  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_environment_id String             @db.Uuid
-  name                String             @db.VarChar(255)
-  conditions          Json
-  value               Json
-  priority            Int?               @default(0)
-  is_active           Boolean?           @default(true)
-  created_at          DateTime?          @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime?          @default(now()) @db.Timestamptz(6)
-  flag_evaluations    flag_evaluations[]
-  flag_environments   flag_environments  @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([flag_environment_id, priority(sort: Desc)], map: "idx_flag_rules_environment_priority")
-}
-
-model flag_schedules {
-  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_environment_id String            @db.Uuid
-  action              String            @db.VarChar(50)
-  scheduled_at        DateTime          @db.Timestamptz(6)
-  executed_at         DateTime?         @db.Timestamptz(6)
-  new_value           Json?
-  is_executed         Boolean?          @default(false)
-  created_by          String?           @db.Uuid
-  created_at          DateTime?         @default(now()) @db.Timestamptz(6)
-  users               users?            @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  flag_environments   flag_environments @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([scheduled_at, is_executed], map: "idx_flag_schedules_execution")
-}
-
-model flag_templates {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organization_id String        @db.Uuid
-  name            String        @db.VarChar(255)
-  description     String?
-  template_type   String        @db.VarChar(50)
-  configuration   Json
-  is_public       Boolean?      @default(false)
-  created_by      String        @db.Uuid
-  created_at      DateTime?     @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime?     @default(now()) @db.Timestamptz(6)
-  users           users         @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  organizations   organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-}
-
+// Core Models
 model organizations {
-  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name               String               @db.VarChar(255)
-  slug               String               @unique @db.VarChar(100)
-  owner_id           String               @db.Uuid
-  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
-  alert_rules        alert_rules[]
-  feature_flags      feature_flags[]
-  flag_templates     flag_templates[]
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name         String         @db.VarChar(255)
+  slug         String         @unique @db.VarChar(100)
+  owner_id     String         @db.Uuid
+  created_at   DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime       @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  owner            users                  @relation("OrganizationOwner", fields: [owner_id], references: [id], onDelete: Restrict)
+  flags            feature_flags[]
   user_organizations user_organizations[]
-  invitations        invitations[]
-  owner              users                @relation("OrganizationOwner", fields: [owner_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
-  @@index([owner_id], map: "idx_organizations_owner")
+  invitations      invitations[]
+  
+  @@index([owner_id])
+  @@index([slug])
 }
 
-model progressive_rollouts {
-  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id            String           @db.Uuid
-  name               String           @db.VarChar(255)
-  description        String?
-  status             rollout_status?  @default(DRAFT)
-  current_percentage Int?             @default(0)
-  target_percentage  Int?             @default(100)
-  created_at         DateTime?        @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime?        @default(now()) @db.Timestamptz(6)
-  feature_flags      feature_flags    @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  rollout_stages     rollout_stages[]
+model users {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String        @unique @db.VarChar(255)
+  name        String        @db.VarChar(255)
+  role        user_role     @default(MEMBER)
+  password    String?
+  created_at  DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime      @default(now()) @db.Timestamptz(6)
+  is_active   Boolean       @default(true)
+  isVerified  Boolean       @default(false)
+  // Relations
+  owned_organizations organizations[]      @relation("OrganizationOwner")
+  user_organizations  user_organizations[]
+  created_flags       feature_flags[]      @relation("FlagCreator")
+  audit_logs          audit_logs[]
+  sent_invitations    invitations[]
+  owned_members       owner_members[]      @relation("OwnerMembers")
+  member_of_owner     owner_members[]      @relation("MemberOfOwner")
+  emailVerificationToken emailVerificationToken?
 }
 
-model query_test_results {
-  id                   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  query_test_id        String           @db.Uuid
-  environment          environment_type
-  original_result_hash String?          @db.VarChar(64)
-  new_result_hash      String?          @db.VarChar(64)
-  results_match        Boolean?
-  execution_time_ms    Int?
-  error_message        String?
-  executed_at          DateTime?        @default(now()) @db.Timestamptz(6)
-  query_tests          query_tests      @relation(fields: [query_test_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-}
-
-model query_tests {
-  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id            String               @db.Uuid
-  name               String               @db.VarChar(255)
-  description        String?
-  original_query     String
-  new_query          String
-  is_active          Boolean?             @default(false)
-  created_by         String               @db.Uuid
-  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
-  query_test_results query_test_results[]
-  users              users                @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  feature_flags      feature_flags        @relation(fields: [flag_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-}
-
-model rollout_stages {
-  id                   String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  rollout_id           String               @db.Uuid
-  stage_number         Int
-  percentage           Int
-  duration_hours       Int?
-  scheduled_at         DateTime?            @db.Timestamptz(6)
-  executed_at          DateTime?            @db.Timestamptz(6)
-  is_completed         Boolean?             @default(false)
-  created_at           DateTime?            @default(now()) @db.Timestamptz(6)
-  progressive_rollouts progressive_rollouts @relation(fields: [rollout_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([rollout_id, stage_number])
-  @@index([scheduled_at, is_completed], map: "idx_rollout_stages_scheduled")
-}
-
-model invitations {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email           String        @db.VarChar(255)
-  token           String        @unique @db.VarChar(255)
-  organization_id String        @db.Uuid
-  invited_by      String        @db.Uuid
-  role            user_role        @default(MEMBER)
-  expires_at      DateTime      @db.Timestamptz(6)
-  is_used         Boolean       @default(false)
-  used_at         DateTime?     @db.Timestamptz(6)
-  created_at      DateTime?     @default(now()) @db.Timestamptz(6)
-  organizations   organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  inviter         users         @relation(fields: [invited_by], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([token], map: "idx_invitations_token")
-  @@index([email, organization_id], map: "idx_invitations_email_org")
-  @@index([expires_at, is_used], map: "idx_invitations_expiry")
-}
-
-model owner_members {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  owner_id   String    @db.Uuid
-  member_id  String    @db.Uuid
-  created_at DateTime? @default(now()) @db.Timestamptz(6)
-  owner      users     @relation("OwnerMembers", fields: [owner_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  member     users     @relation("MemberOfOwner", fields: [member_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([owner_id, member_id])
-  @@index([owner_id], map: "idx_owner_members_owner")
-  @@index([member_id], map: "idx_owner_members_member")
+model emailVerificationToken {
+  token_id   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String      @unique @db.Uuid
+  token      String      @unique
+  expiration DateTime
+  user       users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  @@index([user_id])
 }
 
 model user_organizations {
@@ -304,43 +61,188 @@ model user_organizations {
   user_id         String        @db.Uuid
   organization_id String        @db.Uuid
   role            user_role     @default(MEMBER)
-  created_at      DateTime?     @default(now()) @db.Timestamptz(6)
-  organizations   organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users           users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  user         users         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  organization organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  
   @@unique([user_id, organization_id])
-  @@index([organization_id, role], map: "idx_user_organizations_org_role")
+  @@index([organization_id, role])
 }
 
-model users {
-  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email               String               @unique @db.VarChar(255)
-  name                String               @db.VarChar(255)
-  role                user_role            @default(MEMBER)
-  password            String?              
-  created_at          DateTime?            @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime?            @default(now()) @db.Timestamptz(6)
-  is_active           Boolean?             @default(true)
-  alert_incidents     alert_incidents[]
-  alert_rules         alert_rules[]
-  feature_flags       feature_flags[]
-  flag_audit_log      flag_audit_log[]
-  flag_schedules      flag_schedules[]
-  flag_templates      flag_templates[]
-  query_tests         query_tests[]
-  user_organizations  user_organizations[]
-  owned_organizations organizations[]      @relation("OrganizationOwner")
-  owned_members       owner_members[]      @relation("OwnerMembers")
-  member_of_owner     owner_members[]      @relation("MemberOfOwner")
-  sent_invitations    invitations[]
+// Owner-Member relationship (hierarchical structure)
+model owner_members {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  owner_id   String    @db.Uuid
+  member_id  String    @db.Uuid
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  owner      users     @relation("OwnerMembers", fields: [owner_id], references: [id], onDelete: Cascade)
+  member     users     @relation("MemberOfOwner", fields: [member_id], references: [id], onDelete: Cascade)
+
+  @@unique([owner_id, member_id])
+  @@index([owner_id])
+  @@index([member_id])
 }
 
-enum audit_action {
-  CREATE
-  UPDATE
-  DELETE
-  ENABLE
-  DISABLE
+// Invitation system
+model invitations {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String        @db.VarChar(255)
+  token           String        @unique @db.VarChar(255)
+  organization_id String        @db.Uuid
+  invited_by      String        @db.Uuid
+  role            user_role     @default(MEMBER)
+  expires_at      DateTime      @db.Timestamptz(6)
+  is_used         Boolean       @default(false)
+  used_at         DateTime?     @db.Timestamptz(6)
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  organization organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  inviter      users         @relation(fields: [invited_by], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@index([email, organization_id])
+  @@index([expires_at, is_used])
+}
+
+// Main Feature Flag Model
+model feature_flags {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id String        @db.Uuid
+  name            String        @db.VarChar(255)
+  key             String        @db.VarChar(255)
+  description     String?
+  flag_type       flag_type
+  is_active       Boolean       @default(true)
+  created_by      String        @db.Uuid
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime      @default(now()) @db.Timestamptz(6)
+  tags            String[]      @default([])
+  
+  // Unified Configuration - All flag-specific data stored here
+  config          Json          @default("{}")
+  
+  // Relations
+  organization    organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  creator         users         @relation("FlagCreator", fields: [created_by], references: [id])
+  environments    flag_environments[]
+  evaluations     flag_evaluations[]
+  audit_logs      audit_logs[]
+  
+  @@unique([organization_id, key])
+  @@index([organization_id, key])
+  @@index([organization_id, flag_type])
+}
+
+// Environment-specific flag configuration
+model flag_environments {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id     String           @db.Uuid
+  environment environment_type
+  is_enabled  Boolean          @default(false)
+  
+  // Unified configuration for all flag types in this environment
+  config      Json             @default("{}")
+  
+  created_at  DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime         @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  flag        feature_flags    @relation(fields: [flag_id], references: [id], onDelete: Cascade)
+  rules       flag_rules[]
+  
+  @@unique([flag_id, environment])
+  @@index([flag_id, environment])
+}
+
+// Targeting rules (works for all flag types)
+model flag_rules {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_environment_id String            @db.Uuid
+  name                String            @db.VarChar(255)
+  description         String?
+  
+  // Rule conditions (user attributes, segments, etc.)
+  conditions          Json              @default("{}")
+  
+  // Value to return when rule matches (works for all flag types)
+  value               Json
+  
+  // Rule priority (higher = evaluated first)
+  priority            Int               @default(0)
+  is_enabled          Boolean           @default(true)
+  
+  created_at          DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime          @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  flag_environment    flag_environments @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
+  
+  @@index([flag_environment_id, priority])
+  @@index([flag_environment_id, is_enabled])
+}
+
+// Flag evaluation results (caching and analytics)
+model flag_evaluations {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id         String           @db.Uuid
+  user_identifier String           @db.VarChar(255)
+  environment     environment_type
+  
+  // The evaluated result
+  value           Json
+  
+  // Metadata about the evaluation
+  reason          String           @db.VarChar(100)  // "rule_match", "default", "percentage", etc.
+  rule_id         String?          @db.Uuid
+  variant         String?          @db.VarChar(100)  // For AB tests
+  
+  evaluated_at    DateTime         @default(now()) @db.Timestamptz(6)
+  expires_at      DateTime?        @db.Timestamptz(6)
+  
+  // Relations
+  flag            feature_flags    @relation(fields: [flag_id], references: [id], onDelete: Cascade)
+  
+  @@index([flag_id, user_identifier, environment])
+  @@index([flag_id, environment, evaluated_at])
+  @@index([expires_at])
+}
+
+// Unified audit log
+model audit_logs {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id       String?           @db.Uuid
+  user_id       String?           @db.Uuid
+  action        audit_action
+  resource_type String            @db.VarChar(50)   // "flag", "environment", "rule"
+  resource_id   String?           @db.Uuid
+  old_value     Json?
+  new_value     Json?
+  environment   environment_type?
+  ip_address    String?           @db.Inet
+  user_agent    String?
+  created_at    DateTime          @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  flag          feature_flags?    @relation(fields: [flag_id], references: [id])
+  user          users?            @relation(fields: [user_id], references: [id])
+  
+  @@index([flag_id, created_at])
+  @@index([user_id, created_at])
+  @@index([action, created_at])
+}
+
+// Enums
+enum flag_type {
+  BOOLEAN
+  PERCENTAGE
+  AB_TEST  
+  KILL_SWITCH
+  MULTIVARIATE    // New: for more than 2 variants
 }
 
 enum environment_type {
@@ -349,24 +251,18 @@ enum environment_type {
   PROD
 }
 
-enum flag_type {
-  BOOLEAN
-  PERCENTAGE
-  AB_TEST
-  KILL_SWITCH
-}
-
-enum rollout_status {
-  DRAFT
-  ACTIVE
-  PAUSED
-  COMPLETED
-  CANCELLED
-}
-
 enum user_role {
   ADMIN
-  VIEWER
   MEMBER
+  VIEWER
   OWNER
+}
+
+enum audit_action {
+  CREATE
+  UPDATE
+  DELETE
+  ENABLE
+  DISABLE
+  EVALUATE
 }

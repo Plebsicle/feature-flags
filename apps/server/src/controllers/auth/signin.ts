@@ -21,6 +21,10 @@ export const emailSignin = async (req: express.Request, res: express.Response) =
             res.status(401).json("User does not Exist");
             return;
         }
+        if(!doesUserExist.isVerified){
+            res.status(401).json("You are not Verified");
+            return;
+        }
         if(!doesUserExist.password){
             res.status(401).json("You have not signed up with with Email and Password");
             return;

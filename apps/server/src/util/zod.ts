@@ -48,3 +48,16 @@ export async function memberSignupValidation (token : string,email : string,name
     console.log("Validation Failed", validationResult.error.errors);
     return false;
 }   
+
+
+const verifyEmailSchema = z.object({
+    orgName : z.string(),
+    token : z.string()
+})
+
+export async function verifyEmailValidation(token : string,orgName : string){
+    const validationResult = verifyEmailSchema.safeParse({token,orgName});
+    if(validationResult.success) return true;
+    console.log("Validation Failed", validationResult.error.errors);
+    return false;
+}

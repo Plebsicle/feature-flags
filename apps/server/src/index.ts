@@ -1,9 +1,14 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
+
 import express from 'express'
 import { Express } from 'express';
 import cors from 'cors'
 import helmet from 'helmet';
 import corsConfiguration from './cors-config/cors';
 import { sessionMiddleware } from './middlewares/session';
+import authRoutes from './routes/auth/auth'
 
 
 // Standard Contansts for express application
@@ -18,7 +23,7 @@ app.use(express.json());
 app.use(sessionMiddleware);
 
 //Routes
-
+app.use('/auth',authRoutes);
 
 
 //Security Measure

@@ -4,18 +4,12 @@ import { memberSignupValidation, signupValidation } from '../../util/zod';
 import prisma from '@repo/db';
 import { slugMaker } from '../../util/slug';
 import verifyGoogleToken from '../../util/oauth';
-import jwt from 'jsonwebtoken'
+import tokenGenerator from '../../util/token';
+import { sendVerificationEmail } from '../../util/mail';
 
-const SECRET = process.env.JWT_SECRET!;
 
 export const emailSignup = async (req: express.Request, res: express.Response)=>{
     try{
-        const token = req.headers.authorization?.split(' ')[1]!;
-        if(!token){
-            res.status(401).json("Token is Missing in the Auth Header");
-            return;
-        }
-        await jwt.verify(token,SECRET);
         const {email,password,name , orgName } = req.body;
         const inputValidation = signupValidation(name,email,password,orgName);
         if(!inputValidation){
@@ -31,37 +25,30 @@ export const emailSignup = async (req: express.Request, res: express.Response)=>
             res.status(401).json("User with this email already exists");
             return;
         }
+
         const hashedPassword = await hashPassword(password);
+        const emailToken = tokenGenerator();
+        const expiration = new Date();
+        expiration.setHours(expiration.getHours() + 1);
         const userCreation = await prisma.users.create({
             data : {
                 email,
                 name,
                 role : "OWNER",
-                password : hashedPassword
+                password : hashedPassword,
+                isVerified : false
             }
         });
-        const slug = slugMaker(orgName);
-        const organisationData = await prisma.organizations.create({
+        await prisma.emailVerificationToken.create({
             data : {
-                name : orgName,
-                owner_id : userCreation.id,
-                slug
-            }
-        });
-        await prisma.user_organizations.create({
-            data : {
-                organization_id : organisationData.id,
                 user_id : userCreation.id,
-                role : "OWNER"
+                token : emailToken,
+                expiration
             }
         });
-         req.session.user = {
-            userEmail : userCreation.email,
-            userId : userCreation.id,
-            userName : userCreation.name,
-            userRole : userCreation.role
-        }
-        res.status(200).json("User Signup Succesfull");
+        sendVerificationEmail(email , emailToken,orgName);
+
+        res.status(200).json("Email Sent Successfully");
     }
     catch(e){
         console.error(e);
@@ -72,12 +59,6 @@ export const emailSignup = async (req: express.Request, res: express.Response)=>
 
 export const googleSignup = async (req : express.Request, res : express.Response) => {
     try{
-       const token = req.headers.authorization?.split(' ')[1]!;
-        if(!token){
-            res.status(401).json("Token is Missing in the Auth Header");
-            return;
-        }
-        await jwt.verify(token,SECRET);
         const {googleId , orgName} = req.body;
         const payload = await verifyGoogleToken(googleId);
         if (!payload || !payload.email) {
@@ -100,6 +81,7 @@ export const googleSignup = async (req : express.Request, res : express.Response
                 email,
                 name,
                 role : "OWNER",
+                isVerified : true
             }
         });
         const slug = slugMaker(orgName);
@@ -159,7 +141,8 @@ export const memberSignup = async (req : express.Request, res : express.Response
             data : {
                 email,
                 name,
-                role : memberDetails.role
+                role : memberDetails.role,
+                isVerified : true
             }
         });
 

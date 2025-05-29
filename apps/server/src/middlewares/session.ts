@@ -2,7 +2,7 @@ import {redisSession} from "../services/redis-session";
 import {RedisStore } from 'connect-redis'
 import session, { Store } from 'express-session';
 
-const   SESSION_SERCRET = process.env.SESSION_SECRET!;
+const SESSION_SECRET = process.env.SESSION_SECRET!;
 
 const redisStore = new RedisStore({
     client : redisSession,
@@ -13,7 +13,7 @@ const redisStore = new RedisStore({
 
 const sessionMiddleware = session({
     store : redisStore as unknown as Store,
-    secret : SESSION_SERCRET,
+    secret : SESSION_SECRET,
     name : "sessionId",
     resave : false,
     saveUninitialized : false,
