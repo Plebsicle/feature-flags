@@ -51,7 +51,7 @@ export default function SignUpPage() {
 
     const success = signup(name, email, password);
     if (success) {
-      router.push("/auth/check-verify-email");
+      router.push("/organisation");
     } else {
       setError("Failed to create account. Please try again.")
     }

@@ -63,7 +63,7 @@ export async function sendEmail(to: string, subject: string, htmlContent: string
 
 export async function sendVerificationEmail(email: string, token: string, orgName: string) {
   try {
-    const verificationUrl = `${FRONTEND_URL}/check-email-verify-final?token=${token}&org=${encodeURIComponent(orgName)}`;
+    const verificationUrl = `${FRONTEND_URL}/auth/check-email-verify-final?token=${token}&org=${encodeURIComponent(orgName)}`;
     
     const htmlContent = `
       <!DOCTYPE html>
@@ -379,7 +379,7 @@ export async function sendResetPassword(email: string, token: string) {
 
 export async function sendVerificationEmailManualMailer(email: string, token: string) {
   try {
-    const verificationUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
+    const verificationUrl = `${FRONTEND_URL}/check-email-verify-final?token=${token}`;
     
     const htmlContent = `
       <!DOCTYPE html>
@@ -487,7 +487,7 @@ export async function sendVerificationEmailManualMailer(email: string, token: st
             <div class="divider"></div>
             
             <div class="security-note">
-              <strong>🔒 Security Note:</strong> This verification link will expire in 24 hours for your security. If you didn't create an account with us, you can safely ignore this email.
+              <strong>🔒 Security Note:</strong> This verification link will expire in 1 hour for your security. If you didn't create an account with us, you can safely ignore this email.
             </div>
           </div>
           
@@ -505,7 +505,7 @@ export async function sendVerificationEmailManualMailer(email: string, token: st
       
       Please verify your email address by clicking this link: ${verificationUrl}
       
-      This verification link will expire in 24 hours for your security.
+      This verification link will expire in 1 hour for your security.
       
       If you didn't create an account with us, you can safely ignore this email.
     `;

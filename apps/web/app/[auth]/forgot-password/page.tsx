@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import axios from "axios"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Mail, ArrowRight, ArrowLeft, KeyRound } from "lucide-react"
@@ -22,13 +23,12 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     setIsLoading(true)
     setMessage("")
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsLoading(false)
-
-    // On success (even if email doesn't exist, to prevent enumeration)
-    router.push("/auth/check-email-password-reset")
+    const results = await axios.post(`http://localhost:8000/auth/sendVerificationEmailForgetPassword`,{
+      email
+    });
+    if(results.status === 200){
+      router.push("/auth/check-email-password-reset");
+    }
   }
 
   const containerVariants = {

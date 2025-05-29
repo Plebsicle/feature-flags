@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         if(response.status === 200){
           // setup toasts here
-          console.log("Signup Successfull");
+          console.log("Email sent  Successfully");
         }
         else{
           console.log("Signup failed");

@@ -20,18 +20,24 @@ export default function OrganizationPage() {
   const router = useRouter()
 
   if (!partialSignupDetails) {
-    router.push("/signin")
+    router.push("/auth/signin")
     return null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const response = await completeSignup(organizationName);
-    if(response)
-    router.push("/dashboard");
+    const {googleToken} = partialSignupDetails;
+    if(!googleToken){
+       const response = await completeSignup(organizationName);
+      if(response)
+      router.push("/auth/check-email-verify");
+      else{
+        // add toast here 
+        console.log("Signup Failed");
+      }
+    }
     else{
-      // add toast here 
-      console.log("Signup Failed");
+      router.push(`/dashboard`);
     }
   }
 

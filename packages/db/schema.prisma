@@ -44,12 +44,12 @@ model users {
   sent_invitations    invitations[]
   owned_members       owner_members[]      @relation("OwnerMembers")
   member_of_owner     owner_members[]      @relation("MemberOfOwner")
-  emailVerificationToken emailVerificationToken?
+  emailVerificationToken emailVerificationToken[]
 }
 
 model emailVerificationToken {
   token_id   String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id    String      @unique @db.Uuid
+  user_id    String      @db.Uuid
   token      String      @unique
   expiration DateTime
   user       users     @relation(fields: [user_id], references: [id], onDelete: Cascade)

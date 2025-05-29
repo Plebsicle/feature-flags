@@ -2,15 +2,23 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { redirect, useRouter, useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft } from "lucide-react"
+import { Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft, CheckCircle, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import axios from "axios"
+
+const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
+  <li className={`flex items-center text-xs ${met ? "text-green-400" : "text-neutral-400"}`}>
+    {met ? <CheckCircle className="w-3 h-3 mr-1.5" /> : <XCircle className="w-3 h-3 mr-1.5" />}
+    {text}
+  </li>
+)
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
@@ -24,10 +32,24 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams()
   const token = searchParams?.get("token")
 
+  const passwordRequirements = {
+    minLength: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    specialChar: /[^A-Za-z0-9]/.test(password),
+    passwordsMatch: password === confirmPassword && password.length > 0 && confirmPassword.length > 0,
+  }
+  const allRequirementsMet = Object.values(passwordRequirements).every(Boolean)
+
   useEffect(() => {
     if (!token) {
       setError("Invalid or missing reset token. Please request a new password reset link.")
       // Optionally redirect or disable form
+      setTimeout(()=> {
+
+      },3000);
+      router.push('/auth/forgot-password');
     }
   }, [token])
 
@@ -44,19 +66,31 @@ export default function ResetPasswordPage() {
       setError("Passwords do not match.")
       return
     }
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.")
+    if (!allRequirementsMet) {
+      setError("Password does not meet all requirements.")
       return
     }
 
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setIsLoading(false)
+    
+    const results = await axios.post(`http://localhost:8000/auth/checkVerificationEmailForgetPassword`,{
+      password,token
+    });
+    if(results.status === 200){
+      // toast
 
-    // Mock success
-    setSuccessMessage("Your password has been reset successfully! You can now sign in.")
-    // router.push("/signin"); // Or redirect after a delay
+      setSuccessMessage("Your password has been reset successfully! You will be redirected to the Sigin Page");
+      setTimeout(()=>{
+        router.push('/auth/signin');
+      },3000);
+    }
+    else{
+      setError("Reset Password Failed");
+      setTimeout(()=> {
+
+      },3000);
+      router.push('/auth/forgot-password');
+    }
   }
 
   const containerVariants = {
@@ -109,6 +143,16 @@ export default function ResetPasswordPage() {
                     <Label htmlFor="password" className="text-sm font-medium text-neutral-300 dark:text-neutral-200">
                       New Password
                     </Label>
+                    <div className="mt-1 mb-2 p-3 bg-slate-700/30 dark:bg-neutral-700/30 rounded-md border border-slate-600/50 dark:border-neutral-600/50">
+                      <ul className="space-y-1">
+                        <PasswordRequirement met={passwordRequirements.minLength} text="At least 8 characters long" />
+                        <PasswordRequirement met={passwordRequirements.uppercase} text="1 uppercase letter (A-Z)" />
+                        <PasswordRequirement met={passwordRequirements.lowercase} text="1 lowercase letter (a-z)" />
+                        <PasswordRequirement met={passwordRequirements.number} text="1 number (0-9)" />
+                        <PasswordRequirement met={passwordRequirements.specialChar} text="1 special character (!@#$...)" />
+                        <PasswordRequirement met={passwordRequirements.passwordsMatch} text="Passwords match" />
+                      </ul>
+                    </div>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="relative">
@@ -122,6 +166,7 @@ export default function ResetPasswordPage() {
                             className="pl-10 pr-10 h-12 bg-slate-700/50 dark:bg-neutral-700/50 border-2 border-slate-600 dark:border-neutral-600 focus:border-green-500 transition-colors text-neutral-100 placeholder:text-neutral-400"
                             required
                             disabled={!token || isLoading}
+                            aria-describedby="password-requirements"
                           />
                           <button
                             type="button"
@@ -134,7 +179,7 @@ export default function ResetPasswordPage() {
                         </div>
                       </TooltipTrigger>
                       <TooltipContent side="right" className="bg-slate-700 text-neutral-200 border-slate-600">
-                        <p>Must be at least 8 characters.</p>
+                        <p>Choose a strong and secure password.</p>
                       </TooltipContent>
                     </Tooltip>
                   </motion.div>
@@ -181,7 +226,7 @@ export default function ResetPasswordPage() {
                   <motion.div variants={itemVariants}>
                     <Button
                       type="submit"
-                      disabled={isLoading || !password || !confirmPassword || !token}
+                      disabled={isLoading || !allRequirementsMet || !token}
                       className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-60"
                     >
                       {isLoading ? (

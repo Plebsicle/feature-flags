@@ -5,32 +5,30 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { Mail, ArrowRight, ArrowLeft, KeyRound } from "lucide-react"
+import axios from "axios"
+import { Mail, ArrowRight, ArrowLeft, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import axios from "axios"
 
-export default function VerifyEmail() {
+export default function RequestVerificationEmailPage() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState("")
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setMessage("")
 
-    const results = await axios.post(`/http://localhost:8000/auth/sendVerificationEmailManual`,{
+    const results = await axios.post(`http://localhost:8000/auth/sendVerificationEmailManual`,{
         email
     });
     
     if(results.status === 200){
         setIsLoading(false)
-        router.push("/auth/check-email-verify");
+        router.push("/auth/sigin");
     }
   }
 
@@ -54,7 +52,7 @@ export default function VerifyEmail() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-rose-900 to-pink-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-sky-900 to-cyan-900 flex items-center justify-center p-4">
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
           <Card className="bg-slate-800/70 dark:bg-neutral-800/70 backdrop-blur-xl border-slate-700/50 shadow-2xl">
             <CardHeader className="text-center pb-6 pt-8">
@@ -63,16 +61,16 @@ export default function VerifyEmail() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.1, type: "spring", stiffness: 180 }}
-                className="w-16 h-16 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4"
+                className="w-16 h-16 bg-gradient-to-r from-sky-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4"
               >
-                <KeyRound className="w-8 h-8 text-white" />
+                <Send className="w-8 h-8 text-white" />
               </motion.div>
               <motion.div variants={itemVariants}>
-                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent">
-                  Verify Email ?
+                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent">
+                  Resend Verification
                 </CardTitle>
                 <CardDescription className="text-neutral-400 dark:text-neutral-300 mt-2">
-                  No worries, we'll send you verification instructions.
+                  Enter your email to receive a new verification link.
                 </CardDescription>
               </motion.div>
             </CardHeader>
@@ -93,35 +91,22 @@ export default function VerifyEmail() {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="Enter your email"
-                          className="pl-10 h-12 bg-slate-700/50 dark:bg-neutral-700/50 border-2 border-slate-600 dark:border-neutral-600 focus:border-rose-500 transition-colors text-neutral-100 placeholder:text-neutral-400"
+                          className="pl-10 h-12 bg-slate-700/50 dark:bg-neutral-700/50 border-2 border-slate-600 dark:border-neutral-600 focus:border-sky-500 transition-colors text-neutral-100 placeholder:text-neutral-400"
                           required
                         />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="bg-slate-700 text-neutral-200 border-slate-600">
-                      <p>Enter the email associated with your account.</p>
+                      <p>The email you used during sign up.</p>
                     </TooltipContent>
                   </Tooltip>
                 </motion.div>
-
-                {message && (
-                  <motion.p
-                    variants={itemVariants}
-                    className={`text-sm p-3 rounded-md ${
-                      message.includes("Error")
-                        ? "bg-red-900/30 text-red-400 border border-red-700/50"
-                        : "bg-green-900/30 text-green-400 border border-green-700/50"
-                    }`}
-                  >
-                    {message}
-                  </motion.p>
-                )}
 
                 <motion.div variants={itemVariants}>
                   <Button
                     type="submit"
                     disabled={isLoading || !email}
-                    className="w-full h-12 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-60"
+                    className="w-full h-12 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-60"
                   >
                     {isLoading ? (
                       <motion.div
