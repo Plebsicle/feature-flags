@@ -46,7 +46,7 @@ export default function CheckEmailVerifyFinalPage() {
     else{
         // Signup Email Verification
         const fetchDetails = async ()=>{
-            const results = await axios.post(`http://localhost:8000/verifyEmailSignup`,{
+            const results = await axios.post(`http://localhost:8000/auth/verifyEmailSignup`,{
                 orgName,token
             });
             if(results.status === 200){

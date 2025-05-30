@@ -39,7 +39,7 @@ export default function SignInPage() {
   const handleGoogleSuccess = async (credentialResponse: {credential? : string})=> {
     try{
       const googleToken = credentialResponse.credential;
-      const response = await login(googleToken);
+      const response = await login(undefined,undefined,googleToken);
       if(response){
         router.push('/dashboard');
       }

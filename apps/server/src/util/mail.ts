@@ -521,3 +521,184 @@ export async function sendVerificationEmailManualMailer(email: string, token: st
     throw error; // Re-throw to allow proper error handling upstream
   }
 }
+
+export async function sendMemberSignupMails(email: string, token: string) {
+  try {
+    const signupUrl = `${FRONTEND_URL}/auth/info?token=${token}`;
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Complete Your Signup</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+          }
+          .email-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+          }
+          .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+          }
+          .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+          }
+          .content {
+            padding: 40px 30px;
+            text-align: center;
+          }
+          .message {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.8;
+          }
+          .signup-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            text-decoration: none;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            transition: transform 0.2s ease;
+          }
+          .signup-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+          }
+          .footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+          }
+          .footer p {
+            margin: 0;
+            font-size: 14px;
+            color: #6c757d;
+          }
+          .divider {
+            margin: 30px 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+          }
+          .info-note {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+            font-size: 14px;
+            color: #0c5460;
+          }
+          .steps {
+            text-align: left;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+          }
+          .steps h3 {
+            margin-top: 0;
+            color: #28a745;
+            text-align: center;
+          }
+          .steps ol {
+            margin: 0;
+            padding-left: 20px;
+          }
+          .steps li {
+            margin-bottom: 8px;
+            color: #555;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="email-container">
+          <div class="header">
+            <h1>🎉 Welcome to Our Community!</h1>
+          </div>
+          
+          <div class="content">
+            <div class="message">
+              <p>Congratulations! You've been invited to join as a member.</p>
+              <p>Click the button below to complete your signup and provide your information.</p>
+            </div>
+            
+            <a href="${signupUrl}" class="signup-button">
+              Complete Signup
+            </a>
+            
+            <div class="divider"></div>
+            
+            <div class="steps">
+              <h3>What's Next?</h3>
+              <ol>
+                <li>Click the "Complete Signup" button above</li>
+                <li>Fill out your profile information</li>
+                <li>Set up your account preferences</li>
+                <li>Start exploring your new member benefits!</li>
+              </ol>
+            </div>
+            
+            <div class="info-note">
+              <strong>ℹ️ Important:</strong> This signup link will expire in 7 days. Please complete your registration soon to ensure access to your account.
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; color: #28a745; margin-top: 10px;">${signupUrl}</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const textContent = `
+      Welcome to Our Community!
+      
+      Congratulations! You've been invited to join as a member.
+      
+      Please complete your signup by clicking this link: ${signupUrl}
+      
+      What's Next?
+      1. Click the signup link above
+      2. Fill out your profile information
+      3. Set up your account preferences
+      4. Start exploring your new member benefits!
+      
+      This signup link will expire in 7 days. Please complete your registration soon to ensure access to your account.
+    `;
+    
+    return await sendEmail(
+      email,
+      'Complete Your Member Signup',
+      htmlContent,
+      textContent
+    );
+  } catch (error) {
+    console.error('Error sending member signup email:', error);
+    throw error; // Re-throw to allow proper error handling upstream
+  }
+}

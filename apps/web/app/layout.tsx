@@ -7,7 +7,6 @@ import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
-const GoogleclientId = process.env.GOOGLE_CLIENT_ID!
 
 export default function RootLayout({
   children,

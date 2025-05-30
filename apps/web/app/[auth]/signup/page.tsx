@@ -57,11 +57,12 @@ export default function SignUpPage() {
     }
   }
 
-  const handleGoogleSuccess = (credentialResponse: { credential?: string }) =>{
+  const handleGoogleSuccess =  (credentialResponse: { credential?: string }) =>{
     try{
       const googleToken = credentialResponse.credential;
-      signup(googleToken);
-      router.push('/organisation');
+       const results = signup(undefined,undefined,undefined,googleToken);
+       if(results)
+        router.push('/organisation');
     }
     catch(e){
       setError("Failed to create account. Please try again.")

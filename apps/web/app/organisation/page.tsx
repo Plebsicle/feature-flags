@@ -26,19 +26,22 @@ export default function OrganizationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const {googleToken} = partialSignupDetails;
-    if(!googleToken){
+      const {googleToken} = partialSignupDetails;
+      console.log(googleToken);
        const response = await completeSignup(organizationName);
-      if(response)
-      router.push("/auth/check-email-verify");
+      if(response ){
+        if(googleToken)
+       { 
+        router.push("dashboard");
+       }
+        else {
+          router.push('/auth/check-email-verify');
+        }
+      }
       else{
         // add toast here 
         console.log("Signup Failed");
       }
-    }
-    else{
-      router.push(`/dashboard`);
-    }
   }
 
   const containerVariants = {
