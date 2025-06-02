@@ -21,6 +21,7 @@ model organizations {
   flags            feature_flags[]
   user_organizations user_organizations[]
   invitations      invitations[]
+  attributes       organization_attributes[]
   
   @@index([slug])
 }
@@ -107,6 +108,28 @@ model invitations {
   @@index([expires_at, is_used])
 }
 
+// Organization Attributes - Define custom attributes per organization
+model organization_attributes {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id String             @db.Uuid
+  attribute_name  String             @db.VarChar(255)
+  data_type       attribute_data_type
+  is_custom       Boolean            @default(true)
+  is_required     Boolean            @default(false)
+  default_value   Json?
+  validation_rules Json?             // For enum values, min/max, regex patterns, etc.
+  description     String?            @db.VarChar(500)
+  created_at      DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime           @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  organization    organizations      @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  
+  @@unique([organization_id, attribute_name])
+  @@index([organization_id, data_type])
+  @@index([organization_id, is_custom])
+}
+
 // Main Feature Flag Model
 model feature_flags {
   id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -157,7 +180,7 @@ model flag_rules {
   name                String            @db.VarChar(255)
   description         String?
   
-  // Rule conditions (user attributes, segments, etc.)
+  // Rule conditions - Now structured to work with typed attributes
   conditions          Json              @default("{}")
   
   // Value to return when rule matches (works for all flag types)
@@ -186,6 +209,9 @@ model flag_evaluations {
   
   // The evaluated result
   value           Json
+  
+  // User context used for evaluation (includes typed attributes)
+  user_context    Json             @default("{}")
   
   // Metadata about the evaluation
   reason          String           @db.VarChar(100)  // "rule_match", "default", "percentage", etc.
@@ -232,7 +258,9 @@ model audit_logs {
 // Enums
 enum flag_type {
   BOOLEAN
-  PERCENTAGE
+  STRING
+  NUMBER
+  JSON
   AB_TEST  
   KILL_SWITCH
   MULTIVARIATE   
@@ -265,4 +293,15 @@ enum audit_resource_type {
   FEATURE_FLAG
   FLAG_ENVIRONMENT  
   FLAG_RULE
+  ORGANIZATION_ATTRIBUTE
+}
+
+// New enum for attribute data types
+enum attribute_data_type {
+  STRING
+  NUMBER
+  BOOLEAN
+  DATE
+  SEMVER
+  ARRAY
 }
