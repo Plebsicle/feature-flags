@@ -15,6 +15,13 @@ export const emailSignin = async (req: express.Request, res: express.Response) =
         const doesUserExist = await prisma.users.findUnique({
             where : {
                 email
+            },
+            select : {
+                id : true,
+                isVerified : true,
+                password : true,
+                name : true,
+                role : true
             }
         });
         if(!doesUserExist){
@@ -34,7 +41,25 @@ export const emailSignin = async (req: express.Request, res: express.Response) =
             res.status(401).json("Incorrect Password");
             return;
         }
-        req.session.user = {userId : doesUserExist.id , userName : doesUserExist.name , userEmail : email , userRole : doesUserExist.role};
+        const orgDetails = await prisma.user_organizations.findUnique({
+            where : {
+                user_id : doesUserExist.id
+            },
+            select : {
+                organization_id : true
+            }
+        });
+        if(!orgDetails){
+            res.status(401).json("Org Details Not Found");
+            return;
+        }
+        req.session.user = {
+            userId : doesUserExist.id ,
+            userName : doesUserExist.name , 
+            userEmail : email , 
+            userRole : doesUserExist.role,
+            userOrganisationId : orgDetails.organization_id
+        };
         res.status(200).json("User Signin Succesfull");
     }
     catch(e){
@@ -61,14 +86,35 @@ export const googleSignin = async (req: express.Request, res: express.Response) 
         const doesUserExist = await prisma.users.findUnique({
             where : {
                 email
+            }, 
+            select : {
+                id : true,
+                password : true,
+                name : true,
+                role : true
             }
         });
         if(!doesUserExist){
             res.status(401).json("User does not Exist");
             return;
         }
-        req.session.user = {userId : doesUserExist.id , userEmail : doesUserExist.email , 
-            userRole : doesUserExist.role , userName : doesUserExist.name
+         const orgDetails = await prisma.user_organizations.findUnique({
+            where : {
+                user_id : doesUserExist.id
+            },
+            select : {
+                organization_id : true
+            }
+        });
+        if(!orgDetails){
+            res.status(401).json("Org Details Not Found");
+            return;
+        }
+        req.session.user = {userId : doesUserExist.id , 
+            userEmail : email , 
+            userRole : doesUserExist.role ,
+            userName : doesUserExist.name ,
+            userOrganisationId : orgDetails.organization_id
         }
         res.status(200).json("User Signin Succesfull");
     }

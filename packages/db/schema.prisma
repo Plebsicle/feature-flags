@@ -160,7 +160,7 @@ model flag_environments {
   id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flag_id     String           @db.Uuid
   environment environment_type
-  is_enabled  Boolean          @default(false)
+  is_enabled  Boolean          @default(true)
   
   created_at  DateTime         @default(now()) @db.Timestamptz(6)
   updated_at  DateTime         @default(now()) @db.Timestamptz(6)
@@ -186,9 +186,7 @@ model flag_rules {
   
   // Value to return when rule matches (works for all flag types)
   value               Json
-  
-  // Rule priority (higher = evaluated first)
-  priority            Int               @default(0)
+
   is_enabled          Boolean           @default(true)
   
   created_at          DateTime          @default(now()) @db.Timestamptz(6)
@@ -196,8 +194,7 @@ model flag_rules {
   
   // Relations
   flag_environment    flag_environments @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
-  
-  @@index([flag_environment_id, priority])
+
   @@index([flag_environment_id, is_enabled])
 }
 
@@ -206,12 +203,9 @@ model flag_rollout {
   flag_environment_id   String            @db.Uuid @unique
   type                  rollout_type
   config                Json
-  duration_end          DateTime? 
   created_at            DateTime          @default(now()) @db.Timestamptz(6)
   updated_at            DateTime          @default(now()) @db.Timestamptz(6)
   flag_rollout_environment flag_environments @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
-
-  @@index([duration_end])
 } 
 
 // Flag evaluation results (caching and analytics)
@@ -251,9 +245,7 @@ model audit_logs {
   action           audit_action
   resource_type    audit_resource_type  // Which table was changed
   resource_id      String?              @db.Uuid
-  field_changed    String?              @db.VarChar(100)  // Which specific field was modified
-  old_value        Json?
-  new_value        Json?
+  attributes_changed Json? 
   environment      environment_type?
   ip_address       String?              @db.Inet
   user_agent       String?              @db.Text         // Browser/client info

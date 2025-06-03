@@ -2,7 +2,8 @@
   "name": "@repo/db",
   "version": "1.0.0",
   "exports": {
-    ".": "./index.ts"
+    ".": "./index.ts",
+    "./client" : "./node_modules/@prisma/client/index.js"
   },
   "devDependencies": {
     "@types/node": "^22.15.3"

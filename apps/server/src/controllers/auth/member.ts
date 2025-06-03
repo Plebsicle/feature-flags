@@ -48,8 +48,12 @@ export const memberSignupVerification = async (req:express.Request , res : expre
                 isVerified : true,
                 role : findToken.role,
                 password : hashedPassword
+            },
+            select : {
+                name : true, role: true , email :true , id : true
             }
         });
+        
         await prisma.user_organizations.create({
             data : {
                 user_id : member.id,
@@ -67,7 +71,8 @@ export const memberSignupVerification = async (req:express.Request , res : expre
             userEmail : member.email,
             userId : member.id,
             userName : member.name,
-            userRole : member.role
+            userRole : member.role,
+            userOrganisationId : findToken.organization_id
         }
         res.status(200).json("Member Signup Succesfull");
     }

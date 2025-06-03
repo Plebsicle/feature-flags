@@ -64,7 +64,8 @@ export const verifyEmailSignup = async (req:express.Request , res : express.Resp
             userEmail : userCreation.email,
             userId : userCreation.id,
             userName : userCreation.name,
-            userRole : userCreation.role
+            userRole : userCreation.role,
+            userOrganisationId : organisationData.id
         }
         res.status(200).json('User Verification Succesfully');
 

@@ -6,9 +6,11 @@ import express from 'express'
 import { Express } from 'express';
 import cors from 'cors'
 import helmet from 'helmet';
-import corsConfiguration from './cors-config/cors';
+import corsConfiguration from './config/cors';
 import { sessionMiddleware } from './middlewares/session';
+// Route Imports
 import authRoutes from './routes/auth/auth'
+import flagRoutes from './routes/flags/flag'
 
 
 // Standard Contansts for express application
@@ -24,6 +26,7 @@ app.use(sessionMiddleware);
 
 //Routes
 app.use('/auth',authRoutes);
+app.use('/flag',flagRoutes);
 
 
 //Security Measure

@@ -1,6 +1,6 @@
 import express from 'express'
 import { hashPassword } from "../../util/hashing"
-import { memberSignupValidation, signupValidation } from '../../util/zod';
+import { signupValidation } from '../../util/zod';
 import prisma from '@repo/db';
 import { slugMaker } from '../../util/slug';
 import verifyGoogleToken from '../../util/oauth';
@@ -103,7 +103,8 @@ export const googleSignup = async (req : express.Request, res : express.Response
             userEmail : userCreation.email,
             userId : userCreation.id,
             userName : userCreation.name,
-            userRole : userCreation.role
+            userRole : userCreation.role,
+            userOrganisationId : organisationData.id
         }
         res.status(200).json("User Signup Succesfull");
     }
