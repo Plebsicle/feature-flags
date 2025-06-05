@@ -1,0 +1,10 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "name" : "@repo/types",
+    "version" : "1.0.0",
+    "exports" : {
+        "./attributeConfig" : "./attribute-config.ts",
+        "./rolloutConfig" : "./rollout-config.ts",
+        "./ruleConfig" : "./rule-config.ts"
+    }
+}

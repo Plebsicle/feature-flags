@@ -1,7 +1,7 @@
 import prisma from '@repo/db';
 import express from 'express';
-import { BASE_ATTRIBUTES, DataType } from '../../config/attribute-config';
-import { Conditions } from '../../config/rule-config';
+import { BASE_ATTRIBUTES, DataType } from '../../../../../packages/config-types/attribute-config';
+import { Conditions } from '../../../../../packages/config-types/rule-config';
 
 // Helper function to extract custom attributes from conditions
 const extractCustomAttributes = (conditions: Conditions): Array<{ name: string, type: DataType }> => {

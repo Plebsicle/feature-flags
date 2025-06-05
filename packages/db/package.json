@@ -1,12 +1,13 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "@repo/db",
   "version": "1.0.0",
   "exports": {
     ".": "./index.ts",
-    "./client" : "./node_modules/@prisma/client/index.js"
+    "./client": "./node_modules/@prisma/client/index.js"
   },
   "devDependencies": {
-    "@types/node": "^22.15.3"
+    "@types/node": "^22.15.29"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",

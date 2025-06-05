@@ -1,4 +1,5 @@
-import prisma from "@repo/db";
+import prisma from "../db/index";
+
 const OPERATORS_BY_TYPE = {
   STRING: [
     'equals', 'not_equals', 'contains', 'not_contains', 

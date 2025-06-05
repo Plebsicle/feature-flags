@@ -250,7 +250,7 @@ model audit_logs {
   ip_address       String?              @db.Inet
   user_agent       String?              @db.Text         // Browser/client info
   created_at       DateTime             @default(now()) @db.Timestamptz(6)
-  
+
   // Relations
   flag             feature_flags?       @relation(fields: [flag_id], references: [id])
   user             users?               @relation(fields: [user_id], references: [id])
