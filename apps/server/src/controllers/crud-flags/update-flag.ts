@@ -17,6 +17,13 @@ const extractAuditInfo = (req: express.Request) => {
 // 1. UPDATE FEATURE FLAG ROUTE
 export const updateFeatureFlag = async (req: express.Request, res: express.Response) => {
     try {
+
+        const role = req.session.user?.userRole;
+         if(role === "VIEWER"){
+            res.status(401).json({success : false,message : "Role is not Sufficient"});
+            return;
+        }
+
         const {
             flagId,           // FF
             flagDescription,  // FF
@@ -30,10 +37,11 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
 
         // Input validation
         if (!flagId) {
-            return res.status(400).json({
+             res.status(400).json({
                 success: false,
                 message: "Flag ID is required"
             });
+            return;
         }
 
         // Prepare updates object
@@ -43,10 +51,11 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
         if(tags !== undefined) featureFlagUpdates['tags'] = tags
 
         if (Object.keys(featureFlagUpdates).length === 0) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: "No valid fields to update"
             });
+            return ;
         }
 
         const result = await prisma.$transaction(async (tx) => {
@@ -110,6 +119,12 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
 // 2. UPDATE FLAG RULE ROUTE
 export const updateFlagRule = async (req: express.Request, res: express.Response) => {
     try {
+        const role = req.session.user?.userRole;
+         if(role === "VIEWER"){
+            res.status(401).json({success : false,message : "Role is not Sufficient"});
+            return;
+        }
+
         const {
             flagRuleId,       // FR
             ruleDescription,  // FR
@@ -126,10 +141,11 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
 
         // Input validation
         if (!flagRuleId) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: "Flag Rule ID is required"
             });
+            return ;
         }
 
         // Prepare updates object
@@ -148,10 +164,11 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
         if (value !== undefined) flagRuleUpdates['value'] = value;
 
         if (Object.keys(flagRuleUpdates).length === 0) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: "No valid fields to update"
             });
+            return ;
         }
 
         const result = await prisma.$transaction(async (tx) => {
@@ -230,6 +247,12 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
 // 3. UPDATE FLAG ROLLOUT ROUTE
 export const updateFlagRollout = async (req: express.Request, res: express.Response) => {
     try {
+        const role = req.session.user?.userRole;
+         if(role === "VIEWER"){
+            res.status(401).json({success : false,message : "Role is not Sufficient"});
+            return;
+        }
+
         const {
             rollout_id,       // FRout
             rollout_type,     // FRout
@@ -243,10 +266,11 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
 
         // Input validation
         if (!rollout_id) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: "Rollout ID is required"
             });
+            return;
         }
 
         // Prepare updates object
@@ -255,10 +279,11 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
         if (rollout_type !== undefined) flagRolloutUpdates['type'] = rollout_type;
 
         if (Object.keys(flagRolloutUpdates).length === 0) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: "No valid fields to update"
             });
+            return;
         }
 
         const result = await prisma.$transaction(async (tx) => {
@@ -321,7 +346,7 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
             message: "Flag rollout updated successfully",
             data: result
         });
-
+        return;
     } catch (error) {
         console.error('Error updating flag rollout:', error);
         res.status(500).json({
@@ -331,12 +356,3 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
     }
 };
 
-// ROUTE DEFINITIONS FOR EXPRESS ROUTER
-// You can use these in your router file like this:
-/*
-import { updateFeatureFlag, updateFlagRule, updateFlagRollout } from './flagRoutes';
-
-router.put('/feature-flags/:flagId', updateFeatureFlag);
-router.put('/flag-rules/:flagRuleId', updateFlagRule);
-router.put('/flag-rollouts/:rolloutId', updateFlagRollout);
-*/

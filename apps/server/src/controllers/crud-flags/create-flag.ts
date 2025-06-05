@@ -68,6 +68,13 @@ const insertCustomAttributes = async (tx: any, organizationId: string, customAtt
 
 export const createFlag = async (req: express.Request, res: express.Response) => {
     try {
+
+        const role = req.session.user?.userRole;
+        if(role === "VIEWER"){
+            res.status(401).json({success : false,message : "Role is not Sufficient"});
+            return;
+        }
+
         const organisationId = req.session.user?.userOrganisationId!;
         const userId = req.session.user?.userId!;
         
@@ -333,7 +340,7 @@ export const addEnvironment = async (req : express.Request , res : express.Respo
         });
 
     } catch (e) {
-        console.error('Error creating feature flag:', e);
+        console.error('Error Adding New EnvironMent:', e);
         res.status(500).json({
             success: false,
             message: "Internal Server Error"

@@ -84,7 +84,12 @@ export const memberSignupVerification = async (req:express.Request , res : expre
 
 export const memberSignupSendInvitation = async (req: express.Request, res: express.Response) => {
     try {
-        const { emails, role } = req.body;
+        const role = req.session.user?.userRole;
+        if(role !== "OWNER"){
+            res.status(401).json("Only Owner Can Invite memebers");
+            return;
+        }
+        const { emails } = req.body;
 
         if (!Array.isArray(emails)) {
              res.status(401).json("Invalid Inputs");
