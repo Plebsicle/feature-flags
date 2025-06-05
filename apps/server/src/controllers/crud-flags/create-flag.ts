@@ -1,7 +1,16 @@
 import prisma from '@repo/db';
 import express from 'express';
-import { BASE_ATTRIBUTES, DataType } from '../../../../../packages/config-types/attribute-config';
-import { Conditions } from '../../../../../packages/config-types/rule-config';
+import { DataType } from '@repo/types/attribute-config';
+import { Conditions } from '@repo/types/rule-config';
+
+const BASE_ATTRIBUTES = {
+  email: { type: 'STRING', description: 'User email address' },
+  country: { type: 'STRING', description: 'User country code' },
+  region: { type: 'STRING', description: 'User region' },
+  ip: { type: 'STRING', description: 'User IP address' },
+  userId: { type: 'STRING', description: 'Unique user identifier' },
+  timestamp: { type: 'DATE', description: 'Request timestamp' }
+} as const;
 
 // Helper function to extract custom attributes from conditions
 const extractCustomAttributes = (conditions: Conditions): Array<{ name: string, type: DataType }> => {
@@ -14,26 +23,9 @@ const extractCustomAttributes = (conditions: Conditions): Array<{ name: string, 
     
     conditions.forEach(condition => {
         if (condition.attribute_name && !baseAttributeNames.includes(condition.attribute_name)) {
-            // Determine type based on values or default to STRING
-            let type: DataType = 'STRING';
-            
-            if (condition.attribute_values && condition.attribute_values.length > 0) {
-                const firstValue = condition.attribute_values[0];
-                if (typeof firstValue === 'number') {
-                    type = 'NUMBER';
-                } else if (typeof firstValue === 'boolean') {
-                    type = 'BOOLEAN';
-                } else if (Array.isArray(firstValue)) {
-                    type = 'ARRAY';
-                } else if (firstValue instanceof Date || 
-                           (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue)))) {
-                    type = 'DATE';
-                }
-            }
-            
             customAttributes.push({
                 name: condition.attribute_name,
-                type: type
+                type: condition.attribute_type
             });
         }
     });
@@ -98,7 +90,8 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
             conditions,
             value,
             rollout_type,
-            rollout_config
+            rollout_config,
+            tags
         } = req.body;
 
         // Extract custom attributes from conditions
@@ -118,7 +111,8 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                     key,
                     name: flagName,
                     organization_id: organisationId,
-                    created_by: userId
+                    created_by: userId,
+                    tags: tags && Array.isArray(tags) ? tags : []
                 },
                 select: {
                     id: true
@@ -345,4 +339,4 @@ export const addEnvironment = async (req : express.Request , res : express.Respo
             message: "Internal Server Error"
         });
     }
-};
+};  

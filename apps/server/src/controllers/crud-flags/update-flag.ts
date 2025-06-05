@@ -21,7 +21,7 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
             flagId,           // FF
             flagDescription,  // FF
             isActive,         // FF
-            environment,      // For audit logging
+            tags
         } = req.body;
 
         // Get user_id from session
@@ -37,9 +37,10 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
         }
 
         // Prepare updates object
-        const featureFlagUpdates: { description?: string, is_active?: boolean } = {};
+        const featureFlagUpdates: { description?: string, is_active?: boolean,tags? : string[] } = {};
         if (flagDescription !== undefined) featureFlagUpdates['description'] = flagDescription;
         if (isActive !== undefined) featureFlagUpdates['is_active'] = isActive;
+        if(tags !== undefined) featureFlagUpdates['tags'] = tags
 
         if (Object.keys(featureFlagUpdates).length === 0) {
             return res.status(400).json({
@@ -83,7 +84,6 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
                     resource_type: 'FEATURE_FLAG',
                     resource_id: flagId,
                     attributes_changed: attributesChanged,
-                    environment: environment || null,
                     ip_address: ip,
                     user_agent: userAgent
                 }
