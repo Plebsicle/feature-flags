@@ -1,70 +1,8 @@
 import prisma from '@repo/db';
 import express from 'express';
-import { DataType } from '@repo/types/attribute-config';
 import { Conditions } from '@repo/types/rule-config';
-
-const BASE_ATTRIBUTES = {
-  email: { type: 'STRING', description: 'User email address' },
-  country: { type: 'STRING', description: 'User country code' },
-  region: { type: 'STRING', description: 'User region' },
-  ip: { type: 'STRING', description: 'User IP address' },
-  userId: { type: 'STRING', description: 'Unique user identifier' },
-  timestamp: { type: 'DATE', description: 'Request timestamp' }
-} as const;
-
-// Helper function to extract custom attributes from conditions
-const extractCustomAttributes = (conditions: Conditions): Array<{ name: string, type: DataType }> => {
-    if (!conditions || !Array.isArray(conditions)) {
-        return [];
-    }
-    
-    const customAttributes: Array<{ name: string, type: DataType }> = [];
-    const baseAttributeNames = Object.keys(BASE_ATTRIBUTES);
-    
-    conditions.forEach(condition => {
-        if (condition.attribute_name && !baseAttributeNames.includes(condition.attribute_name)) {
-            customAttributes.push({
-                name: condition.attribute_name,
-                type: condition.attribute_type
-            });
-        }
-    });
-    
-    // Remove duplicates
-    const uniqueAttributes = customAttributes.filter((attr, index, self) => 
-        index === self.findIndex(a => a.name === attr.name)
-    );
-    
-    return uniqueAttributes;
-};
-
-// Helper function to insert custom attributes
-const insertCustomAttributes = async (tx: any, organizationId: string, customAttributes: Array<{ name: string, type: DataType }>) => {
-    if (customAttributes.length === 0) return;
-    
-    // Use upsert to handle duplicates gracefully
-    for (const attr of customAttributes) {
-        await tx.organization_attributes.upsert({
-            where: {
-                organization_id_attribute_name: {
-                    organization_id: organizationId,
-                    attribute_name: attr.name
-                }
-            },
-            update: {
-                updated_at: new Date()
-            },
-            create: {
-                organization_id: organizationId,
-                attribute_name: attr.name,
-                data_type: attr.type,
-                is_custom: true,
-                is_required: false,
-                description: `Custom attribute: ${attr.name}`
-            }
-        });
-    }
-};
+import { extractCustomAttributes } from '../../util/extract-attributes';
+import { insertCustomAttributes } from '../../util/insert-custom-attribute';
 
 export const createFlag = async (req: express.Request, res: express.Response) => {
     try {
@@ -162,12 +100,12 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                     }
                 })
             ]);
-
+            const organisation_id = req.session.user?.userOrganisationId;
             // Batch insert audit logs - single operation instead of 4 separate ones
             await tx.audit_logs.createMany({
                 data: [
                     {
-                        flag_id: flagCreationResponse.id,
+                        organisation_id: organisation_id,
                         user_id: userId,
                         action: "CREATE",
                         resource_type: "FEATURE_FLAG",
@@ -177,31 +115,34 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                         user_agent: userAgent
                     },
                     {
-                        flag_id: flagCreationResponse.id,
+                        organisation_id: organisation_id,
                         user_id: userId,
                         environment,
                         ip_address: ip,
                         user_agent: userAgent,
                         action: "CREATE",
-                        resource_type: "FLAG_ENVIRONMENT"
+                        resource_type: "FLAG_ENVIRONMENT",
+                        resource_id : environmentFlagResponse.id
                     },
                     {
-                        flag_id: flagCreationResponse.id,
+                        organisation_id: organisation_id,
                         user_id: userId,
                         environment,
                         ip_address: ip,
                         user_agent: userAgent,
                         action: "CREATE",
-                        resource_type: "FLAG_RULE"
+                        resource_type: "FLAG_RULE",
+                        resource_id : flagRulesCreation.id
                     },
                     {
-                        flag_id: flagCreationResponse.id,
+                        organisation_id: organisation_id,
                         user_id: userId,
                         environment,
                         ip_address: ip,
                         user_agent: userAgent,
                         action: "CREATE",
-                        resource_type: "FLAG_ROLLOUT"
+                        resource_type: "FLAG_ROLLOUT",
+                        resource_id : flagRolloutCreation.id
                     }
                 ]
             });
@@ -229,7 +170,7 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
 };
 
 
-export const addEnvironment = async (req : express.Request , res : express.Response)=>{
+export const createEnvironment = async (req : express.Request , res : express.Response)=>{
     try {
         const userId = req.session.user?.userId!;
         const organisationId = req.session.user?.userOrganisationId!;
@@ -295,12 +236,12 @@ export const addEnvironment = async (req : express.Request , res : express.Respo
                     }
                 })
             ]);
-
+            const organisation_id = req.session.user?.userOrganisationId;
             // Batch insert audit logs - single operation instead of separate ones
             await tx.audit_logs.createMany({
                 data: [
                     {
-                        flag_id: flag_id,
+                        organisation_id: organisation_id,
                         user_id: userId,
                         environment,
                         ip_address: ip,
@@ -309,7 +250,7 @@ export const addEnvironment = async (req : express.Request , res : express.Respo
                         resource_type: "FLAG_ENVIRONMENT"
                     },
                     {
-                        flag_id: flag_id,
+                        organisation_id: organisation_id,
                         user_id: userId,
                         environment,
                         ip_address: ip,
@@ -318,7 +259,7 @@ export const addEnvironment = async (req : express.Request , res : express.Respo
                         resource_type: "FLAG_RULE"
                     },
                     {
-                        flag_id: flag_id,
+                        organisation_id: organisation_id,
                         user_id: userId,
                         environment,
                         ip_address: ip,

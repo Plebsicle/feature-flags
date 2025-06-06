@@ -34,11 +34,11 @@ export const deleteFeatureFlag = async (req: express.Request, res: express.Respo
         const deleteFlag = await prisma.feature_flags.delete({
             where: { id: flagId }
         });
-
+        const organisationId = req.session.user?.userOrganisationId;
         // Create audit log entry
         await prisma.audit_logs.create({
             data: {
-                flag_id: flagId,
+                organisation_id: organisationId,
                 user_id: userId,
                 action: 'DELETE',
                 resource_type: 'FEATURE_FLAG',
@@ -93,11 +93,11 @@ export const deleteEnvironment = async (req: express.Request, res: express.Respo
         const deleteEnvironment = await prisma.flag_environments.delete({
             where: { id: environmentId }
         });
-
+        const organisationId = req.session.user?.userOrganisationId;
         // Create audit log entry
         await prisma.audit_logs.create({
             data: {
-                flag_id: environmentToDelete.flag_id,
+                organisation_id: organisationId,
                 user_id: userId,
                 action: 'DELETE',
                 resource_type: 'FLAG_ENVIRONMENT',
@@ -155,11 +155,11 @@ export const deleteRule = async (req: express.Request, res: express.Response) =>
         const deleteRule = await prisma.flag_rules.delete({
             where: { id: ruleId }
         });
-
+        const organisation_id = req.session.user?.userOrganisationId;
         // Create audit log entry
         await prisma.audit_logs.create({
             data: {
-                flag_id: ruleToDelete.flag_environment.flag.id,
+                organisation_id: organisation_id,
                 user_id: userId,
                 action: 'DELETE',
                 resource_type: 'FLAG_RULE',

@@ -105,10 +105,11 @@ export const getAuditLogs = async (req : express.Request,res : express.Response)
             res.status(401).json({success : false,message : "Role is not Sufficient"});
             return;
         } 
+        const organisation_id = req.session.user?.userOrganisationId;
         const flagId = req.params.flagId;
         const auditLogs = await prisma.audit_logs.findMany({
             where : {
-                flag_id : flagId
+                organisation_id : organisation_id
             }
         });
         res.status(200).json({data : auditLogs, success : true , message : "Audit Logs for Flag fetched successfuly"});

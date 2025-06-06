@@ -1,7 +1,9 @@
 import express from 'express'
 import prisma from '@repo/db';
 import { rollout_type } from '@repo/db/node_modules/@prisma/client'
-
+import { Conditions } from '@repo/types/rule-config';
+import { extractCustomAttributes } from '../../util/extract-attributes';
+import { insertCustomAttributes } from '../../util/insert-custom-attribute';
 
 // Helper function to extract IP and User Agent
 const extractAuditInfo = (req: express.Request) => {
@@ -13,6 +15,7 @@ const extractAuditInfo = (req: express.Request) => {
     
     return { ip, userAgent };
 };
+
 
 // 1. UPDATE FEATURE FLAG ROUTE
 export const updateFeatureFlag = async (req: express.Request, res: express.Response) => {
@@ -85,9 +88,10 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
             });
 
             // Create audit log
+            const organisation_id = req.session.user?.userOrganisationId;
             await tx.audit_logs.create({
                 data: {
-                    flag_id: flagId,
+                    organisation_id: organisation_id,
                     user_id: user_id || null,
                     action: 'UPDATE',
                     resource_type: 'FEATURE_FLAG',
@@ -135,8 +139,9 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
             environment,      // For audit logging
         } = req.body;
 
-        // Get user_id from session
+        // Get user_id and organisation_id from session
         const user_id = req.session?.user?.userId;
+        const organisationId = req.session?.user?.userOrganisationId!;
         const { ip, userAgent } = extractAuditInfo(req);
 
         // Input validation
@@ -147,7 +152,10 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
             });
             return ;
         }
-
+        console.log(conditions);
+        // Extract custom attributes from conditions if present
+        const customAttributes = conditions ? extractCustomAttributes(conditions as Conditions) : [];
+        console.log(customAttributes);
         // Prepare updates object
         const flagRuleUpdates: {
             description?: string,
@@ -172,6 +180,11 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
         }
 
         const result = await prisma.$transaction(async (tx) => {
+            // Insert custom attributes first if conditions are being updated
+            if (customAttributes.length > 0) {
+                await insertCustomAttributes(tx, organisationId, customAttributes);
+            }
+
             // Get current values before update
             const currentFlagRule = await tx.flag_rules.findUnique({
                 where: { id: flagRuleId },
@@ -212,9 +225,10 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
             });
 
             // Create audit log
+            const organisation_id = req.session.user?.userOrganisationId;
             await tx.audit_logs.create({
                 data: {
-                    flag_id: actualFlagId,
+                    organisation_id: organisation_id,
                     user_id: user_id || null,
                     action: 'UPDATE',
                     resource_type: 'FLAG_RULE',
@@ -324,9 +338,10 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
             });
 
             // Create audit log
+            const organisation_id = req.session.user?.userOrganisationId;
             await tx.audit_logs.create({
                 data: {
-                    flag_id: actualFlagId,
+                    organisation_id: organisation_id,
                     user_id: user_id || null,
                     action: 'UPDATE',
                     resource_type: 'FLAG_ROLLOUT',

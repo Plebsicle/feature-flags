@@ -22,7 +22,8 @@ model organizations {
   user_organizations user_organizations[]
   invitations      invitations[]
   attributes       organization_attributes[]
-  
+  audit_logs          audit_logs[]              @relation("OrgAuditLogs")
+
   @@index([slug])
 }
 
@@ -148,7 +149,6 @@ model feature_flags {
   creator         users         @relation("FlagCreator", fields: [created_by], references: [id])
   environments    flag_environments[]
   evaluations     flag_evaluations[]
-  audit_logs      audit_logs[]
   
   @@unique([organization_id, key])
   @@index([organization_id, key])
@@ -240,7 +240,7 @@ model flag_evaluations {
 // Unified audit log
 model audit_logs {
   id               String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id          String?              @db.Uuid
+  organisation_id  String?              @db.Uuid
   user_id          String?              @db.Uuid
   action           audit_action
   resource_type    audit_resource_type  // Which table was changed
@@ -252,10 +252,10 @@ model audit_logs {
   created_at       DateTime             @default(now()) @db.Timestamptz(6)
 
   // Relations
-  flag             feature_flags?       @relation(fields: [flag_id], references: [id])
+  org                 organizations?            @relation("OrgAuditLogs", fields: [organisation_id], references: [id])
   user             users?               @relation(fields: [user_id], references: [id])
   
-  @@index([flag_id, created_at])
+  @@index([organisation_id, created_at])
   @@index([user_id, created_at])
   @@index([action, created_at])
   @@index([resource_type, created_at])
