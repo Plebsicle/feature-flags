@@ -28,11 +28,17 @@ export const sendVerificationEmailForgetPassword = async  (req : express.Request
             }
         });
         await sendResetPassword(email,emailToken);
-        res.status(200).json("Email Sent Succesfully");
-}
-    catch(e){
+         res.status(200).json({
+            success: true,
+            message: "Email Sent Succesfully"
+        });
+    }
+   catch(e){
         console.error(e);
-        res.status(500).json("Internal Server Error");
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 }
 
@@ -65,10 +71,17 @@ export const checkVerificationEmailForgetPassword = async (req : express.Request
                 password : hashedPassword
             }
         });
-        res.status(200).json("Password Updated Succesfully");
+         res.status(200).json({
+            success: true,
+            message: "Password Updated Succesfully",
+            data: result
+        });
     }
     catch(e){
         console.error(e);
-        res.status(500).json("Internal Server Error");
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 }

@@ -60,12 +60,17 @@ export const emailSignin = async (req: express.Request, res: express.Response) =
             userRole : doesUserExist.role,
             userOrganisationId : orgDetails.organization_id
         };
-        res.status(200).json("User Signin Succesfull");
+        res.status(200).json({
+            success: true,
+            message: "Signin with Email Succesfull"
+        });
     }
     catch(e){
         console.error(e);
-        res.status(500).json("Internal server error");
-
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 }
 
@@ -116,10 +121,16 @@ export const googleSignin = async (req: express.Request, res: express.Response) 
             userName : doesUserExist.name ,
             userOrganisationId : orgDetails.organization_id
         }
-        res.status(200).json("User Signin Succesfull");
+        res.status(200).json({
+            success: true,
+            message: "Signin With Google Succesfull",
+        });
     }
     catch(e){
         console.error(e);
-        res.status(500).json("Internal server error");
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 }

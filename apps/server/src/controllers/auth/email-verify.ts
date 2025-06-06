@@ -67,12 +67,18 @@ export const verifyEmailSignup = async (req:express.Request , res : express.Resp
             userRole : userCreation.role,
             userOrganisationId : organisationData.id
         }
-        res.status(200).json('User Verification Succesfully');
+         res.status(200).json({
+            success: true,
+            message: "User Verification Succesfull"
+        });
 
      }   
     catch(e){
         console.error(e);
-        res.status(500).json("Internal Server Error");
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 }
 
@@ -100,11 +106,17 @@ export const verifyEmailManual = async (req : express.Request , res:express.Resp
                 isVerified : true
             }
         });
-        res.status(401).json("User Verified Succesfully");
+         res.status(200).json({
+            success: true,
+            message: "User Verified Succesfully"
+        });
     }
     catch(e){
         console.error(e);
-        res.status(500).json("Internal Server Error");
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 }
 
@@ -133,11 +145,17 @@ export const sendVerificationEmailManual = async (req : express.Request , res : 
             }
         });
         await sendVerificationEmailManualMailer(email,emailToken);
-        res.status(200).json("Email Sent Succesfully");
+         res.status(200).json({
+            success: true,
+            message: "Email Sent Succesfully"
+        });
     }
     catch(e){
         console.error(e);
-        res.status(500).json("Internal Server Error");
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 }
 

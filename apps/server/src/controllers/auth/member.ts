@@ -74,11 +74,17 @@ export const memberSignupVerification = async (req:express.Request , res : expre
             userRole : member.role,
             userOrganisationId : findToken.organization_id
         }
-        res.status(200).json("Member Signup Succesfull");
+         res.status(200).json({
+            success: true,
+            message: "Member Signup Succesfull"
+        });
     }
     catch(e){
         console.error(e);
-        res.status(500).json("Internal Server Error");
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 }
 
@@ -151,9 +157,16 @@ export const memberSignupSendInvitation = async (req: express.Request, res: expr
             await sendMemberSignupMails(email, token);
         }
 
-        res.status(200).json({ ineligibleEmails });
-    } catch (e) {
+         res.status(200).json({
+            success: true,
+            message: "Sent Invitation Succesfully",
+            data: ineligibleEmails
+        });
+    } catch(e){
         console.error(e);
-        res.status(500).json("Internal Server Error");
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 };

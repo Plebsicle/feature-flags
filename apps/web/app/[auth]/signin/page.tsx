@@ -7,7 +7,7 @@ import Link from "next/link"
 import { GoogleLogin } from '@react-oauth/google';
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { ArrowRight, Mail, Lock, Chrome, Eye, EyeOff } from "lucide-react"
+import { ArrowRight, Mail, Lock, Eye, EyeOff } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

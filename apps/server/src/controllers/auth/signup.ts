@@ -48,13 +48,18 @@ export const emailSignup = async (req: express.Request, res: express.Response)=>
         });
         sendVerificationEmail(email , emailToken,orgName);
 
-        res.status(200).json("Email Sent Successfully");
+         res.status(200).json({
+            success: true,
+            message: "Email Sent successfully"
+        });
     }
     catch(e){
         console.error(e);
-        res.status(500).json("Internal server error");
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
-    
 }
 
 export const googleSignup = async (req : express.Request, res : express.Response) => {
@@ -106,11 +111,17 @@ export const googleSignup = async (req : express.Request, res : express.Response
             userRole : userCreation.role,
             userOrganisationId : organisationData.id
         }
-        res.status(200).json("User Signup Succesfull");
+         res.status(200).json({
+            success: true,
+            message: "Signup with Google Succesfull"
+        });
     }
     catch(e){
         console.error(e);
-        res.status(500).json("Internal server error");
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
     }
 }
 
