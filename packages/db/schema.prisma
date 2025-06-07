@@ -198,6 +198,11 @@ model flag_rules {
   @@index([flag_environment_id, is_enabled])
 }
 
+model AB_multivariate {
+  id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    
+}
+
 model flag_rollout {
   id                    String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flag_environment_id   String            @db.Uuid @unique
