@@ -38,4 +38,4 @@ interface CustomProgressiveRolloutConfig {
 }
 
 // Type union for all config types
-type RolloutConfig = PercentageRolloutConfig | ProgressiveRolloutConfig | CustomProgressiveRolloutConfig;
+export type RolloutConfig = PercentageRolloutConfig | ProgressiveRolloutConfig | CustomProgressiveRolloutConfig;

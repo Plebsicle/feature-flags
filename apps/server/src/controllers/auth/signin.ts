@@ -53,12 +53,25 @@ export const emailSignin = async (req: express.Request, res: express.Response) =
             res.status(401).json("Org Details Not Found");
             return;
         }
+        const orgData = await prisma.organizations.findUnique({
+            where : {
+                id : orgDetails.organization_id
+            },
+            select : {
+                slug : true
+            }
+        });
+        if(!orgData){
+            res.status(401).json("Shouldnt Happen");
+            return;
+        }
         req.session.user = {
             userId : doesUserExist.id ,
             userName : doesUserExist.name , 
             userEmail : email , 
             userRole : doesUserExist.role,
-            userOrganisationId : orgDetails.organization_id
+            userOrganisationId : orgDetails.organization_id,
+            userOrganisationSlug : orgData.slug
         };
         res.status(200).json({
             success: true,
@@ -115,11 +128,25 @@ export const googleSignin = async (req: express.Request, res: express.Response) 
             res.status(401).json("Org Details Not Found");
             return;
         }
-        req.session.user = {userId : doesUserExist.id , 
+        const orgData = await prisma.organizations.findUnique({
+            where : {
+                id : orgDetails.organization_id
+            },
+            select : {
+                slug : true
+            }
+        });
+        if(!orgData){
+            res.status(401).json("Shouldnt Happen");
+            return;
+        }
+        req.session.user = {
+            userId : doesUserExist.id , 
             userEmail : email , 
             userRole : doesUserExist.role ,
             userName : doesUserExist.name ,
-            userOrganisationId : orgDetails.organization_id
+            userOrganisationId : orgDetails.organization_id,
+            userOrganisationSlug : orgData.slug
         }
         res.status(200).json({
             success: true,

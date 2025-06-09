@@ -109,7 +109,8 @@ export const googleSignup = async (req : express.Request, res : express.Response
             userId : userCreation.id,
             userName : userCreation.name,
             userRole : userCreation.role,
-            userOrganisationId : organisationData.id
+            userOrganisationId : organisationData.id,
+            userOrganisationSlug : organisationData.slug
         }
          res.status(200).json({
             success: true,

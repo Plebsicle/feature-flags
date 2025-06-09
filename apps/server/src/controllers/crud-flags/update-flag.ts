@@ -4,6 +4,7 @@ import { rollout_type } from '@repo/db/node_modules/@prisma/client'
 import { Conditions } from '@repo/types/rule-config';
 import { extractCustomAttributes } from '../../util/extract-attributes';
 import { insertCustomAttributes } from '../../util/insert-custom-attribute';
+import { refreshFlagTTL, setFlag, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis-flag';
 
 // Helper function to extract IP and User Agent
 const extractAuditInfo = (req: express.Request) => {
@@ -82,7 +83,7 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
             });
 
             // Update feature flag
-            await tx.feature_flags.update({
+            const updatedFlag  = await tx.feature_flags.update({
                 where: { id: flagId },
                 data: featureFlagUpdates
             });
@@ -102,9 +103,16 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
                 }
             });
 
-            return { updated: true };
+            return { updated: true ,updatedFlag  };
         });
 
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        if(isActive){
+            await updateFeatureFlagRedis(orgSlug , result.updatedFlag.key ,isActive);
+        }
+        else{
+            await refreshFlagTTL(orgSlug,result.updatedFlag.key,result.updatedFlag.flag_type);  
+        }
         res.status(200).json({
             success: true,
             message: "Feature flag updated successfully",
@@ -130,6 +138,7 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
         }
 
         const {
+            flag_id ,
             flagRuleId,       // FR
             ruleDescription,  // FR
             conditions,       // FR
@@ -145,13 +154,25 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
         const { ip, userAgent } = extractAuditInfo(req);
 
         // Input validation
-        if (!flagRuleId) {
+        if (!flagRuleId || !flag_id) {
             res.status(400).json({
                 success: false,
-                message: "Flag Rule ID is required"
+                message: "ID is required"
             });
             return ;
         }
+
+        const flagData = await prisma.feature_flags.findUnique({
+            where : {
+                id : flag_id
+            }
+        });
+
+        if(!flagData){
+            res.status(401).json({success : false, message : "No Flag Found" });
+            return;
+        }
+
         console.log(conditions);
         // Extract custom attributes from conditions if present
         const customAttributes = conditions ? extractCustomAttributes(conditions as Conditions) : [];
@@ -243,6 +264,9 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
             return { updated: true };
         });
 
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        await updateFlagRulesRedis(orgSlug,flagData.key,environment,flagRuleId,conditions,value,isEnabled);
+
         res.status(200).json({
             success: true,
             message: "Flag rule updated successfully",
@@ -268,6 +292,7 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
         }
 
         const {
+            flag_id,
             rollout_id,       // FRout
             rollout_type,     // FRout
             rollout_config,   // FRout
@@ -279,11 +304,22 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
         const { ip, userAgent } = extractAuditInfo(req);
 
         // Input validation
-        if (!rollout_id) {
+        if (!rollout_id || !flag_id) {
             res.status(400).json({
                 success: false,
-                message: "Rollout ID is required"
+                message: "ID is required"
             });
+            return;
+        }
+
+        const flagData = await prisma.feature_flags.findUnique({
+            where : {
+                id : flag_id
+            }
+        });
+
+        if(!flagData){
+            res.status(401).json({success : false, message : "No Flag Found" });
             return;
         }
 
@@ -355,6 +391,8 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
 
             return { updated: true };
         });
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        await updateFlagRolloutRedis(orgSlug,flagData.key,environment,rollout_config);
 
         res.status(200).json({
             success: true,

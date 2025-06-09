@@ -8,6 +8,8 @@ interface Condition {
   operator_selected: string;        // Operator from OPERATORS_BY_TYPE based on data type
 }
 
+
+
 // Conditions is always an array of condition objects
 type Conditions = Condition[];
 

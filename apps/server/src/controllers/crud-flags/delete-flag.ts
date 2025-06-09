@@ -1,5 +1,6 @@
 import prisma from '@repo/db';
 import express from 'express';
+import { deleteFeatureFlagRedis, deleteRuleRedis, removeFlag } from '../../services/redis-flag';
 
 export const deleteFeatureFlag = async (req: express.Request, res: express.Response) => {
     try {
@@ -47,6 +48,9 @@ export const deleteFeatureFlag = async (req: express.Request, res: express.Respo
                 user_agent: req.get('User-Agent') || null
             }
         });
+
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        await deleteFeatureFlagRedis(orgSlug,flagToDelete.key);
 
         res.status(200).json({ 
             success: true, 
@@ -107,6 +111,8 @@ export const deleteEnvironment = async (req: express.Request, res: express.Respo
                 user_agent: req.get('User-Agent') || null
             }
         });
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        await removeFlag(orgSlug,deleteEnvironment.environment,environmentToDelete.flag.key);
 
         res.status(200).json({ 
             success: true, 
@@ -146,8 +152,8 @@ export const deleteRule = async (req: express.Request, res: express.Response) =>
             }
         });
 
-        if (!ruleToDelete) {
-            res.status(404).json({ success: false, message: "Rule not found" });
+        if(!ruleToDelete){
+            res.status(401).json({message : "Rule not Found",success : false});
             return;
         }
 
@@ -169,7 +175,8 @@ export const deleteRule = async (req: express.Request, res: express.Response) =>
                 user_agent: req.get('User-Agent') || null
             }
         });
-
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        await deleteRuleRedis(orgSlug,ruleToDelete.flag_environment.flag.key,ruleToDelete?.flag_environment.environment,ruleId);
         res.status(200).json({ 
             message: "Rule deleted successfully", 
             success: true, 

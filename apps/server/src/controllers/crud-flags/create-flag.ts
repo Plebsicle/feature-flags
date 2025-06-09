@@ -3,6 +3,7 @@ import express from 'express';
 import { Conditions } from '@repo/types/rule-config';
 import { extractCustomAttributes } from '../../util/extract-attributes';
 import { insertCustomAttributes } from '../../util/insert-custom-attribute';
+import { Redis_Value, RedisCacheRules,setFlag } from '../../services/redis-flag';
 
 export const createFlag = async (req: express.Request, res: express.Response) => {
     try {
@@ -60,7 +61,8 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                     tags: tags && Array.isArray(tags) ? tags : []
                 },
                 select: {
-                    id: true
+                    id: true,
+                    is_active : true
                 }
             });
 
@@ -86,7 +88,8 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                         flag_environment_id: environmentFlagResponse.id
                     },
                     select: {
-                        id: true
+                        id: true,
+                        is_enabled : true
                     }
                 }),
                 tx.flag_rollout.create({
@@ -96,7 +99,8 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                         type: rollout_type
                     },
                     select: {
-                        id: true
+                        id: true,
+                        config : true
                     }
                 })
             ]);
@@ -150,6 +154,24 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
             return response;
         });
 
+
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        const rules : RedisCacheRules[] = [{
+            rule_id : result.flagRulesCreation.id,
+            conditions,
+            is_enabled : result.flagRulesCreation.is_enabled,
+            value
+        }];
+
+        const valueObject : Redis_Value = {
+           flagId : result.flagCreationResponse.id,
+           is_active : result.flagCreationResponse.is_active,
+           rules,
+           rollout_config : result.flagRolloutCreation.config
+        }
+
+        await setFlag(orgSlug,  environment, key, valueObject ,flag_type);
+
         // Send success response
         res.status(201).json({
             success: true,
@@ -199,6 +221,17 @@ export const createEnvironment = async (req : express.Request , res : express.Re
 
         // Input validation/sanitization here (add as needed)
 
+        const flagData = await prisma.feature_flags.findUnique({
+            where : {
+                id : flag_id
+            }
+        });
+
+        if(!flagData){
+            res.status(401).json({success : false,message : "incorrect flag id" });
+            return;
+        }
+
         const result = await prisma.$transaction(async (tx) => {
             // Insert custom attributes first
             await insertCustomAttributes(tx, organisationId, customAttributes);
@@ -212,7 +245,7 @@ export const createEnvironment = async (req : express.Request , res : express.Re
             });
 
             // Create flag rule and rollout in parallel (they both depend on environmentFlagResponse)
-            await Promise.all([
+            const [flagRulesCreation , flagRolloutCreation ] = await Promise.all([
                 tx.flag_rules.create({
                     data: {
                         name: ruleName,
@@ -222,7 +255,8 @@ export const createEnvironment = async (req : express.Request , res : express.Re
                         flag_environment_id: environmentFlagResponse.id
                     },
                     select: {
-                        id: true
+                        id: true,
+                        is_enabled : true
                     }
                 }),
                 tx.flag_rollout.create({
@@ -232,7 +266,8 @@ export const createEnvironment = async (req : express.Request , res : express.Re
                         type: rollout_type
                     },
                     select: {
-                        id: true
+                        id: true,
+                        config : true
                     }
                 })
             ]);
@@ -270,14 +305,32 @@ export const createEnvironment = async (req : express.Request , res : express.Re
                 ]
             });
 
-            return environmentFlagResponse;
+            return {environmentFlagResponse,flagRolloutCreation,flagRulesCreation}
         });
 
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        const rules : RedisCacheRules[] = [{
+            rule_id : result.flagRulesCreation.id,
+            conditions,
+            is_enabled : result.flagRulesCreation.is_enabled,
+            value
+        }];
+
+        const valueObject : Redis_Value = {
+           flagId : flagData.id,
+           is_active : flagData.is_active,
+           rules,
+           rollout_config : result.flagRolloutCreation.config
+        }
+
+        await setFlag(orgSlug, environment , flagData.key , valueObject , flagData.flag_type ); 
         // Send success response
         res.status(201).json({
             success: true,
             message: "Flag Environment created successfully",
-            environmentId: result.id
+            environmentId: result.environmentFlagResponse.id,
+            ruleId : result.flagRulesCreation.id,
+            rolloutId : result.flagRolloutCreation.id
         });
 
     } catch (e) {

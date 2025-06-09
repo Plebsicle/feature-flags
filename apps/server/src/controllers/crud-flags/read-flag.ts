@@ -1,5 +1,6 @@
 import prisma from '@repo/db';
 import express from 'express'
+import { refreshFlagTTL } from '../../services/redis-flag';
 
 
 export const getAllFeatureFlags = async(req : express.Request,res : express.Response)=>{
@@ -65,8 +66,21 @@ export const getRules = async (req : express.Request,res : express.Response) => 
         const environmentRules = await prisma.flag_rules.findMany({
             where : {
                 flag_environment_id : environmentId
+            },
+            select : {
+                flag_environment : {
+                    include : {
+                        flag : true
+                    }
+                }
             }
         });
+        if(!environmentRules){
+            res.status(401).json({message : "Failed to Update Rules",success : false});
+            return;
+        }
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        await refreshFlagTTL(orgSlug,environmentRules[0].flag_environment.flag.key,environmentRules[0].flag_environment.flag.flag_type,environmentRules[0].flag_environment.environment);
         res.status(200).json({data : environmentRules, success : true , message : "Rules for environment fetched successfuly"});
     }
     catch(e){
@@ -85,8 +99,21 @@ export const getRollout = async (req : express.Request , res : express.Response)
         const rollout = await prisma.flag_rollout.findUnique({
             where : {
                 flag_environment_id : environmentId
+            },
+            select : {
+                flag_rollout_environment : {
+                    include : {
+                        flag : true
+                    }
+                }
             }
         });
+        if(!rollout){
+            res.status(401).json({message : "Rollout not Found",success : false});
+            return;
+        }
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        await refreshFlagTTL(orgSlug,rollout?.flag_rollout_environment.flag.key,rollout?.flag_rollout_environment.flag.flag_type,rollout?.flag_rollout_environment.environment);
         res.status(200).json({data : rollout, success : true , message : "Rollout for environment fetched successfuly"});
     }
     catch(e){
