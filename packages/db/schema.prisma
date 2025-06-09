@@ -169,7 +169,7 @@ model flag_environments {
   flag        feature_flags    @relation(fields: [flag_id], references: [id], onDelete: Cascade)
   rules       flag_rules[]
   rollout     flag_rollout?
-  
+  ab_multivariate AB_multivariate?
   @@unique([flag_id, environment])
   @@index([flag_id, environment])
 }
@@ -200,10 +200,19 @@ model flag_rules {
 
 model AB_multivariate {
   id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  
+  flag_environment_id String            @db.Uuid @unique
+  name                String            @db.VarChar(255)
+  description         String?
+  variations          Json
+  default_variation   Json
+  rollout_config      Json
+  is_enabled          Boolean           @default(true)
+  created_at          DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime          @default(now()) @db.Timestamptz(6)
+  flag_environment    flag_environments @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
 }
 
-model flag_rollout {
+  model flag_rollout {
   id                    String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   flag_environment_id   String            @db.Uuid @unique
   type                  rollout_type
