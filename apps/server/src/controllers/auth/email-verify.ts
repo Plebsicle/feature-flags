@@ -1,5 +1,6 @@
 import express from 'express'
 import { verifyEmailValidation } from '../../util/zod';
+import { verifyEmailSignupBodySchema, verifyEmailManualBodySchema, sendVerificationEmailManualBodySchema } from '../../util/zod';
 import { slugMaker } from '../../util/slug';
 import prisma from '@repo/db';
 import tokenGenerator from '../../util/token';
@@ -8,6 +9,10 @@ import { sendVerificationEmailManualMailer } from '../../util/mail';
 
 export const verifyEmailSignup = async (req:express.Request , res : express.Response) => {
     try{
+        // Zod validation
+        const parsedBody = verifyEmailSignupBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const {orgName , token } = req.body;
         const result = await verifyEmailValidation(token,orgName);
         if(!result){
@@ -85,6 +90,10 @@ export const verifyEmailSignup = async (req:express.Request , res : express.Resp
 
 export const verifyEmailManual = async (req : express.Request , res:express.Response) => {
     try{
+        // Zod validation
+        const parsedBody = verifyEmailManualBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const {token} = req.body;
         const result = await prisma.emailVerificationToken.findUnique({
             where : {
@@ -124,6 +133,10 @@ export const verifyEmailManual = async (req : express.Request , res:express.Resp
 
 export const sendVerificationEmailManual = async (req : express.Request , res : express.Response) => {
     try{
+        // Zod validation
+        const parsedBody = sendVerificationEmailManualBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const {email} = req.body;
         const emailToken = tokenGenerator();
         const expiration = new Date();

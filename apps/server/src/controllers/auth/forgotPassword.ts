@@ -1,4 +1,5 @@
 import express from 'express'
+import { sendVerificationEmailForgetPasswordBodySchema, checkVerificationEmailForgetPasswordBodySchema } from '../../util/zod';
 import tokenGenerator from '../../util/token';
 import prisma from '@repo/db';
 import { sendResetPassword } from '../../util/mail';
@@ -6,6 +7,10 @@ import { hashPassword } from '../../util/hashing';
 
 export const sendVerificationEmailForgetPassword = async  (req : express.Request , res:express.Response)=>{
     try{
+        // Zod validation
+        const parsedBody = sendVerificationEmailForgetPasswordBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const {email} = req.body;
         const emailToken = tokenGenerator();
         const expiration = new Date();
@@ -45,6 +50,10 @@ export const sendVerificationEmailForgetPassword = async  (req : express.Request
 
 export const checkVerificationEmailForgetPassword = async (req : express.Request , res:express.Response) => {
     try{
+        // Zod validation
+        const parsedBody = checkVerificationEmailForgetPasswordBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const {password,token} = req.body;
         const result = await prisma.emailVerificationToken.findUnique({
             where : {

@@ -1,7 +1,7 @@
 import Redis from 'ioredis'
 import { Conditions } from '@repo/types/rule-config';
 import {RolloutConfig} from "@repo/types/rollout-config"
-import {flag_type,environment_type} from '@repo/db/node_modules/prisma/prisma-client'
+import {flag_type,environment_type} from '@repo/db/client'
 
 const REDIS_FLAG_URL = process.env.REDIS_FLAG_URL!;
 
@@ -29,7 +29,6 @@ export interface Redis_Value {
 
 
 // Environment types enum
-
 interface FlagData {
   value: any;
   type: flag_type;

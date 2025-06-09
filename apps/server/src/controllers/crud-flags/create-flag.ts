@@ -1,12 +1,16 @@
 import prisma from '@repo/db';
 import express from 'express';
 import { Conditions } from '@repo/types/rule-config';
+import { createFlagBodySchema, createEnvironmentBodySchema } from '../../util/zod';
 import { extractCustomAttributes } from '../../util/extract-attributes';
 import { insertCustomAttributes } from '../../util/insert-custom-attribute';
 import { Redis_Value, RedisCacheRules,setFlag } from '../../services/redis-flag';
 
 export const createFlag = async (req: express.Request, res: express.Response) => {
     try {
+        // Zod validation
+        const parsedBody = createFlagBodySchema.parse(req.body);
+        req.body = parsedBody;
 
         const role = req.session.user?.userRole;
         if(role === "VIEWER"){
@@ -194,6 +198,10 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
 
 export const createEnvironment = async (req : express.Request , res : express.Response)=>{
     try {
+        // Zod validation
+        const parsedBody = createEnvironmentBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const userId = req.session.user?.userId!;
         const organisationId = req.session.user?.userOrganisationId!;
         

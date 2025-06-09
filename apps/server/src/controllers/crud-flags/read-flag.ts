@@ -1,5 +1,6 @@
 import prisma from '@repo/db';
 import express from 'express'
+import { getFeatureFlagParamsSchema, getFlagEnvironmentParamsSchema, getRulesParamsSchema, getRolloutParamsSchema, getAuditLogsParamsSchema } from '../../util/zod';
 import { refreshFlagTTL } from '../../services/redis-flag';
 
 
@@ -24,6 +25,10 @@ export const getAllFeatureFlags = async(req : express.Request,res : express.Resp
 
 export  const getFeatureFlagData = async ( req : express.Request,res : express.Response) => {
     try{
+        // Zod validation
+        const parsedParams = getFeatureFlagParamsSchema.parse(req.params);
+        req.params = parsedParams;
+        
         const flagId = req.params.flagId;
         const flagData = await prisma.feature_flags.findUnique({
             where : {
@@ -43,6 +48,10 @@ export  const getFeatureFlagData = async ( req : express.Request,res : express.R
 
 export const getFlagEnvironmentData = async (req : express.Request,res : express.Response)=>{
     try{
+        // Zod validation
+        const parsedParams = getFlagEnvironmentParamsSchema.parse(req.params);
+        req.params = parsedParams;
+        
         const flagId = req.params.flagId;
         const environmentData = await prisma.flag_environments.findMany({
             where : {
@@ -62,6 +71,10 @@ export const getFlagEnvironmentData = async (req : express.Request,res : express
 
 export const getRules = async (req : express.Request,res : express.Response) => {
     try{
+        // Zod validation
+        const parsedParams = getRulesParamsSchema.parse(req.params);
+        req.params = parsedParams;
+        
         const environmentId = req.params.environmentId;
         const environmentRules = await prisma.flag_rules.findMany({
             where : {
@@ -95,6 +108,10 @@ export const getRules = async (req : express.Request,res : express.Response) => 
 
 export const getRollout = async (req : express.Request , res : express.Response) => {
     try{
+        // Zod validation
+        const parsedParams = getRolloutParamsSchema.parse(req.params);
+        req.params = parsedParams;
+        
         const environmentId = req.params.environmentId;
         const rollout = await prisma.flag_rollout.findUnique({
             where : {
@@ -127,6 +144,10 @@ export const getRollout = async (req : express.Request , res : express.Response)
 
 export const getAuditLogs = async (req : express.Request,res : express.Response)=>{
     try{
+        // Zod validation
+        const parsedParams = getAuditLogsParamsSchema.parse(req.params);
+        req.params = parsedParams;
+        
         const role = req.session.user?.userRole;
          if(role === "VIEWER"){
             res.status(401).json({success : false,message : "Role is not Sufficient"});

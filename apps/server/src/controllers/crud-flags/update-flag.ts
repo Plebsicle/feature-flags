@@ -2,6 +2,7 @@ import express from 'express'
 import prisma from '@repo/db';
 import { rollout_type } from '@repo/db/node_modules/@prisma/client'
 import { Conditions } from '@repo/types/rule-config';
+import { updateFeatureFlagBodySchema, updateFlagRuleBodySchema, updateFlagRolloutBodySchema } from '../../util/zod';
 import { extractCustomAttributes } from '../../util/extract-attributes';
 import { insertCustomAttributes } from '../../util/insert-custom-attribute';
 import { refreshFlagTTL, setFlag, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis-flag';
@@ -21,6 +22,9 @@ const extractAuditInfo = (req: express.Request) => {
 // 1. UPDATE FEATURE FLAG ROUTE
 export const updateFeatureFlag = async (req: express.Request, res: express.Response) => {
     try {
+        // Zod validation
+        const parsedBody = updateFeatureFlagBodySchema.parse(req.body);
+        req.body = parsedBody;
 
         const role = req.session.user?.userRole;
          if(role === "VIEWER"){
@@ -131,6 +135,10 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
 // 2. UPDATE FLAG RULE ROUTE
 export const updateFlagRule = async (req: express.Request, res: express.Response) => {
     try {
+        // Zod validation
+        const parsedBody = updateFlagRuleBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const role = req.session.user?.userRole;
          if(role === "VIEWER"){
             res.status(401).json({success : false,message : "Role is not Sufficient"});
@@ -285,6 +293,10 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
 // 3. UPDATE FLAG ROLLOUT ROUTE
 export const updateFlagRollout = async (req: express.Request, res: express.Response) => {
     try {
+        // Zod validation
+        const parsedBody = updateFlagRolloutBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const role = req.session.user?.userRole;
          if(role === "VIEWER"){
             res.status(401).json({success : false,message : "Role is not Sufficient"});

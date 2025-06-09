@@ -1,6 +1,7 @@
 import express from 'express'
 import { hashPassword } from "../../util/hashing"
 import { signupValidation } from '../../util/zod';
+import { emailSignupBodySchema, googleSignupBodySchema } from '../../util/zod';
 import prisma from '@repo/db';
 import { slugMaker } from '../../util/slug';
 import verifyGoogleToken from '../../util/oauth';
@@ -10,6 +11,10 @@ import { sendVerificationEmail } from '../../util/mail';
 
 export const emailSignup = async (req: express.Request, res: express.Response)=>{
     try{
+        // Zod validation
+        const parsedBody = emailSignupBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const {email,password,name , orgName } = req.body;
         const inputValidation = signupValidation(name,email,password,orgName);
         if(!inputValidation){
@@ -64,6 +69,10 @@ export const emailSignup = async (req: express.Request, res: express.Response)=>
 
 export const googleSignup = async (req : express.Request, res : express.Response) => {
     try{
+        // Zod validation
+        const parsedBody = googleSignupBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const {googleId , orgName} = req.body;
         const payload = await verifyGoogleToken(googleId);
         if (!payload || !payload.email) {

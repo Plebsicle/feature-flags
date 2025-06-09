@@ -1,9 +1,14 @@
 import prisma from '@repo/db';
 import express from 'express';
+import { deleteFeatureFlagParamsSchema, deleteEnvironmentParamsSchema, deleteRuleParamsSchema } from '../../util/zod';
 import { deleteFeatureFlagRedis, deleteRuleRedis, removeFlag } from '../../services/redis-flag';
 
 export const deleteFeatureFlag = async (req: express.Request, res: express.Response) => {
     try {
+        // Zod validation
+        const parsedParams = deleteFeatureFlagParamsSchema.parse(req.params);
+        req.params = parsedParams;
+        
         const role = req.session.user?.userRole;
         if (role === "VIEWER" || role === "MEMBER") {
             res.status(401).json({ success: false, message: "Role is not Sufficient" });
@@ -69,6 +74,10 @@ export const deleteFeatureFlag = async (req: express.Request, res: express.Respo
 
 export const deleteEnvironment = async (req: express.Request, res: express.Response) => {
     try {
+        // Zod validation
+        const parsedParams = deleteEnvironmentParamsSchema.parse(req.params);
+        req.params = parsedParams;
+        
         const role = req.session.user?.userRole;
         if (role === "VIEWER" || role === "MEMBER") {
             res.status(401).json({ success: false, message: "Role is not Sufficient" });
@@ -131,6 +140,10 @@ export const deleteEnvironment = async (req: express.Request, res: express.Respo
 
 export const deleteRule = async (req: express.Request, res: express.Response) => {
     try {
+        // Zod validation
+        const parsedParams = deleteRuleParamsSchema.parse(req.params);
+        req.params = parsedParams;
+        
         const role = req.session.user?.userRole;
         if (role === "VIEWER" || role === "MEMBER") {
             res.status(401).json({ success: false, message: "Role is not Sufficient" });

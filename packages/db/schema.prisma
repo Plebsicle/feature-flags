@@ -200,7 +200,7 @@ model flag_rules {
 
 model AB_multivariate {
   id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    
+  
 }
 
 model flag_rollout {

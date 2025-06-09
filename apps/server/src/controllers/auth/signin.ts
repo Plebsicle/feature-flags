@@ -1,11 +1,16 @@
 import express from 'express';
 import { signinValidation } from '../../util/zod';
+import { emailSigninBodySchema, googleSigninBodySchema } from '../../util/zod';
 import prisma from '@repo/db'
 import { comparePassword } from '../../util/hashing';
 import verifyGoogleToken from '../../util/oauth';
 
 export const emailSignin = async (req: express.Request, res: express.Response) => {
     try{
+        // Zod validation
+        const parsedBody = emailSigninBodySchema.parse(req.body);
+        req.body = parsedBody;
+        
         const {email , password} = req.body;
         const validation = await signinValidation(email,password);
         if(!validation){
@@ -89,6 +94,9 @@ export const emailSignin = async (req: express.Request, res: express.Response) =
 
 export const googleSignin = async (req: express.Request, res: express.Response) => {
     try{
+        // Zod validation
+        const parsedBody = googleSigninBodySchema.parse(req.body);
+        req.body = parsedBody;
         
         const {googleId} = req.body;
         if(!googleId){
