@@ -39,6 +39,7 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
             ruleDescription,
             conditions,
             value,
+            default_value, // new attribute
             rollout_type,
             rollout_config,
             tags
@@ -60,6 +61,8 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                     description: flagDescription,
                     key,
                     name: flagName,
+                    value,
+                    default_value,
                     organization_id: organisationId,
                     created_by: userId,
                     tags: tags && Array.isArray(tags) ? tags : []
@@ -86,7 +89,6 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                 tx.flag_rules.create({
                     data: {
                         name: ruleName,
-                        value,
                         conditions,
                         description: ruleDescription,
                         flag_environment_id: environmentFlagResponse.id
@@ -163,13 +165,14 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
         const rules : RedisCacheRules[] = [{
             rule_id : result.flagRulesCreation.id,
             conditions,
-            is_enabled : result.flagRulesCreation.is_enabled,
-            value
+            is_enabled : result.flagRulesCreation.is_enabled
         }];
 
         const valueObject : Redis_Value = {
            flagId : result.flagCreationResponse.id,
            is_active : result.flagCreationResponse.is_active,
+           value,
+           default_value,
            rules,
            rollout_config : result.flagRolloutCreation.config
         }
@@ -219,7 +222,6 @@ export const createEnvironment = async (req : express.Request , res : express.Re
             ruleName,
             ruleDescription,
             conditions,
-            value,
             rollout_type,
             rollout_config
         } = req.body;
@@ -257,7 +259,6 @@ export const createEnvironment = async (req : express.Request , res : express.Re
                 tx.flag_rules.create({
                     data: {
                         name: ruleName,
-                        value,
                         conditions,
                         description: ruleDescription,
                         flag_environment_id: environmentFlagResponse.id
@@ -320,13 +321,14 @@ export const createEnvironment = async (req : express.Request , res : express.Re
         const rules : RedisCacheRules[] = [{
             rule_id : result.flagRulesCreation.id,
             conditions,
-            is_enabled : result.flagRulesCreation.is_enabled,
-            value
+            is_enabled : result.flagRulesCreation.is_enabled
         }];
 
         const valueObject : Redis_Value = {
            flagId : flagData.id,
            is_active : flagData.is_active,
+           value : flagData.value as {"value" : any},
+           default_value : flagData.default_value as {"value" : any},
            rules,
            rollout_config : result.flagRolloutCreation.config
         }

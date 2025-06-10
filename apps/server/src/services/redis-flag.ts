@@ -16,13 +16,14 @@ const redisFlag = new Redis(REDIS_FLAG_URL,{
 export interface RedisCacheRules {
   rule_id : string,
   conditions : Conditions,
-  value : {"value" : any},
   is_enabled : boolean
 }
 
 export interface Redis_Value {
   flagId : string,
   is_active : boolean,
+  value : {"value" : any},
+  default_value : {"value" : any},
   rules : RedisCacheRules[],
   rollout_config : any
 }
@@ -252,7 +253,9 @@ export const updateFlagRolloutRedis = async ( orgSlug: string,
 export const updateFeatureFlagRedis = async (
   orgSlug: string,
   flagKey: string,
-  isActive?: boolean  // Made optional
+  isActive?: boolean,  // Made optional,
+  value? : Record<"value",any>,
+  default_value? : Record<"value",any>
 ): Promise<number> => {
   try {
     const pattern = `flags:${orgSlug}:*:${flagKey}`;
@@ -265,10 +268,12 @@ export const updateFeatureFlagRedis = async (
     for (const key of keys) {
       const currentValue = await redisFlag.get(key) as unknown as Redis_Value;
       
-      // Conditional update for is_active
+      // Conditional update for is_active,value and, defualt_value
       const updatedValue: Redis_Value = {
         ...currentValue,
-        ...(isActive !== undefined && { is_active: isActive })
+        ...(isActive !== undefined && { is_active: isActive }),
+        ...(value !== undefined && {value}),
+        ...(default_value !== undefined && {default_value})
       };
 
       pipeline.set(key, JSON.stringify(updatedValue));
@@ -288,7 +293,6 @@ export const updateFlagRulesRedis = async (
   environment: environment_type,
   rule_id: string,
   conditions?: Conditions,          // Made optional
-  value?: { value: any },           // Made optional
   is_enabled?: boolean              // Made optional
 ): Promise<number> => {
   try {
@@ -307,7 +311,6 @@ export const updateFlagRulesRedis = async (
       rule.rule_id === rule_id ? {
         ...rule,
         ...(conditions !== undefined && { conditions }),
-        ...(value !== undefined && { value }),
         ...(is_enabled !== undefined && { is_enabled })
       } : rule
     );

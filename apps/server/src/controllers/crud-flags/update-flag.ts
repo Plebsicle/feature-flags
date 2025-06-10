@@ -36,7 +36,9 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
             flagId,           // FF
             flagDescription,  // FF
             isActive,         // FF
-            tags
+            tags,
+            value, // new
+            default_value // new
         } = req.body;
 
         // Get user_id from session
@@ -53,10 +55,12 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
         }
 
         // Prepare updates object
-        const featureFlagUpdates: { description?: string, is_active?: boolean,tags? : string[] } = {};
+        const featureFlagUpdates: { description?: string, is_active?: boolean,tags? : string[],value? : Record<string,any> , default_value? : Record<string,any>} = {};
         if (flagDescription !== undefined) featureFlagUpdates['description'] = flagDescription;
         if (isActive !== undefined) featureFlagUpdates['is_active'] = isActive;
         if(tags !== undefined) featureFlagUpdates['tags'] = tags
+        if(value !== undefined) featureFlagUpdates['value'] = value
+        if(default_value !== undefined) featureFlagUpdates['default_value'] = default_value
 
         if (Object.keys(featureFlagUpdates).length === 0) {
             res.status(400).json({
@@ -111,12 +115,9 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
         });
 
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        if(isActive){
-            await updateFeatureFlagRedis(orgSlug , result.updatedFlag.key ,isActive);
-        }
-        else{
-            await refreshFlagTTL(orgSlug,result.updatedFlag.key,result.updatedFlag.flag_type);  
-        }
+
+        await updateFeatureFlagRedis(orgSlug , result.updatedFlag.key ,isActive,value,default_value);
+    
         res.status(200).json({
             success: true,
             message: "Feature flag updated successfully",
@@ -152,7 +153,6 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
             conditions,       // FR
             ruleName,         // FR
             isEnabled,        // FR
-            value,            // FR
             environment,      // For audit logging
         } = req.body;
 
@@ -190,15 +190,13 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
             description?: string,
             conditions?: Record<string, any>,
             name?: string,
-            is_enabled?: boolean,
-            value?: Record<string, any>
+            is_enabled?: boolean
         } = {};
 
         if (ruleDescription !== undefined) flagRuleUpdates['description'] = ruleDescription;
         if (conditions !== undefined) flagRuleUpdates['conditions'] = conditions;
         if (ruleName !== undefined) flagRuleUpdates['name'] = ruleName;
         if (isEnabled !== undefined) flagRuleUpdates['is_enabled'] = isEnabled;
-        if (value !== undefined) flagRuleUpdates['value'] = value;
 
         if (Object.keys(flagRuleUpdates).length === 0) {
             res.status(400).json({
@@ -222,7 +220,6 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
                     conditions: true,
                     name: true,
                     is_enabled: true,
-                    value: true,
                     flag_environment: {
                         select: {
                             flag_id: true
@@ -273,7 +270,7 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
         });
 
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        await updateFlagRulesRedis(orgSlug,flagData.key,environment,flagRuleId,conditions,value,isEnabled);
+        await updateFlagRulesRedis(orgSlug,flagData.key,environment,flagRuleId,conditions,isEnabled);
 
         res.status(200).json({
             success: true,
