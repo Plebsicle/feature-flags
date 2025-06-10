@@ -22,6 +22,7 @@ export interface RedisCacheRules {
 export interface Redis_Value {
   flagId : string,
   is_active : boolean,
+  is_evironment_active : boolean,
   value : Record<string,any>,
   default_value : Record<string,any>,
   rules : RedisCacheRules[],
@@ -326,6 +327,24 @@ export const updateFlagRulesRedis = async (
     return 0;
   }
 };
+
+export const updateEnvironmentRedis = async  (orgSlug : string, flagKey : string , environment : environment_type,is_environment_enabled : boolean) => {
+  try{
+    const key = generateFlagKey(orgSlug,environment,flagKey);
+    const rawData = await redisFlag.get(key);
+    if(!rawData){
+      return false;
+    }
+    const data = await JSON.parse(rawData);
+
+    data.is_environment_enabled = is_environment_enabled;
+    const result = await redisFlag.set(key,JSON.stringify(data));
+  }
+  catch(error){
+    console.error('Rule update failed:', error);
+    return 0;
+  }
+}
 
 export const deleteFeatureFlagRedis =async  (orgSlug : string , flagKey : string) => {
   try{

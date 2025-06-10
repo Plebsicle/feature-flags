@@ -80,7 +80,8 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                         flag_id: flagCreationResponse.id
                     },
                     select : {
-                        id : true
+                        id : true,
+                        is_enabled : true
                     }
             });
 
@@ -171,6 +172,7 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
         const valueObject : Redis_Value = {
            flagId : result.flagCreationResponse.id,
            is_active : result.flagCreationResponse.is_active,
+           is_evironment_active : result.environmentFlagResponse.is_enabled ,
            value,
            default_value,
            rules,
@@ -327,6 +329,7 @@ export const createEnvironment = async (req : express.Request , res : express.Re
         const valueObject : Redis_Value = {
            flagId : flagData.id,
            is_active : flagData.is_active,
+           is_evironment_active : result.environmentFlagResponse.is_enabled,
            value : flagData.value as Record<string,any>,
            default_value : flagData.default_value as Record<string,any>,
            rules,

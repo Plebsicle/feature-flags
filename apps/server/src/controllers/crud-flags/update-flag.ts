@@ -5,7 +5,7 @@ import { Conditions } from '@repo/types/rule-config';
 import { updateFeatureFlagBodySchema, updateFlagRuleBodySchema, updateFlagRolloutBodySchema } from '../../util/zod';
 import { extractCustomAttributes } from '../../util/extract-attributes';
 import { insertCustomAttributes } from '../../util/insert-custom-attribute';
-import { refreshFlagTTL, setFlag, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis-flag';
+import { refreshFlagTTL, setFlag, updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis-flag';
 
 // Helper function to extract IP and User Agent
 const extractAuditInfo = (req: express.Request) => {
@@ -418,3 +418,63 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
     }
 };
 
+export const updateEnvironment = async (req: express.Request, res: express.Response) => {
+    try{
+        const {is_enabled,environment_id} = req.body;
+        // validate input
+        const updatedEnv = await prisma.flag_environments.update({
+            where : {
+                id : environment_id
+            },
+            data : {
+                is_enabled
+            },select : {
+                id : true,
+                environment : true,
+                flag : true
+            }
+        });
+        const { ip, userAgent } = extractAuditInfo(req);
+        // Audit Logs
+        const organisation_id = req.session.user?.userOrganisationId!;
+        const user_id = req.session.user?.userId!;
+
+        const attributesChanged: Record<string, { newValue: any, oldValue: any }> = {};
+        attributesChanged["is_enabled"] = {
+            newValue : is_enabled,
+            oldValue : !is_enabled
+        }
+
+
+        await prisma.audit_logs.create({
+            data : {
+                organisation_id,
+                user_id,
+                action : "UPDATE",
+                resource_type : "FLAG_ENVIRONMENT",
+                resource_id : environment_id,
+                attributes_changed : attributesChanged,
+                environment : updatedEnv.environment,
+                ip_address : ip,
+                user_agent : userAgent
+            }
+        });
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        
+        // Update Redis Cache
+        await updateEnvironmentRedis(orgSlug,updatedEnv.flag.key,updatedEnv.environment,is_enabled);
+
+        res.status(200).json({
+            success: true,
+            message: "Flag environment updated successfully"
+        });
+
+    }
+    catch(error){
+        console.error('Error updating flag rollout:', error);
+        res.status(500).json({
+            success: false,
+            message: error instanceof Error ? error.message : "Internal Server Error"
+        });
+    }
+}
