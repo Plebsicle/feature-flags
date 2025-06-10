@@ -7,17 +7,7 @@ import { extractCustomAttributes } from '../../util/extract-attributes';
 import { insertCustomAttributes } from '../../util/insert-custom-attribute';
 import { refreshFlagTTL, setFlag, updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis-flag';
 
-// Helper function to extract IP and User Agent
-const extractAuditInfo = (req: express.Request) => {
-    const rawIp = req.headers['x-forwarded-for'];
-    const ip = Array.isArray(rawIp) ? rawIp[0].split(',')[0] : (rawIp || req.socket.remoteAddress || '').split(',')[0];
-    
-    const rawUserAgent = req.headers['x-user-agent'] || req.headers['user-agent'];
-    const userAgent = Array.isArray(rawUserAgent) ? rawUserAgent[0] : rawUserAgent || null;
-    
-    return { ip, userAgent };
-};
-
+import { extractAuditInfo } from '../../util/ip-agent';
 
 // 1. UPDATE FEATURE FLAG ROUTE
 export const updateFeatureFlag = async (req: express.Request, res: express.Response) => {
@@ -471,7 +461,7 @@ export const updateEnvironment = async (req: express.Request, res: express.Respo
 
     }
     catch(error){
-        console.error('Error updating flag rollout:', error);
+        console.error('Error updating flag environment:', error);
         res.status(500).json({
             success: false,
             message: error instanceof Error ? error.message : "Internal Server Error"

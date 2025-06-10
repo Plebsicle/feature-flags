@@ -346,7 +346,8 @@ enum audit_action {
 }
 
 enum audit_resource_type {
-  KILL_SWITCH
+  KILL_SWITCHES
+  KILL_SWITCH_FLAG
   FEATURE_FLAG
   FLAG_ENVIRONMENT
   FLAG_RULE

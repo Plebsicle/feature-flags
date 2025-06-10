@@ -5,6 +5,7 @@
     "exports" : {
         "./attribute-config" : "./attribute-config.ts",
         "./rollout-config" : "./rollout-config.ts",
-        "./rule-config" : "./rule-config.ts"
+        "./rule-config" : "./rule-config.ts",
+        "./kill-switch-flag-config" : "./kill-switch-flag-config.ts"
     }
 }
