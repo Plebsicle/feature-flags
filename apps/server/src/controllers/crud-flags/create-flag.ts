@@ -38,7 +38,7 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
             ruleName,
             ruleDescription,
             conditions,
-            value,
+            value,          // new
             default_value, // new attribute
             rollout_type,
             rollout_config,
@@ -327,8 +327,8 @@ export const createEnvironment = async (req : express.Request , res : express.Re
         const valueObject : Redis_Value = {
            flagId : flagData.id,
            is_active : flagData.is_active,
-           value : flagData.value as {"value" : any},
-           default_value : flagData.default_value as {"value" : any},
+           value : flagData.value as Record<string,any>,
+           default_value : flagData.default_value as Record<string,any>,
            rules,
            rollout_config : result.flagRolloutCreation.config
         }

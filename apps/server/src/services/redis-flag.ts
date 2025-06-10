@@ -22,8 +22,8 @@ export interface RedisCacheRules {
 export interface Redis_Value {
   flagId : string,
   is_active : boolean,
-  value : {"value" : any},
-  default_value : {"value" : any},
+  value : Record<string,any>,
+  default_value : Record<string,any>,
   rules : RedisCacheRules[],
   rollout_config : any
 }
