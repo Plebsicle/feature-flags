@@ -1,79 +1,42 @@
 import express from 'express'
 import prisma from '@repo/db';
+import { killSwitchValue, setKillSwitch } from '../../services/redis-flag';
+import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
 
 export const getAllKillSwitches = async (req: express.Request, res: express.Response) => {
     try {
         const organisation_id = req.session.user?.userOrganisationId!;
-        
-        // Optional query parameters for filtering
-        const { is_active, page = 1, limit = 10 } = req.query;
-        
-        const pageNum = parseInt(page as string);
-        const limitNum = parseInt(limit as string);
-        const skip = (pageNum - 1) * limitNum;
-
-        // Build where clause
-        const whereClause: any = {
-            organization_id: organisation_id
-        };
-
-        if (is_active !== undefined) {
-            whereClause.is_active = is_active === 'true';
+        const killSwitches = await prisma.kill_switches.findMany({
+                where: {
+                    organization_id : organisation_id
+                },
+                include : {
+                    flag_mappings : true
+                }
+        });
+        const data : killSwitchValue[] = []
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        for(const killSwitch of killSwitches){
+            const flag : killSwitchFlagConfig[] = killSwitch.flag_mappings.map((fm) => {
+                return {
+                    flagId : fm.flag_id,
+                    environments : fm.environments
+                }
+            });
+            
+            const killSwitchData : killSwitchValue = {
+                id : killSwitch.id,
+                is_active : killSwitch.is_active,
+                flag
+            }
+            
+            await setKillSwitch(killSwitch.id,orgSlug,killSwitchData);
         }
-
-        // Get kill switches with related data
-        const [killSwitches, totalCount] = await Promise.all([
-            prisma.kill_switches.findMany({
-                where: whereClause,
-                include: {
-                    creator: {
-                        select: {
-                            id: true,
-                            email: true,
-                            name: true
-                        }
-                    },
-                    activator: {
-                        select: {
-                            id: true,
-                            email: true,
-                            name: true
-                        }
-                    },
-                    flag_mappings: {
-                        include: {
-                            flag: {
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    key: true
-                                }
-                            }
-                        }
-                    }
-                },
-                orderBy: {
-                    created_at: 'desc'
-                },
-                skip,
-                take: limitNum
-            }),
-            prisma.kill_switches.count({
-                where: whereClause
-            })
-        ]);
 
         res.status(200).json({
             success: true,
             data: {
-                killSwitches,
-                pagination: {
-                    currentPage: pageNum,
-                    totalPages: Math.ceil(totalCount / limitNum),
-                    totalCount,
-                    hasNext: pageNum * limitNum < totalCount,
-                    hasPrevious: pageNum > 1
-                }
+                killSwitches
             }
         });
 
@@ -105,40 +68,10 @@ export const getKillSwitchById = async (req: express.Request, res: express.Respo
                 id: killSwitchId,
                 organization_id: organisation_id
             },
-            include: {
-                creator: {
-                    select: {
-                        id: true,
-                        email: true,
-                        name: true
-                    }
-                },
-                activator: {
-                    select: {
-                        id: true,
-                        email: true,
-                        name: true
-                    }
-                },
-                flag_mappings: {
-                    include: {
-                        flag: {
-                            select: {
-                                id: true,
-                                name: true,
-                                key: true,
-                                description: true,
-                                is_active: true
-                            }
-                        }
-                    },
-                    orderBy: {
-                        created_at: 'asc'
-                    }
-                }
+            include : {
+                flag_mappings : true
             }
         });
-
         if (!killSwitch) {
             return res.status(404).json({
                 success: false,
@@ -146,6 +79,19 @@ export const getKillSwitchById = async (req: express.Request, res: express.Respo
             });
         }
 
+        const flag : killSwitchFlagConfig[] = killSwitch.flag_mappings.map((fm) => {
+                return {
+                    flagId : fm.flag_id,
+                    environments : fm.environments
+                }
+        });
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        const killSwitchData : killSwitchValue = {
+            id : killSwitchId,
+            is_active : killSwitch.is_active,
+            flag
+        }
+        await setKillSwitch(killSwitchId,orgSlug,killSwitchData);
         res.status(200).json({
             success: true,
             data: killSwitch

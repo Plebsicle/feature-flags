@@ -2,6 +2,7 @@ import Redis from 'ioredis'
 import { Conditions } from '@repo/types/rule-config';
 import {RolloutConfig} from "@repo/types/rollout-config"
 import {flag_type,environment_type} from '@repo/db/client'
+import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
 
 const REDIS_FLAG_URL = process.env.REDIS_FLAG_URL!;
 
@@ -164,9 +165,9 @@ async function getMultipleFlags(orgSlug: string, environment: environment_type, 
 /**
  * Remove all flags for an organization in a specific environment (use with caution)
  */
-async function removeAllOrgFlags(orgSlug: string, environment: environment_type): Promise<number> {
+async function removeAllOrgFlags(orgSlug: string, flagKey : string): Promise<number> {
   try {
-    const pattern = `flags:${orgSlug}:${environment}:*`;
+    const pattern = `flags:${orgSlug}:*:${flagKey}`;
     const keys = await redisFlag.keys(pattern);
     
     if (keys.length === 0) {
@@ -263,25 +264,6 @@ async function getFlagWithCache(
   }
 }
 
-/**
- * Remove all flags for an organization across ALL environments (use with extreme caution)
- */
-async function removeAllOrgFlagsAllEnvironments(orgSlug: string): Promise<number> {
-  try {
-    const pattern = `flags:${orgSlug}:*`;
-    const keys = await redisFlag.keys(pattern);
-    
-    if (keys.length === 0) {
-      return 0;
-    }
-    
-    const result = await redisFlag.del(keys);
-    return result;
-  } catch (error) {
-    console.error('Error removing all org flags from cache:', error);
-    return 0;
-  }
-}
 
 export const updateFlagRolloutRedis = async (
   orgSlug: string,
@@ -381,33 +363,7 @@ export const setFlagDataRedis = async (
   }
 };
 
-// Batch update function for multiple environments
-export const batchUpdateFlagDataRedis = async (
-  orgSlug: string,
-  flagKey: string,
-  environmentData: Array<{
-    environment: environment_type;
-    flagData: Redis_Value;
-  }>,
-  ttl: number = 3600
-): Promise<number> => {
-  try {
-    const pipeline = redisFlag.pipeline();
-    
-    for (const { environment, flagData } of environmentData) {
-      const key = generateFlagKey(orgSlug, environment, flagKey);
-      pipeline.setex(key, ttl, JSON.stringify(flagData));
-    }
-
-    await pipeline.exec();
-    return environmentData.length;
-  } catch (error) {
-    console.error('Batch flag data update failed:', error);
-    return 0;
-  }
-};
-
-export const deleteRuleRedis = async (orgSlug : string , flagKey : string , environment : environment_type,rule_id : string) => {
+export const deleteRuleRedis = async (orgSlug : string , flagKey : string , environment : environment_type,rule_id : string,flagType : flag_type) => {
   try{
     const key = generateFlagKey(orgSlug, environment, flagKey);
     const redisData = await redisFlag.get(key);
@@ -420,8 +376,8 @@ export const deleteRuleRedis = async (orgSlug : string , flagKey : string , envi
     if (ruleIndex === -1) return 0;
 
     currentValue.rules.splice(ruleIndex,1);
-
-    await redisFlag.set(key,JSON.stringify({currentValue}));
+    const ttl = FLAG_TTL[flagType] || FLAG_TTL[flag_type.BOOLEAN]
+    await redisFlag.setex(key, ttl,JSON.stringify({currentValue}));
     return 1;
   }
   catch(e){
@@ -431,6 +387,59 @@ export const deleteRuleRedis = async (orgSlug : string , flagKey : string , envi
 }
 
 // Caching Redis Kill Switches
+const killSwitchKeyGenerator =(orgSlug:string,killSwitchId : string) => {
+  try{  
+    return `${orgSlug}:${killSwitchId}`;
+  }
+  catch(e){
+    console.error(e);
+  }
+}
+
+
+
+export type killSwitchValue = {
+  id : string,
+  flag : killSwitchFlagConfig[],
+  is_active : boolean
+}
+
+export const setKillSwitch = async (killSwitchId :string,orgSlug : string,killSwitchData : killSwitchValue
+) => {
+  try{
+    const key =  killSwitchKeyGenerator(orgSlug,killSwitchId)!;
+    
+    const result = await redisFlag.set(key,JSON.stringify(killSwitchData));
+    return result === "OK";
+  }
+  catch(e){
+    console.error(e);
+  }
+}
+
+export const removeKillSwitch = async (killSwitchId : string , orgSlug : string)=>{
+  try{
+    const key = killSwitchKeyGenerator(orgSlug,killSwitchId)!;
+    const result = await redisFlag.del(key);
+    return result > 0;
+  }
+  catch(e){
+    console.error(e);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -444,7 +453,6 @@ export {
   removeFlag,
   getMultipleFlags,
   removeAllOrgFlags,
-  removeAllOrgFlagsAllEnvironments,
   refreshOrSetFlagTTL,
   getFlagWithCache,
   generateFlagKey

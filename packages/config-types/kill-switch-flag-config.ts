@@ -1,8 +1,8 @@
 import {environment_type} from "../db/client"
 
 export interface killSwitchFlagConfig {
-    "flagId" : string,
-    "environments" : environment_type[]
+    flagId : string,
+    environments : environment_type[]
 }
 
 export interface killSwitchConfig {

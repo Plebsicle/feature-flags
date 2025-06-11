@@ -1,6 +1,7 @@
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 import prisma from '@repo/db';
+import { killSwitchValue, setKillSwitch } from '../../services/redis-flag';
 
 export const updateKillSwitch = async (req: express.Request, res: express.Response) => {
     try {
@@ -195,7 +196,13 @@ export const updateKillSwitch = async (req: express.Request, res: express.Respon
 
             return updatedKillSwitch;
         });
-
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        const killSwitchData : killSwitchValue = {
+            id : killSwitchId,
+            is_active,
+            flag : flags
+        }
+        await setKillSwitch(killSwitchId,orgSlug,killSwitchData);
         res.status(200).json({
             success: true,
             message: "Kill switch updated successfully",

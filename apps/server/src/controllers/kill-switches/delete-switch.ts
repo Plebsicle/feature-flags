@@ -1,6 +1,7 @@
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 import prisma from '@repo/db';
+import { removeKillSwitch } from '../../services/redis-flag';
 
 export const deleteKillSwitch = async (req: express.Request, res: express.Response) => {
     try {
@@ -83,7 +84,8 @@ export const deleteKillSwitch = async (req: express.Request, res: express.Respon
                     attributes_changed: killSwitchDeleteAttributes
                 }
             });
-
+            const orgSlug = req.session.user?.userOrganisationSlug!;
+            await removeKillSwitch(killSwitchId,orgSlug);
             return deletedKillSwitch;
         });
 

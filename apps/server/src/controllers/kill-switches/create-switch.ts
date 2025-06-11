@@ -2,6 +2,7 @@ import prisma from '@repo/db';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 import {killSwitchFlagConfig} from '@repo/types/kill-switch-flag-config'
+import { killSwitchValue, setKillSwitch } from '../../services/redis-flag';
 
 interface MyRequestBody {
   name: string;
@@ -89,16 +90,22 @@ export const createKillSwitch = async(req : express.Request, res : express.Respo
                 }
             });
 
-            return killSwitch;
+            return {killSwitch};
         });
-        
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        const killSwitchData : killSwitchValue = {
+            id : result.killSwitch.id,
+            is_active : result.killSwitch.is_active,
+            flag : flags
+        };
+
+        await setKillSwitch(result.killSwitch.id,orgSlug,killSwitchData);
         // Return success response
         res.status(201).json({
             success: true,
             message: "Kill switch created successfully",
             data: result
         });
-
     }
     catch(error){
         console.error('Error creating kill switch:', error);

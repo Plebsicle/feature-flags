@@ -1,7 +1,7 @@
 import prisma from '@repo/db';
 import express from 'express';
 import { deleteFeatureFlagParamsSchema, deleteEnvironmentParamsSchema, deleteRuleParamsSchema } from '../../util/zod';
-import { deleteFeatureFlagRedis, deleteRuleRedis, removeFlag } from '../../services/redis-flag';
+import { removeAllOrgFlags, deleteRuleRedis, removeFlag } from '../../services/redis-flag';
 
 export const deleteFeatureFlag = async (req: express.Request, res: express.Response) => {
     try {
@@ -55,7 +55,7 @@ export const deleteFeatureFlag = async (req: express.Request, res: express.Respo
         });
 
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        await deleteFeatureFlagRedis(orgSlug,flagToDelete.key);
+        await removeAllOrgFlags(orgSlug,flagToDelete.key);
 
         res.status(200).json({ 
             success: true, 
@@ -189,7 +189,8 @@ export const deleteRule = async (req: express.Request, res: express.Response) =>
             }
         });
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        await deleteRuleRedis(orgSlug,ruleToDelete.flag_environment.flag.key,ruleToDelete?.flag_environment.environment,ruleId);
+        const flagType = ruleToDelete.flag_environment.flag.flag_type
+        await deleteRuleRedis(orgSlug,ruleToDelete.flag_environment.flag.key,ruleToDelete?.flag_environment.environment,ruleId,flagType);
         res.status(200).json({ 
             message: "Rule deleted successfully", 
             success: true, 
