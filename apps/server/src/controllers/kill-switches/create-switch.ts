@@ -91,7 +91,7 @@ export const createKillSwitch = async(req : express.Request, res : express.Respo
 
             return killSwitch;
         });
-
+        
         // Return success response
         res.status(201).json({
             success: true,

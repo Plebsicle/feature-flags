@@ -1,8 +1,56 @@
 import prisma from '@repo/db';
 import express from 'express'
 import { getFeatureFlagParamsSchema, getFlagEnvironmentParamsSchema, getRulesParamsSchema, getRolloutParamsSchema, getAuditLogsParamsSchema } from '../../util/zod';
-import { refreshFlagTTL } from '../../services/redis-flag';
+import { Redis_Value, refreshOrSetFlagTTL } from '../../services/redis-flag';
+import { Condition, Conditions } from '@repo/types/rule-config';
+import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis-flag';
+import { environment_type,RedisCacheRules } from '../../services/redis-flag';
 
+// Internal function to get complete flag data for caching
+const getCompleteFlagData = async (flagId: string, environment?: environment_type): Promise<Redis_Value[]> => {
+    const flagData = await prisma.feature_flags.findUnique({
+        where: { id: flagId },
+        include: {
+            environments: {
+                where: environment ? { environment } : {},
+                include: {
+                    rules: {
+                        orderBy: { created_at: 'asc' }
+                    },
+                    rollout: true
+                }
+            }
+        }
+    });
+
+    if (!flagData) {
+        throw new Error('Flag not found');
+    }
+    const environments = flagData.environments;
+    const finalData : Redis_Value[] = [];
+    for(const environment of environments){
+        const rules : RedisCacheRules[] = [];
+        environment.rules.forEach((rule)=>{
+            rules.push({
+                rule_id : rule.id,
+                conditions : rule.conditions as unknown as Conditions,
+                is_enabled : rule.is_enabled
+            });
+        });
+        const objectToPush : Redis_Value = {
+            flagId : flagData.id,
+            environment : environment.environment,
+            is_active : flagData.is_active,
+            is_environment_active : environment.is_enabled,
+            value : flagData.value as Record<string,any>,
+            default_value : flagData.default_value as Record<string,any>,
+            rules,
+            rollout_config : environment.rollout?.config
+        }
+        finalData.push(objectToPush);
+    }
+    return finalData;
+};
 
 export const getAllFeatureFlags = async(req : express.Request,res : express.Response)=>{
     try{
@@ -23,19 +71,54 @@ export const getAllFeatureFlags = async(req : express.Request,res : express.Resp
     }
 }
 
-export  const getFeatureFlagData = async ( req : express.Request,res : express.Response) => {
+export const getFeatureFlagData = async ( req : express.Request,res : express.Response) => {
     try{
         // Zod validation
         const parsedParams = getFeatureFlagParamsSchema.parse(req.params);
         req.params = parsedParams;
         
         const flagId = req.params.flagId;
-        const flagData = await prisma.feature_flags.findUnique({
+        
+        // Get complete flag data with all environments
+        const completeFlag = await getCompleteFlagData(flagId);
+        const flag = await prisma.feature_flags.findUnique({
             where : {
                 id : flagId
             }
         });
-        res.status(200).json({data : flagData , success : true,message : "Flag Data Fetched Succesfully"});
+        if(!flag){
+            res.status(400).json({success : false,message : "Flag Id Missing" });
+            return;
+        }
+        if (!completeFlag) {
+            res.status(404).json({
+                success: false,
+                message: "Flag not found"
+            });
+            return;
+        }
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        for (const env of completeFlag) {
+            await updateFeatureFlagRedis(orgSlug,flag.key,env.environment,env,flag.flag_type);
+        }
+        
+        // Return only flag data (not environment-specific info)
+        const flagResponse = {
+            id: flag.id,
+            organization_id: flag.organization_id,
+            name: flag.name,
+            key: flag.key,
+            description: flag.description,
+            flag_type: flag.flag_type,
+            value: flag.value,
+            default_value: flag.default_value,
+            is_active: flag.is_active,
+            created_by: flag.created_by,
+            created_at: flag.created_at,
+            updated_at: flag.updated_at,
+            tags: flag.tags
+        };
+        res.status(200).json({data : flagResponse , success : true,message : "Flag Data Fetched Succesfully"});
     }   
     catch(e){
          console.error('Error fetching feature flag:', e);
@@ -53,11 +136,44 @@ export const getFlagEnvironmentData = async (req : express.Request,res : express
         req.params = parsedParams;
         
         const flagId = req.params.flagId;
-        const environmentData = await prisma.flag_environments.findMany({
+        
+        // Get complete flag data with all environments
+        const completeFlag = await getCompleteFlagData(flagId);
+        const flag = await prisma.feature_flags.findUnique({
             where : {
-                flag_id : flagId
+                id : flagId
+            },include : {
+                environments : true
             }
         });
+
+        if(!flag){
+            res.status(400).json({success : false,message : "Flag Id Missing" });
+            return;
+        }
+        if (!completeFlag) {
+            res.status(404).json({
+                success: false,
+                message: "Flag not found"
+            });
+            return;
+        }
+        // Cache complete data for each environment
+        const orgSlug = req.session.user?.userOrganisationSlug!;
+        for (const env of completeFlag) {
+            await updateFeatureFlagRedis(orgSlug,flag.key,env.environment,env,flag.flag_type);
+        }
+        
+        // Return only environment data
+        const environmentData = flag.environments.map(env => ({
+            id: env.id,
+            flag_id: env.flag_id,
+            environment: env.environment,
+            is_enabled: env.is_enabled,
+            created_at: env.created_at,
+            updated_at: env.updated_at
+        }));
+        
         res.status(200).json({data : environmentData , success : true,message : "Flag Environments fetched succesfully"});
     }
      catch(e){
@@ -76,25 +192,58 @@ export const getRules = async (req : express.Request,res : express.Response) => 
         req.params = parsedParams;
         
         const environmentId = req.params.environmentId;
-        const environmentRules = await prisma.flag_rules.findMany({
-            where : {
-                flag_environment_id : environmentId
-            },
-            select : {
-                flag_environment : {
-                    include : {
-                        flag : true
-                    }
-                }
+        
+        // Get flag environment with flag details
+        const environmentData = await prisma.flag_environments.findUnique({
+            where: { id: environmentId },
+            include: {
+                flag: true,
+                rules: true,
+                rollout: true
             }
         });
-        if(!environmentRules){
-            res.status(401).json({message : "Failed to Update Rules",success : false});
+        
+        if (!environmentData) {
+            res.status(404).json({message : "Environment not found",success : false});
             return;
         }
+        
+        // Build complete cache data
+        const completeData : Redis_Value = {
+            flagId: environmentData.flag.id,
+            is_active: environmentData.flag.is_active,
+            environment : environmentData.environment,
+            is_environment_active: environmentData.is_enabled,
+            value: environmentData.flag.value as Record<string,any>,
+            default_value: environmentData.flag.default_value as Record<string,any>,
+            rules: environmentData.rules.map(rule => ({
+                rule_id: rule.id,
+                conditions: rule.conditions as unknown as Conditions,
+                is_enabled: rule.is_enabled
+            })),
+            rollout_config: environmentData.rollout?.config || null
+        };
+        
+        // Cache the complete data
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        await refreshFlagTTL(orgSlug,environmentRules[0].flag_environment.flag.key,environmentRules[0].flag_environment.flag.flag_type,environmentRules[0].flag_environment.environment);
-        res.status(200).json({data : environmentRules, success : true , message : "Rules for environment fetched successfuly"});
+        await refreshOrSetFlagTTL(
+            orgSlug,
+            environmentData.flag.key,
+            environmentData.flag.flag_type,
+            completeData,
+            environmentData.environment
+        );
+        
+        // Return only rules data in the expected format
+        const rulesResponse = environmentData.rules.map(rule => ({
+            ...rule,
+            flag_environment: {
+                ...environmentData,
+                flag: environmentData.flag
+            }
+        }));
+        
+        res.status(200).json({data : rulesResponse, success : true , message : "Rules for environment fetched successfuly"});
     }
     catch(e){
         console.error('Error fetching rules for the environment:', e);
@@ -105,7 +254,6 @@ export const getRules = async (req : express.Request,res : express.Response) => 
     }
 }
 
-
 export const getRollout = async (req : express.Request , res : express.Response) => {
     try{
         // Zod validation
@@ -113,25 +261,58 @@ export const getRollout = async (req : express.Request , res : express.Response)
         req.params = parsedParams;
         
         const environmentId = req.params.environmentId;
-        const rollout = await prisma.flag_rollout.findUnique({
-            where : {
-                flag_environment_id : environmentId
-            },
-            select : {
-                flag_rollout_environment : {
-                    include : {
-                        flag : true
-                    }
-                }
+        
+        // Get flag environment with flag details and rollout
+        const environmentData = await prisma.flag_environments.findUnique({
+            where: { id: environmentId },
+            include: {
+                flag: true,
+                rules: true,
+                rollout: true
             }
         });
-        if(!rollout){
-            res.status(401).json({message : "Rollout not Found",success : false});
+        
+        if (!environmentData || !environmentData.rollout) {
+            res.status(404).json({message : "Rollout not Found",success : false});
             return;
         }
+        
+        // Build complete cache data
+        const completeData : Redis_Value = {
+            flagId: environmentData.flag.id,
+            is_active: environmentData.flag.is_active,
+            environment : environmentData.environment,
+            is_environment_active: environmentData.is_enabled,
+            value: environmentData.flag.value as Record<string,any>,
+            default_value: environmentData.flag.default_value as Record<string,any>,
+            rules: environmentData.rules.map(rule => ({
+                rule_id: rule.id,
+                conditions: rule.conditions as unknown as Conditions,
+                is_enabled: rule.is_enabled
+            })),
+            rollout_config: environmentData.rollout?.config || null
+        };
+        
+        // Cache the complete data
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        await refreshFlagTTL(orgSlug,rollout?.flag_rollout_environment.flag.key,rollout?.flag_rollout_environment.flag.flag_type,rollout?.flag_rollout_environment.environment);
-        res.status(200).json({data : rollout, success : true , message : "Rollout for environment fetched successfuly"});
+        await refreshOrSetFlagTTL(
+            orgSlug,
+            environmentData.flag.key,
+            environmentData.flag.flag_type,
+            completeData,
+            environmentData.environment
+        );
+        
+        // Return rollout data in the expected format
+        const rolloutResponse = {
+            ...environmentData.rollout,
+            flag_rollout_environment: {
+                ...environmentData,
+                flag: environmentData.flag
+            }
+        };
+        
+        res.status(200).json({data : rolloutResponse, success : true , message : "Rollout for environment fetched successfuly"});
     }
     catch(e){
         console.error('Error fetching rollout details:', e);

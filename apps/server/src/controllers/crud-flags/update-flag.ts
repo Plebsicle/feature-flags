@@ -1,13 +1,72 @@
 import express from 'express'
 import prisma from '@repo/db';
-import { rollout_type } from '@repo/db/node_modules/@prisma/client'
+import { rollout_type, environment_type } from '@repo/db/node_modules/@prisma/client'
 import { Conditions } from '@repo/types/rule-config';
 import { updateFeatureFlagBodySchema, updateFlagRuleBodySchema, updateFlagRolloutBodySchema } from '../../util/zod';
 import { extractCustomAttributes } from '../../util/extract-attributes';
 import { insertCustomAttributes } from '../../util/insert-custom-attribute';
-import { refreshFlagTTL, setFlag, updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis-flag';
-
+import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis-flag';
+import { Redis_Value, RedisCacheRules } from '../../services/redis-flag'; // Import your Redis types
 import { extractAuditInfo } from '../../util/ip-agent';
+
+// Helper function to construct Redis flag data
+const constructRedisFlagData = async (flagId: string, environment?: environment_type): Promise<Redis_Value[]> => {
+    const flagData = await prisma.feature_flags.findUnique({
+        where: { id: flagId },
+        include: {
+            environments: {
+                where: environment ? { environment } : {},
+                include: {
+                    rules: {
+                        orderBy: { created_at: 'asc' }
+                    },
+                    rollout: true
+                }
+            }
+        }
+    });
+
+    if (!flagData) {
+        throw new Error('Flag not found');
+    }
+    const environments = flagData.environments;
+    const finalData : Redis_Value[] = [];
+    for(const environment of environments){
+        const rules : RedisCacheRules[] = [];
+        environment.rules.forEach((rule)=>{
+            rules.push({
+                rule_id : rule.id,
+                conditions : rule.conditions as unknown as Conditions,
+                is_enabled : rule.is_enabled
+            });
+        });
+        const objectToPush : Redis_Value = {
+            flagId : flagData.id,
+            environment : environment.environment,
+            is_active : flagData.is_active,
+            is_environment_active : environment.is_enabled,
+            value : flagData.value as Record<string,any>,
+            default_value : flagData.default_value as Record<string,any>,
+            rules,
+            rollout_config : environment.rollout?.config
+        }
+        finalData.push(objectToPush);
+    }
+    return finalData;
+    // return flagData.environments.map(env => ({
+    //     flagId: flagData.id,
+    //     is_active: flagData.is_active,
+    //     is_evironment_active: env.is_enabled,
+    //     value: flagData.value as Record<string, any>,
+    //     default_value: flagData.default_value as Record<string, any>,
+    //     rules: env.rules.map(rule => ({
+    //         rule_id: rule.id,
+    //         conditions: rule.conditions as unknown as Conditions,
+    //         is_enabled: rule.is_enabled
+    //     })) as RedisCacheRules[],
+    //     rollout_config: env.rollout?.config || null
+    // }));
+};
 
 // 1. UPDATE FEATURE FLAG ROUTE
 export const updateFeatureFlag = async (req: express.Request, res: express.Response) => {
@@ -17,7 +76,7 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
         req.body = parsedBody;
 
         const role = req.session.user?.userRole;
-         if(role === "VIEWER"){
+        if(role === "VIEWER"){
             res.status(401).json({success : false,message : "Role is not Sufficient"});
             return;
         }
@@ -104,9 +163,15 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
             return { updated: true ,updatedFlag  };
         });
 
+        // Get complete flag data for Redis update
+        const redisFlagData = await constructRedisFlagData(flagId);
         const orgSlug = req.session.user?.userOrganisationSlug!;
-
-        await updateFeatureFlagRedis(orgSlug , result.updatedFlag.key ,isActive,value,default_value);
+        
+        // Update Redis for all environments of this f
+        for (const envData of redisFlagData) {
+            // Determine environment from your data structure
+            await updateFeatureFlagRedis(orgSlug, result.updatedFlag.key,envData.environment, envData,result.updatedFlag.flag_type);
+        }
     
         res.status(200).json({
             success: true,
@@ -213,6 +278,9 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
                     flag_environment: {
                         select: {
                             flag_id: true
+                        },
+                        include : {
+                            flag : true
                         }
                     }
                 }
@@ -256,11 +324,16 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
                 }
             });
 
-            return { updated: true };
+            return { updated: true,currentFlagRule };
         });
 
+        // Get complete flag data for the specific environment
+        const redisFlagData = await constructRedisFlagData(flag_id, environment);
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        await updateFlagRulesRedis(orgSlug,flagData.key,environment,flagRuleId,conditions,isEnabled);
+        
+        if (redisFlagData.length > 0) {
+            await updateFlagRulesRedis(orgSlug, flagData.key, environment, redisFlagData[0],result.currentFlagRule.flag_environment.flag.flag_type);
+        }
 
         res.status(200).json({
             success: true,
@@ -344,7 +417,8 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
                     config: true,
                     flag_rollout_environment: {
                         select: {
-                            flag_id: true
+                            flag_id: true,
+                            flag : true
                         }
                     }
                 }
@@ -388,10 +462,16 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
                 }
             });
 
-            return { updated: true };
+            return { updated: true , currentFlagRollout};
         });
+
+        // Get complete flag data for the specific environment after update
+        const redisFlagData = await constructRedisFlagData(flag_id, environment);
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        await updateFlagRolloutRedis(orgSlug,flagData.key,environment,rollout_config);
+        
+        if (redisFlagData.length > 0) {
+            await updateFlagRolloutRedis(orgSlug, flagData.key, environment, redisFlagData[0],result.currentFlagRollout.flag_rollout_environment.flag.flag_type);
+        }
 
         res.status(200).json({
             success: true,
@@ -411,6 +491,30 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
 export const updateEnvironment = async (req: express.Request, res: express.Response) => {
     try{
         const {is_enabled,environment_id} = req.body;
+        
+        // Get environment details before update
+        const currentEnv = await prisma.flag_environments.findUnique({
+            where: { id: environment_id },
+            select: {
+                is_enabled: true,
+                environment: true,
+                flag_id: true,
+                flag: {
+                    select: {
+                        key: true
+                    }
+                }
+            }
+        });
+
+        if (!currentEnv) {
+            res.status(404).json({
+                success: false,
+                message: "Environment not found"
+            });
+            return;
+        }
+
         // validate input
         const updatedEnv = await prisma.flag_environments.update({
             where : {
@@ -424,6 +528,7 @@ export const updateEnvironment = async (req: express.Request, res: express.Respo
                 flag : true
             }
         });
+        
         const { ip, userAgent } = extractAuditInfo(req);
         // Audit Logs
         const organisation_id = req.session.user?.userOrganisationId!;
@@ -432,9 +537,8 @@ export const updateEnvironment = async (req: express.Request, res: express.Respo
         const attributesChanged: Record<string, { newValue: any, oldValue: any }> = {};
         attributesChanged["is_enabled"] = {
             newValue : is_enabled,
-            oldValue : !is_enabled
+            oldValue : currentEnv.is_enabled
         }
-
 
         await prisma.audit_logs.create({
             data : {
@@ -449,10 +553,14 @@ export const updateEnvironment = async (req: express.Request, res: express.Respo
                 user_agent : userAgent
             }
         });
+
+        // Get complete flag data for the specific environment after update
+        const redisFlagData = await constructRedisFlagData(currentEnv.flag_id, updatedEnv.environment);
         const orgSlug = req.session.user?.userOrganisationSlug!;
         
-        // Update Redis Cache
-        await updateEnvironmentRedis(orgSlug,updatedEnv.flag.key,updatedEnv.environment,is_enabled);
+        if (redisFlagData.length > 0) {
+            await updateEnvironmentRedis(orgSlug, updatedEnv.flag.key, updatedEnv.environment, redisFlagData[0],updatedEnv.flag.flag_type);
+        }
 
         res.status(200).json({
             success: true,

@@ -22,7 +22,8 @@ export interface RedisCacheRules {
 export interface Redis_Value {
   flagId : string,
   is_active : boolean,
-  is_evironment_active : boolean,
+  environment : environment_type
+  is_environment_active : boolean,
   value : Record<string,any>,
   default_value : Record<string,any>,
   rules : RedisCacheRules[],
@@ -183,27 +184,82 @@ async function removeAllOrgFlags(orgSlug: string, environment: environment_type)
 /**
  * Update flag TTL without changing the value
  */
-async function refreshFlagTTL(orgSlug: string, flagKey: string, flagType: flag_type, environment? : environment_type): Promise<boolean> {
+async function refreshOrSetFlagTTL(
+  orgSlug: string, 
+  flagKey: string, 
+  flagType: flag_type, 
+  flagValue: Redis_Value, 
+  environment?: environment_type
+): Promise<boolean> {
   try {
     const ttl = FLAG_TTL[flagType] || FLAG_TTL[flag_type.BOOLEAN];
-    if(environment){
+    
+    if (environment) {
       const key = generateFlagKey(orgSlug, environment, flagKey);
-      
-      const result = await redisFlag.expire(key, ttl);
-      return result === 1; // Returns true if expiration was set
-    }
-    else{
-      const pattern = `flags:${orgSlug}:*${flagKey}`;
+      // Always set/update the flag with TTL using setex
+      const result = await redisFlag.setex(key, ttl, JSON.stringify(flagValue));
+      return result === 'OK';
+    } else {
+      // Handle pattern matching for multiple environments
+      const pattern = `flags:${orgSlug}:*:${flagKey}`;
       const keys = await redisFlag.keys(pattern);
-       if (keys.length === 0) return false;
-      for(const key in keys){
-        await redisFlag.expire(key,ttl);
+      
+      if (keys.length === 0) {
+        // No keys found, set for all environments with the provided data
+        const environments = ['DEV', 'STAGING', 'PROD', 'TEST'] as environment_type[];
+        const promises = environments.map(env => {
+          const envKey = generateFlagKey(orgSlug, env, flagKey);
+          return redisFlag.setex(envKey, ttl, JSON.stringify(flagValue));
+        });
+        await Promise.all(promises);
+        return true;
+      }
+      
+      // Update all existing keys with new data
+      for (const key of keys) {
+        await redisFlag.setex(key, ttl, JSON.stringify(flagValue));
       }
       return true;
     }
   } catch (error) {
-    console.error('Error refreshing flag TTL:', error);
+    console.error('Error refreshing/setting flag TTL:', error);
     return false;
+  }
+}
+
+// Alternative function if you want separate methods for get controllers
+async function getFlagWithCache(
+  orgSlug: string,
+  flagKey: string,
+  flagType: flag_type,
+  environment: environment_type,
+  fetchFlagFn: () => Promise<any> // Function to fetch flag from database
+): Promise<any> {
+  try {
+    const ttl = FLAG_TTL[flagType] || FLAG_TTL[flag_type.BOOLEAN];
+    const key = generateFlagKey(orgSlug, environment, flagKey);
+    
+    // Try to get from cache first
+    const cached = await redisFlag.get(key);
+    
+    if (cached) {
+      // Found in cache, refresh TTL and return
+      await redisFlag.expire(key, ttl);
+      return JSON.parse(cached);
+    }
+    
+    // Not in cache, fetch from source
+    const flagData = await fetchFlagFn();
+    
+    if (flagData) {
+      // Cache the fetched data
+      await redisFlag.setex(key, ttl, JSON.stringify(flagData));
+    }
+    
+    return flagData;
+  } catch (error) {
+    console.error('Error getting flag with cache:', error);
+    throw error;
   }
 }
 
@@ -227,61 +283,37 @@ async function removeAllOrgFlagsAllEnvironments(orgSlug: string): Promise<number
   }
 }
 
-export const updateFlagRolloutRedis = async ( orgSlug: string,
+export const updateFlagRolloutRedis = async (
+  orgSlug: string,
   flagKey: string,
   environment: environment_type,
-  rollout_config : RolloutConfig
-) => {
-  try{
-        const key = generateFlagKey(orgSlug, environment, flagKey);
-        const redisData = await redisFlag.get(key);
-
-        if (!redisData) return 0;
-        const currentValue: Redis_Value = await JSON.parse(redisData);
-        await redisFlag.set(key,JSON.stringify({
-          ...currentValue,
-          rollout_config
-        }));
-
-        return 1;
-  }
-  catch(e){
-    console.error('Rollout update failed:', e);
+  flagData: Redis_Value,
+  flagType : flag_type
+): Promise<number> => {
+  try {
+    const key = generateFlagKey(orgSlug, environment, flagKey);
+    const ttl = FLAG_TTL[flagType] || FLAG_TTL[flag_type.BOOLEAN];
+    // Directly set the flag data with TTL using setex
+    await redisFlag.setex(key, ttl, JSON.stringify(flagData));
+    return 1;
+  } catch (error) {
+    console.error('Rollout update failed:', error);
     return 0;
   }
-}
+};
 
 export const updateFeatureFlagRedis = async (
   orgSlug: string,
   flagKey: string,
-  isActive?: boolean,  // Made optional,
-  value? : Record<"value",any>,
-  default_value? : Record<"value",any>
+  environment: environment_type, 
+  flagData: Redis_Value,
+  flagType : flag_type
 ): Promise<number> => {
   try {
-    const pattern = `flags:${orgSlug}:*:${flagKey}`;
-    const keys = await redisFlag.keys(pattern);
-
-    if (keys.length === 0) return 0;
-
-    const pipeline = redisFlag.pipeline();
-    
-    for (const key of keys) {
-      const currentValue = await redisFlag.get(key) as unknown as Redis_Value;
-      
-      // Conditional update for is_active,value and, defualt_value
-      const updatedValue: Redis_Value = {
-        ...currentValue,
-        ...(isActive !== undefined && { is_active: isActive }),
-        ...(value !== undefined && {value}),
-        ...(default_value !== undefined && {default_value})
-      };
-
-      pipeline.set(key, JSON.stringify(updatedValue));
-    }
-
-    await pipeline.exec();
-    return keys.length;
+    const key = generateFlagKey(orgSlug,environment,flagKey);
+    const ttl = FLAG_TTL[flagType] || FLAG_TTL[flag_type.BOOLEAN];
+    redisFlag.setex(key,ttl,JSON.stringify(flagData));
+    return 1;
   } catch (error) {
     console.error('Feature flag update failed:', error);
     return 0;
@@ -292,35 +324,15 @@ export const updateFlagRulesRedis = async (
   orgSlug: string,
   flagKey: string,
   environment: environment_type,
-  rule_id: string,
-  conditions?: Conditions,          // Made optional
-  is_enabled?: boolean              // Made optional
+  flagData: Redis_Value,
+  flagType : flag_type
 ): Promise<number> => {
   try {
     const key = generateFlagKey(orgSlug, environment, flagKey);
-    const redisData = await redisFlag.get(key);
-
-    if (!redisData) return 0;
-
-    const currentValue: Redis_Value = JSON.parse(redisData);
-    const ruleIndex = currentValue.rules.findIndex(r => r.rule_id === rule_id);
-
-    if (ruleIndex === -1) return 0;
-
-    // Partial updates with conditionals
-    const updatedRules = currentValue.rules.map(rule => 
-      rule.rule_id === rule_id ? {
-        ...rule,
-        ...(conditions !== undefined && { conditions }),
-        ...(is_enabled !== undefined && { is_enabled })
-      } : rule
-    );
-
-    await redisFlag.set(key, JSON.stringify({
-      ...currentValue,
-      rules: updatedRules
-    }));
-
+    const ttl = FLAG_TTL[flagType] || FLAG_TTL[flag_type.BOOLEAN];
+    // Directly set the flag data with updated rules using setex
+    await redisFlag.setex(key, ttl, JSON.stringify(flagData));
+    
     return 1;
   } catch (error) {
     console.error('Rule update failed:', error);
@@ -328,38 +340,72 @@ export const updateFlagRulesRedis = async (
   }
 };
 
-export const updateEnvironmentRedis = async  (orgSlug : string, flagKey : string , environment : environment_type,is_environment_enabled : boolean) => {
-  try{
-    const key = generateFlagKey(orgSlug,environment,flagKey);
-    const rawData = await redisFlag.get(key);
-    if(!rawData){
-      return false;
-    }
-    const data = await JSON.parse(rawData);
-
-    data.is_environment_enabled = is_environment_enabled;
-    const result = await redisFlag.set(key,JSON.stringify(data));
-  }
-  catch(error){
-    console.error('Rule update failed:', error);
-    return 0;
-  }
-}
-
-export const deleteFeatureFlagRedis =async  (orgSlug : string , flagKey : string) => {
-  try{
-    const pattern = `flags:${orgSlug}:*:${flagKey}`
-    const keys = await redisFlag.keys(pattern);
-    for(const key in keys){
-      await redisFlag.del(key);
-    }
+export const updateEnvironmentRedis = async (
+  orgSlug: string,
+  flagKey: string,
+  environment: environment_type,
+  flagData: Redis_Value,
+  flagType : flag_type
+): Promise<number> => {
+  try {
+    const key = generateFlagKey(orgSlug, environment, flagKey);
+    const ttl = FLAG_TTL[flagType] || FLAG_TTL[flag_type.BOOLEAN];
+    // Directly set the flag data with updated environment status using setex
+    await redisFlag.setex(key, ttl, JSON.stringify(flagData));
+    
     return 1;
-  }
-  catch(e){
-    console.error('Rule update failed:', e);
+  } catch (error) {
+    console.error('Environment update failed:', error);
     return 0;
   }
-}
+};
+
+// Alternative: Single unified function for all updates
+export const setFlagDataRedis = async (
+  orgSlug: string,
+  flagKey: string,
+  environment: environment_type,
+  flagData: Redis_Value,
+  ttl: number = 3600 // Default TTL of 1 hour
+): Promise<number> => {
+  try {
+    const key = generateFlagKey(orgSlug, environment, flagKey);
+    
+    // Directly set the complete flag data using setex
+    await redisFlag.setex(key, ttl, JSON.stringify(flagData));
+    
+    return 1;
+  } catch (error) {
+    console.error('Flag data update failed:', error);
+    return 0;
+  }
+};
+
+// Batch update function for multiple environments
+export const batchUpdateFlagDataRedis = async (
+  orgSlug: string,
+  flagKey: string,
+  environmentData: Array<{
+    environment: environment_type;
+    flagData: Redis_Value;
+  }>,
+  ttl: number = 3600
+): Promise<number> => {
+  try {
+    const pipeline = redisFlag.pipeline();
+    
+    for (const { environment, flagData } of environmentData) {
+      const key = generateFlagKey(orgSlug, environment, flagKey);
+      pipeline.setex(key, ttl, JSON.stringify(flagData));
+    }
+
+    await pipeline.exec();
+    return environmentData.length;
+  } catch (error) {
+    console.error('Batch flag data update failed:', error);
+    return 0;
+  }
+};
 
 export const deleteRuleRedis = async (orgSlug : string , flagKey : string , environment : environment_type,rule_id : string) => {
   try{
@@ -384,6 +430,9 @@ export const deleteRuleRedis = async (orgSlug : string , flagKey : string , envi
   }
 }
 
+// Caching Redis Kill Switches
+
+
 
 export {
   flag_type,
@@ -396,7 +445,8 @@ export {
   getMultipleFlags,
   removeAllOrgFlags,
   removeAllOrgFlagsAllEnvironments,
-  refreshFlagTTL,
+  refreshOrSetFlagTTL,
+  getFlagWithCache,
   generateFlagKey
 };
 
