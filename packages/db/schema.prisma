@@ -24,6 +24,7 @@ model organizations {
   attributes         organization_attributes[]
   audit_logs         audit_logs[]              @relation("OrgAuditLogs")
   kill_switches      kill_switches[]
+  metrics            metrics[]
 
   @@index([slug])
 }
@@ -38,6 +39,7 @@ model users {
   updated_at              DateTime                 @default(now()) @db.Timestamptz(6)
   is_active               Boolean                  @default(true)
   isVerified              Boolean                  @default(false)
+  
   // Relations
   owned_organization      organizations?           @relation("OrganizationOwner")
   user_organizations      user_organizations?
@@ -168,14 +170,14 @@ model flag_environments {
   flag_id     String           @db.Uuid
   environment environment_type
   is_enabled  Boolean          @default(true)
-
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  created_at  DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime         @default(now()) @db.Timestamptz(6)
 
   // Relations
   flag    feature_flags @relation(fields: [flag_id], references: [id], onDelete: Cascade)
   rules   flag_rules[]
   rollout flag_rollout?
+  metrics metrics[]
 
   @@unique([flag_id, environment])
   @@index([flag_id, environment])
@@ -187,15 +189,10 @@ model flag_rules {
   flag_environment_id String  @db.Uuid
   name                String  @db.VarChar(255)
   description         String?
-
-  // Rule conditions - Now structured to work with typed attributes
-  conditions Json @default("{}")
-
-  // Value to return when rule matches (works for all flag types)
-  is_enabled Boolean @default(false)
-
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  conditions          Json    @default("{}")
+  is_enabled          Boolean @default(false)
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
   flag_environment flag_environments @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
@@ -215,31 +212,64 @@ model flag_rollout {
 
 // Flag evaluation results (caching and analytics)
 model flag_evaluations {
-  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id         String           @db.Uuid
-  user_identifier String           @db.VarChar(255)
-  environment     environment_type
+  id                    String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id               String                      @db.Uuid
+  environment           environment_type
+  value                 Json
+  user_context          Json                        @default("{}")
+  rules_matched         Json
+  evaluated_at          DateTime                    @default(now()) @db.Timestamptz(6)
+  
+  // Relations
+  flag                  feature_flags               @relation(fields: [flag_id], references: [id], onDelete: Cascade)
+  evaluation_metrics    flag_evaluations_metrics[]
 
-  // The evaluated result
-  value Json
+  @@index([flag_id, environment])
+  @@index([flag_id, environment, evaluated_at])
+}
 
-  // User context used for evaluation (includes typed attributes)
-  user_context Json @default("{}")
-
-  // Metadata about the evaluation
-  reason  String  @db.VarChar(100) // "rule_match", "default", "percentage", etc.
-  rule_id String? @db.Uuid
-  variant String? @db.VarChar(100) // For AB tests
-
-  evaluated_at DateTime  @default(now()) @db.Timestamptz(6)
-  expires_at   DateTime? @db.Timestamptz(6)
+// Per environment metric setup by org for monitoring
+model metrics {
+  id                      String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id         String                      @db.Uuid
+  flag_environment_id     String                      @db.Uuid 
+  metric_name             String                      @db.VarChar(255)
+  metric_key              String                      @db.VarChar(255)
+  metric_type             metric_type
+  alert_conditions        Json?                       // Thresholds, comparisons, etc.
+  is_active               Boolean                     @default(true)
+  aggregation_window      Int                         @default(300) // seconds
+  description             String?                     @db.Text
+  created_at              DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                    @default(now()) @db.Timestamptz(6)
 
   // Relations
-  flag feature_flags @relation(fields: [flag_id], references: [id], onDelete: Cascade)
+  organization            organizations               @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  flag_environment        flag_environments?          @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
+  evaluation_metrics      flag_evaluations_metrics[]
 
-  @@index([flag_id, user_identifier, environment])
-  @@index([flag_id, environment, evaluated_at])
-  @@index([expires_at])
+  @@unique([organization_id, metric_key])
+  @@index([organization_id, metric_type])
+  @@index([flag_environment_id, metric_type])
+}
+
+// Per metric evaluation results
+model flag_evaluations_metrics {
+  id                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  metric_id             String            @db.Uuid
+  flag_evaluation_id    String            @db.Uuid
+  variation_served      Json              // Flexible for different flag types
+  count                 Int               @default(1)
+  serve_default         Boolean           @default(false)
+  additional_data       Json?             // For custom metrics data
+  recorded_at           DateTime          @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  metric                metrics           @relation(fields: [metric_id], references: [id], onDelete: Cascade)
+  flag_evaluation       flag_evaluations  @relation(fields: [flag_evaluation_id], references: [id], onDelete: Cascade)
+
+  @@index([metric_id, recorded_at])
+  @@index([flag_evaluation_id])
 }
 
 // Unified audit log
@@ -248,12 +278,12 @@ model audit_logs {
   organisation_id    String?             @db.Uuid
   user_id            String?             @db.Uuid
   action             audit_action
-  resource_type      audit_resource_type // Which table was changed
+  resource_type      audit_resource_type
   resource_id        String?             @db.Uuid
   attributes_changed Json?
   environment        environment_type?
   ip_address         String?             @db.Inet
-  user_agent         String?             @db.Text // Browser/client info
+  user_agent         String?             @db.Text
   created_at         DateTime            @default(now()) @db.Timestamptz(6)
 
   // Relations
@@ -275,8 +305,8 @@ model kill_switches {
   created_by      String    @db.Uuid
   created_at      DateTime  @default(now()) @db.Timestamptz(6)
   updated_at      DateTime  @default(now()) @db.Timestamptz(6)
-  activated_at    DateTime? @db.Timestamptz(6) // When it was last activated
-  activated_by    String?   @db.Uuid // Who activated it
+  activated_at    DateTime? @db.Timestamptz(6)
+  activated_by    String?   @db.Uuid
 
   // Relations
   organization  organizations       @relation(fields: [organization_id], references: [id], onDelete: Cascade)
@@ -293,16 +323,16 @@ model kill_switch_flags {
   id             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   kill_switch_id String             @db.Uuid
   flag_id        String             @db.Uuid
-  environments   environment_type[] @default([]) // Empty array means all environments
+  environments   environment_type[] @default([])
   created_at     DateTime           @default(now()) @db.Timestamptz(6)
 
   // Relations
   kill_switch kill_switches @relation(fields: [kill_switch_id], references: [id], onDelete: Cascade)
   flag        feature_flags @relation(fields: [flag_id], references: [id], onDelete: Cascade)
 
-  @@unique([kill_switch_id, flag_id]) // Prevent duplicate flag entries per kill switch
+  @@unique([kill_switch_id, flag_id])
   @@index([kill_switch_id, flag_id])
-  @@index([flag_id]) // For reverse lookups during evaluation
+  @@index([flag_id])
 }
 
 // Enums
@@ -343,6 +373,9 @@ enum audit_action {
   ENABLE
   DISABLE
   EVALUATE
+  ALERT_TRIGGERED
+  ALERT_ACKNOWLEDGED
+  ALERT_RESOLVED
 }
 
 enum audit_resource_type {
@@ -353,9 +386,11 @@ enum audit_resource_type {
   FLAG_RULE
   ORGANIZATION_ATTRIBUTE
   FLAG_ROLLOUT
+  METRIC
+  ALERT
+  ALERT_PREFERENCE
 }
 
-// New enum for attribute data types
 enum attribute_data_type {
   STRING
   NUMBER
@@ -363,4 +398,14 @@ enum attribute_data_type {
   DATE
   SEMVER
   ARRAY
+}
+
+// New enums for monitoring and alerting
+enum metric_type {
+  EVALUATION_COUNT      // Number of evaluations
+  ERROR_RATE           // Percentage of failed evaluations
+  RESPONSE_TIME        // Evaluation response time
+  // VARIATION_DISTRIBUTION // Distribution of variations served
+  // CONVERSION_RATE      // Success rate for AB tests
+  // CUSTOM              // Custom business metrics
 }
