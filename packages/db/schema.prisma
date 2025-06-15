@@ -25,21 +25,23 @@ model organizations {
   audit_logs         audit_logs[]              @relation("OrgAuditLogs")
   kill_switches      kill_switches[]
   metrics            metrics[]
+  slackIntegration   SlackIntegration[]
+  alert_preferences  alert_preferences?
 
   @@index([slug])
 }
 
 model users {
-  id                      String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email                   String                   @unique @db.VarChar(255)
-  name                    String                   @db.VarChar(255)
-  role                    user_role                @default(MEMBER)
-  password                String?
-  created_at              DateTime                 @default(now()) @db.Timestamptz(6)
-  updated_at              DateTime                 @default(now()) @db.Timestamptz(6)
-  is_active               Boolean                  @default(true)
-  isVerified              Boolean                  @default(false)
-  
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email      String    @unique @db.VarChar(255)
+  name       String    @db.VarChar(255)
+  role       user_role @default(MEMBER)
+  password   String?
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @db.Timestamptz(6)
+  is_active  Boolean   @default(true)
+  isVerified Boolean   @default(false)
+
   // Relations
   owned_organization      organizations?           @relation("OrganizationOwner")
   user_organizations      user_organizations?
@@ -185,12 +187,12 @@ model flag_environments {
 
 // Targeting rules (works for all flag types)
 model flag_rules {
-  id                  String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_environment_id String  @db.Uuid
-  name                String  @db.VarChar(255)
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_environment_id String   @db.Uuid
+  name                String   @db.VarChar(255)
   description         String?
-  conditions          Json    @default("{}")
-  is_enabled          Boolean @default(false)
+  conditions          Json     @default("{}")
+  is_enabled          Boolean  @default(false)
   created_at          DateTime @default(now()) @db.Timestamptz(6)
   updated_at          DateTime @default(now()) @db.Timestamptz(6)
 
@@ -212,64 +214,187 @@ model flag_rollout {
 
 // Flag evaluation results (caching and analytics)
 model flag_evaluations {
-  id                    String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id               String                      @db.Uuid
-  environment           environment_type
-  value                 Json
-  user_context          Json                        @default("{}")
-  rules_matched         Json
-  evaluated_at          DateTime                    @default(now()) @db.Timestamptz(6)
-  
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id       String           @db.Uuid
+  environment   environment_type
+  value         Json
+  user_context  Json             @default("{}")
+  rules_matched Json
+  evaluated_at  DateTime         @default(now()) @db.Timestamptz(6)
+
   // Relations
-  flag                  feature_flags               @relation(fields: [flag_id], references: [id], onDelete: Cascade)
-  evaluation_metrics    flag_evaluations_metrics[]
+  flag feature_flags @relation(fields: [flag_id], references: [id], onDelete: Cascade)
 
   @@index([flag_id, environment])
   @@index([flag_id, environment, evaluated_at])
 }
 
-// Per environment metric setup by org for monitoring
-model metrics {
-  id                      String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organization_id         String                      @db.Uuid
-  flag_environment_id     String                      @db.Uuid 
-  metric_name             String                      @db.VarChar(255)
-  metric_key              String                      @db.VarChar(255)
-  metric_type             metric_type
-  alert_conditions        Json?                       // Thresholds, comparisons, etc.
-  is_active               Boolean                     @default(true)
-  aggregation_window      Int                         @default(300) // seconds
-  description             String?                     @db.Text
-  created_at              DateTime                    @default(now()) @db.Timestamptz(6)
-  updated_at              DateTime                    @default(now()) @db.Timestamptz(6)
+model metric_events {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  metric_id  String @db.Uuid
+  metric_key String @db.VarChar(255)
+
+  // Feature flag context
+  part_rollout     Boolean @default(false)
+  variation_served String? @db.VarChar(255) // for A/B testing or multivariate
+
+  // Event type - determines which fields are populated
+  event_type metric_event_type
+
+  // Flexible data storage based on event type
+  numeric_value   Float? // for NUMERIC metrics only
+  conversion_step conversion_step_type? // for CONVERSION metrics only
+  // Note: COUNT metrics don't need a value field - each event = +1
+
+  // Metadata
+  timestamp DateTime @default(now()) @db.Timestamptz(6)
+  context   Json? // additional context data
+
+  // Relations  
+  metric metrics @relation(fields: [metric_id], references: [id], onDelete: Cascade)
+
+  @@index([metric_key, timestamp])
+  @@index([metric_key, event_type, timestamp])
+  @@index([metric_key, part_rollout, variation_served])
+}
+
+// Aggregated results table - stores computed metrics
+model metric_aggregations {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  metric_id  String @db.Uuid
+  metric_key String @db.VarChar(255) // for convenience
+
+  // Feature flag context for this aggregation
+  part_rollout     Boolean? // null means all data, true/false means filtered
+  variation_served String? // null means all variations, specific value means filtered
+
+  // Time window for this aggregation
+  window_start DateTime @db.Timestamptz(6)
+  window_end   DateTime @db.Timestamptz(6)
+
+  // Aggregated values based on metric type
+  total_events Int @default(0)
+
+  // For CONVERSION metrics
+  encounters      Int? // number of users who encountered
+  conversions     Int? // number who converted
+  conversion_rate Float? // calculated rate
+
+  // For COUNT metrics
+  count_total Int? // sum of all count events
+
+  // For NUMERIC metrics  
+  numeric_sum Float?
+  numeric_avg Float?
+  numeric_p50 Float?
+  numeric_p75 Float?
+  numeric_p90 Float?
+  numeric_p95 Float?
+  numeric_p99 Float?
+  numeric_min Float?
+  numeric_max Float?
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  organization            organizations               @relation(fields: [organization_id], references: [id], onDelete: Cascade)
-  flag_environment        flag_environments?          @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
-  evaluation_metrics      flag_evaluations_metrics[]
+  metric metrics @relation(fields: [metric_id], references: [id], onDelete: Cascade)
+
+  @@unique([metric_id, window_start, window_end, part_rollout, variation_served])
+  @@index([metric_id, window_start])
+}
+
+// Updated main metrics model
+model metrics {
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_id     String      @db.Uuid
+  flag_environment_id String      @db.Uuid
+  metric_name         String      @db.VarChar(255)
+  metric_key          String      @db.VarChar(255)
+  metric_type         metric_type
+
+  is_active Boolean @default(true)
+
+  aggregation_window Int                       @default(300) // seconds
+  unit_measurement   String?
+  aggregation_method metric_aggregation_method
+  description        String?                   @db.Text
+  created_at         DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime                  @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  organization     organizations      @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  flag_environment flag_environments? @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
+
+  // New relations - now using metric_id instead of metric_key
+  metric_events       metric_events[]
+  metric_aggregations metric_aggregations[]
+  metric_setup        alert_metric?
+  triggered_alerts    triggered_alerts[]
 
   @@unique([organization_id, metric_key])
   @@index([organization_id, metric_type])
   @@index([flag_environment_id, metric_type])
 }
 
-// Per metric evaluation results
-model flag_evaluations_metrics {
-  id                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  metric_id             String            @db.Uuid
-  flag_evaluation_id    String            @db.Uuid
-  variation_served      Json              // Flexible for different flag types
-  count                 Int               @default(1)
-  serve_default         Boolean           @default(false)
-  additional_data       Json?             // For custom metrics data
-  recorded_at           DateTime          @default(now()) @db.Timestamptz(6)
+model alert_preferences {
+  id                           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organisation_id              String   @db.Uuid()
+  alert_notification_frequency DateTime
 
-  // Relations
-  metric                metrics           @relation(fields: [metric_id], references: [id], onDelete: Cascade)
-  flag_evaluation       flag_evaluations  @relation(fields: [flag_evaluation_id], references: [id], onDelete: Cascade)
+  email_enabled                Boolean  @default(true)
+  slack_enabled                Boolean  @default(false)
+  email_roles_notification     user_role[] @default([ADMIN,OWNER])
+  
+  created_at                   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                   DateTime @default(now()) @db.Timestamptz(6)
+  organisation                 organizations @relation(fields: [organisation_id], references: [id])
+  
+  @@unique([organisation_id])
+}
 
-  @@index([metric_id, recorded_at])
-  @@index([flag_evaluation_id])
+model SlackIntegration {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organisation_id String   @db.Uuid()
+  team_id         String   // Slack workspace ID
+  team_name       String   // Optional - user-friendly
+  bot_token       String   // Slack bot token for this workspace
+  authed_user_id  String?  // Optional
+  bot_user_id     String?  // Optional
+
+  channels        SlackChannel[]       // One workspace can have many alert channels
+  organisation    organizations         @relation(fields: [organisation_id], references: [id])
+}
+
+model SlackChannel {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slackIntegrationId  String   @db.Uuid()// Foreign key to workspace
+  channel_id          String   // Slack channel ID (not name)
+  channel_name        String   // Optional, for display
+
+  slackIntegration    SlackIntegration @relation(fields: [slackIntegrationId], references: [id])
+}
+
+
+model alert_metric {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  metric_id    String          @unique @db.Uuid()
+  operator     alert_operator
+  threshold    Float
+  is_enabled   Boolean         @default(true)
+  metric_setup metrics         @relation(fields: [metric_id], references: [id])
+}
+
+model triggered_alerts {
+  id            String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  metric_id     String @db.Uuid()
+  current_value Float
+  threshold_value Float
+  alert_status alert_status  @default(TRIGGERED)
+  resolved_at           DateTime?           @db.Timestamptz(6)
+  acknowledged_at       DateTime?           @db.Timestamptz(6)
+
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  metric_setup metrics  @relation(fields: [metric_id], references: [id])
 }
 
 // Unified audit log
@@ -346,6 +471,12 @@ enum flag_type {
   MULTIVARIATE
 }
 
+enum alert_status {
+  TRIGGERED
+  ACKNOWLEDGED
+  RESOLVED
+}
+
 enum environment_type {
   DEV
   STAGING
@@ -358,6 +489,22 @@ enum user_role {
   MEMBER
   VIEWER
   OWNER
+}
+
+enum alert_operator {
+  EQUALS_TO
+  GREATER_THAN
+  LESS_THAN
+}
+
+enum metric_aggregation_method {
+  SUM
+  AVERAGE
+  P99
+  P90
+  P95
+  P75
+  P50
 }
 
 enum rollout_type {
@@ -402,10 +549,19 @@ enum attribute_data_type {
 
 // New enums for monitoring and alerting
 enum metric_type {
-  EVALUATION_COUNT      // Number of evaluations
-  ERROR_RATE           // Percentage of failed evaluations
-  RESPONSE_TIME        // Evaluation response time
-  // VARIATION_DISTRIBUTION // Distribution of variations served
-  // CONVERSION_RATE      // Success rate for AB tests
-  // CUSTOM              // Custom business metrics
+  CONVERSION
+  COUNT
+  NUMERIC
+}
+
+enum metric_event_type {
+  COUNT_INCREMENT
+  NUMERIC_VALUE
+  CONVERSION_ENCOUNTER
+  CONVERSION_SUCCESS
+}
+
+enum conversion_step_type {
+  ENCOUNTER
+  SUCCESS
 }

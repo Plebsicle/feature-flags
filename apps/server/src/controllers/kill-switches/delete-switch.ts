@@ -8,10 +8,11 @@ export const deleteKillSwitch = async (req: express.Request, res: express.Respon
         const killSwitchId = req.params.killSwitchId;
         
         if (!killSwitchId) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: "Kill switch ID is required"
             });
+            return ;
         }
 
         const { ip, userAgent } = extractAuditInfo(req);

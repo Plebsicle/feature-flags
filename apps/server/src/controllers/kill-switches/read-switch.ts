@@ -55,10 +55,11 @@ export const getKillSwitchById = async (req: express.Request, res: express.Respo
         const killSwitchId = req.params.killSwitchId;
         
         if (!killSwitchId) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 message: "Kill switch ID is required"
             });
+            return;
         }
 
         const organisation_id = req.session.user?.userOrganisationId!;
@@ -73,10 +74,11 @@ export const getKillSwitchById = async (req: express.Request, res: express.Respo
             }
         });
         if (!killSwitch) {
-            return res.status(404).json({
+             res.status(404).json({
                 success: false,
                 message: "Kill switch not found or access denied"
             });
+            return;
         }
 
         const flag : killSwitchFlagConfig[] = killSwitch.flag_mappings.map((fm) => {
