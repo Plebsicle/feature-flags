@@ -42,8 +42,8 @@ const getCompleteFlagData = async (flagId: string, environment?: environment_typ
             environment : environment.environment,
             is_active : flagData.is_active,
             is_environment_active : environment.is_enabled,
-            value : flagData.value as Record<string,any>,
-            default_value : flagData.default_value as Record<string,any>,
+            value : environment.value as Record<string,any>,
+            default_value : environment.default_value as Record<string,any>,
             rules,
             rollout_config : environment.rollout?.config
         }
@@ -55,6 +55,10 @@ const getCompleteFlagData = async (flagId: string, environment?: environment_typ
 export const getAllFeatureFlags = async(req : express.Request,res : express.Response)=>{
     try{
         const organisationId = req.session.user?.userOrganisationId;
+        if(!organisationId){
+            res.json(400).json({success:false,message:"Unauthorised User"});
+            return;
+        }
         const allFlags = await prisma.feature_flags.findMany({
             where : {
                 organization_id : organisationId
@@ -110,8 +114,6 @@ export const getFeatureFlagData = async ( req : express.Request,res : express.Re
             key: flag.key,
             description: flag.description,
             flag_type: flag.flag_type,
-            value: flag.value,
-            default_value: flag.default_value,
             is_active: flag.is_active,
             created_by: flag.created_by,
             created_at: flag.created_at,
@@ -132,11 +134,11 @@ export const getFeatureFlagData = async ( req : express.Request,res : express.Re
 export const getFlagEnvironmentData = async (req : express.Request,res : express.Response)=>{
     try{
         // Zod validation
-        const parsedParams = getFlagEnvironmentParamsSchema.parse(req.params);
-        req.params = parsedParams;
+        // const parsedParams = getFlagEnvironmentParamsSchema.parse(req.params);
+        // req.params = parsedParams;
         
         const flagId = req.params.flagId;
-        
+        console.log(flagId);
         // Get complete flag data with all environments
         const completeFlag = await getCompleteFlagData(flagId);
         const flag = await prisma.feature_flags.findUnique({
@@ -165,16 +167,22 @@ export const getFlagEnvironmentData = async (req : express.Request,res : express
         }
         
         // Return only environment data
+        const flag_type = flag.flag_type;
         const environmentData = flag.environments.map(env => ({
             id: env.id,
-            flag_id: env.flag_id,
             environment: env.environment,
+            value: env.value,
+            default_value : env.default_value,
             is_enabled: env.is_enabled,
             created_at: env.created_at,
             updated_at: env.updated_at
         }));
         
-        res.status(200).json({data : environmentData , success : true,message : "Flag Environments fetched succesfully"});
+        res.status(200).json({data : {
+            environmentData , 
+            flag_id: flagId,
+            flag_type
+        } , success : true,message : "Flag Environments fetched succesfully"});
     }
      catch(e){
          console.error('Error fetching Environment Details:', e);
@@ -214,8 +222,8 @@ export const getRules = async (req : express.Request,res : express.Response) => 
             is_active: environmentData.flag.is_active,
             environment : environmentData.environment,
             is_environment_active: environmentData.is_enabled,
-            value: environmentData.flag.value as Record<string,any>,
-            default_value: environmentData.flag.default_value as Record<string,any>,
+            value: environmentData.value as Record<string,any>,
+            default_value: environmentData.default_value as Record<string,any>,
             rules: environmentData.rules.map(rule => ({
                 rule_id: rule.id,
                 conditions: rule.conditions as unknown as Conditions,
@@ -283,8 +291,8 @@ export const getRollout = async (req : express.Request , res : express.Response)
             is_active: environmentData.flag.is_active,
             environment : environmentData.environment,
             is_environment_active: environmentData.is_enabled,
-            value: environmentData.flag.value as Record<string,any>,
-            default_value: environmentData.flag.default_value as Record<string,any>,
+            value: environmentData.value as Record<string,any>,
+            default_value: environmentData.default_value as Record<string,any>,
             rules: environmentData.rules.map(rule => ({
                 rule_id: rule.id,
                 conditions: rule.conditions as unknown as Conditions,

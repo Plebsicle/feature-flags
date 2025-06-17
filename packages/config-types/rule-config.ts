@@ -13,4 +13,4 @@ interface Condition {
 // Conditions is always an array of condition objects
 type Conditions = Condition[];
 
-export { Condition, Conditions };
+export type { Condition, Conditions };

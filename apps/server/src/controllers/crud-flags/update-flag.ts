@@ -9,6 +9,7 @@ import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis,
 import { Redis_Value, RedisCacheRules } from '../../services/redis-flag'; // Import your Redis types
 import { extractAuditInfo } from '../../util/ip-agent';
 
+
 // Helper function to construct Redis flag data
 const constructRedisFlagData = async (flagId: string, environment?: environment_type): Promise<Redis_Value[]> => {
     const flagData = await prisma.feature_flags.findUnique({
@@ -20,7 +21,7 @@ const constructRedisFlagData = async (flagId: string, environment?: environment_
                     rules: {
                         orderBy: { created_at: 'asc' }
                     },
-                    rollout: true
+                    rollout: true,
                 }
             }
         }
@@ -45,35 +46,22 @@ const constructRedisFlagData = async (flagId: string, environment?: environment_
             environment : environment.environment,
             is_active : flagData.is_active,
             is_environment_active : environment.is_enabled,
-            value : flagData.value as Record<string,any>,
-            default_value : flagData.default_value as Record<string,any>,
+            value : environment.value as Record<string,any>,
+            default_value : environment.default_value as Record<string,any>,
             rules,
             rollout_config : environment.rollout?.config
         }
         finalData.push(objectToPush);
     }
     return finalData;
-    // return flagData.environments.map(env => ({
-    //     flagId: flagData.id,
-    //     is_active: flagData.is_active,
-    //     is_evironment_active: env.is_enabled,
-    //     value: flagData.value as Record<string, any>,
-    //     default_value: flagData.default_value as Record<string, any>,
-    //     rules: env.rules.map(rule => ({
-    //         rule_id: rule.id,
-    //         conditions: rule.conditions as unknown as Conditions,
-    //         is_enabled: rule.is_enabled
-    //     })) as RedisCacheRules[],
-    //     rollout_config: env.rollout?.config || null
-    // }));
 };
 
 // 1. UPDATE FEATURE FLAG ROUTE
 export const updateFeatureFlag = async (req: express.Request, res: express.Response) => {
     try {
         // Zod validation
-        const parsedBody = updateFeatureFlagBodySchema.parse(req.body);
-        req.body = parsedBody;
+        // const parsedBody = updateFeatureFlagBodySchema.parse(req.body);
+        // req.body = parsedBody;
 
         const role = req.session.user?.userRole;
         if(role === "VIEWER"){
@@ -86,8 +74,6 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
             flagDescription,  // FF
             isActive,         // FF
             tags,
-            value, // new
-            default_value // new
         } = req.body;
 
         // Get user_id from session
@@ -96,6 +82,7 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
 
         // Input validation
         if (!flagId) {
+            console.log("NO ID");
              res.status(400).json({
                 success: false,
                 message: "Flag ID is required"
@@ -104,14 +91,14 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
         }
 
         // Prepare updates object
-        const featureFlagUpdates: { description?: string, is_active?: boolean,tags? : string[],value? : Record<string,any> , default_value? : Record<string,any>} = {};
+        const featureFlagUpdates: { description?: string, is_active?: boolean,tags? : string[]} = {};
         if (flagDescription !== undefined) featureFlagUpdates['description'] = flagDescription;
         if (isActive !== undefined) featureFlagUpdates['is_active'] = isActive;
         if(tags !== undefined) featureFlagUpdates['tags'] = tags
-        if(value !== undefined) featureFlagUpdates['value'] = value
-        if(default_value !== undefined) featureFlagUpdates['default_value'] = default_value
 
         if (Object.keys(featureFlagUpdates).length === 0) {
+            console.log("NO Update");
+
             res.status(400).json({
                 success: false,
                 message: "No valid fields to update"
@@ -192,8 +179,8 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
 export const updateFlagRule = async (req: express.Request, res: express.Response) => {
     try {
         // Zod validation
-        const parsedBody = updateFlagRuleBodySchema.parse(req.body);
-        req.body = parsedBody;
+        // const parsedBody = updateFlagRuleBodySchema.parse(req.body);
+        // req.body = parsedBody;
         
         const role = req.session.user?.userRole;
          if(role === "VIEWER"){
@@ -354,8 +341,8 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
 export const updateFlagRollout = async (req: express.Request, res: express.Response) => {
     try {
         // Zod validation
-        const parsedBody = updateFlagRolloutBodySchema.parse(req.body);
-        req.body = parsedBody;
+        // const parsedBody = updateFlagRolloutBodySchema.parse(req.body);
+        // req.body = parsedBody;
         
         const role = req.session.user?.userRole;
          if(role === "VIEWER"){
@@ -490,9 +477,20 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
 
 export const updateEnvironment = async (req: express.Request, res: express.Response) => {
     try{
-        const {is_enabled,environment_id} = req.body;
-        
+        const {is_enabled,environment_id,value,default_value} = req.body;
+        console.log(req.body);
         // Get environment details before update
+        const updateBody : {is_enabled? : boolean ,value? : Record<string,any> , default_value? : Record<string,any> } = {};
+        if(is_enabled){
+            updateBody["is_enabled" as keyof typeof updateBody] = is_enabled;
+        }
+        if(value){
+            updateBody["value" as keyof typeof updateBody] = value;
+        }
+        if(default_value){
+            updateBody["default_value"as keyof typeof updateBody] = default_value;
+        }
+
         const currentEnv = await prisma.flag_environments.findUnique({
             where: { id: environment_id },
             select: {
@@ -520,9 +518,8 @@ export const updateEnvironment = async (req: express.Request, res: express.Respo
             where : {
                 id : environment_id
             },
-            data : {
-                is_enabled
-            },select : {
+            data : updateBody
+            ,select : {
                 id : true,
                 environment : true,
                 flag : true
@@ -554,7 +551,6 @@ export const updateEnvironment = async (req: express.Request, res: express.Respo
             }
         });
 
-        // Get complete flag data for the specific environment after update
         const redisFlagData = await constructRedisFlagData(currentEnv.flag_id, updatedEnv.environment);
         const orgSlug = req.session.user?.userOrganisationSlug!;
         

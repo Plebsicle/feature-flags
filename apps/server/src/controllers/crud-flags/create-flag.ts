@@ -9,8 +9,8 @@ import { Redis_Value, RedisCacheRules,setFlag } from '../../services/redis-flag'
 export const createFlag = async (req: express.Request, res: express.Response) => {
     try {
         // Zod validation
-        const parsedBody = createFlagBodySchema.parse(req.body);
-        req.body = parsedBody;
+        // const parsedBody = createFlagBodySchema.parse(req.body);
+        // req.body = parsedBody;
 
         const role = req.session.user?.userRole;
         if(role === "VIEWER"){
@@ -30,23 +30,21 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
         const userAgent = Array.isArray(rawUserAgent) ? rawUserAgent[0] : rawUserAgent || null;
 
         const {
-            flagName,
+            name,
             key,
-            flagDescription,
+            description,
             flag_type,
-            environment,
-            ruleName,
-            ruleDescription,
-            conditions,
-            value,          // new
-            default_value, // new attribute
-            rollout_type,
-            rollout_config,
+            environments,
+            rules,rollout,
             tags
         } = req.body;
-
+        const {environment,value,default_value} = environments;
+        const {type  ,config} = rollout;
+        const rollout_type = type;
+        const rollout_config = config;
+        console.log(req.body);
         // Extract custom attributes from conditions
-        const customAttributes = extractCustomAttributes(conditions as Conditions);
+        const customAttributes = extractCustomAttributes(rules.conditions as Conditions);
 
         // Input validation/sanitization here (add as needed)
 
@@ -58,11 +56,9 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
             const flagCreationResponse = await tx.feature_flags.create({
                 data: {
                     flag_type,
-                    description: flagDescription,
+                    description: description,
                     key,
-                    name: flagName,
-                    value,
-                    default_value,
+                    name: name,
                     organization_id: organisationId,
                     created_by: userId,
                     tags: tags && Array.isArray(tags) ? tags : []
@@ -77,7 +73,9 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
             const environmentFlagResponse = await tx.flag_environments.create({
                     data: {
                         environment,
-                        flag_id: flagCreationResponse.id
+                        flag_id: flagCreationResponse.id,
+                        value,
+                        default_value
                     },
                     select : {
                         id : true,
@@ -89,9 +87,9 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
             const[flagRulesCreation , flagRolloutCreation] = await Promise.all([
                 tx.flag_rules.create({
                     data: {
-                        name: ruleName,
-                        conditions,
-                        description: ruleDescription,
+                        name: rules.name,
+                        conditions : rules.conditions,
+                        description: rules.description,
                         flag_environment_id: environmentFlagResponse.id
                     },
                     select: {
@@ -163,9 +161,9 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
 
 
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        const rules : RedisCacheRules[] = [{
+        const redisRules : RedisCacheRules[] = [{
             rule_id : result.flagRulesCreation.id,
-            conditions,
+            conditions : rules.conditions,
             is_enabled : result.flagRulesCreation.is_enabled
         }];
 
@@ -176,7 +174,7 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
            is_environment_active : result.environmentFlagResponse.is_enabled ,
            value,
            default_value,
-           rules,
+           rules : redisRules,
            rollout_config : result.flagRolloutCreation.config
         }
 
@@ -205,8 +203,8 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
 export const createEnvironment = async (req : express.Request , res : express.Response)=>{
     try {
         // Zod validation
-        const parsedBody = createEnvironmentBodySchema.parse(req.body);
-        req.body = parsedBody;
+        // const parsedBody = createEnvironmentBodySchema.parse(req.body);
+        // req.body = parsedBody;
         
         const userId = req.session.user?.userId!;
         const organisationId = req.session.user?.userOrganisationId!;
@@ -224,11 +222,12 @@ export const createEnvironment = async (req : express.Request , res : express.Re
             environment,
             ruleName,
             ruleDescription,
+            value,default_value,
             conditions,
             rollout_type,
             rollout_config
         } = req.body;
-
+        console.log(req.body);
         // Extract custom attributes from conditions
         const customAttributes = extractCustomAttributes(conditions as Conditions);
 
@@ -253,7 +252,9 @@ export const createEnvironment = async (req : express.Request , res : express.Re
             const environmentFlagResponse = await tx.flag_environments.create({
                     data: {
                         environment,
-                        flag_id: flag_id
+                        flag_id: flag_id,
+                        value,
+                        default_value
                     }
             });
 
@@ -332,8 +333,8 @@ export const createEnvironment = async (req : express.Request , res : express.Re
            environment,
            is_active : flagData.is_active,
            is_environment_active : result.environmentFlagResponse.is_enabled,
-           value : flagData.value as Record<string,any>,
-           default_value : flagData.default_value as Record<string,any>,
+           value,
+           default_value,
            rules,
            rollout_config : result.flagRolloutCreation.config
         }

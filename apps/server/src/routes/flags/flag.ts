@@ -5,7 +5,7 @@ const router = express.Router();
 import { createEnvironment, createFlag } from '../../controllers/crud-flags/create-flag';
 import { verificationMiddleware } from '../../middlewares/verification';
 import { getAllFeatureFlags,getAuditLogs,getFeatureFlagData,getFlagEnvironmentData,getRollout,getRules } from '../../controllers/crud-flags/read-flag';
-import { updateFeatureFlag,updateFlagRollout,updateFlagRule } from '../../controllers/crud-flags/update-flag';
+import { updateEnvironment, updateFeatureFlag,updateFlagRollout,updateFlagRule } from '../../controllers/crud-flags/update-flag';
 import { deleteEnvironment, deleteFeatureFlag, deleteRule } from '../../controllers/crud-flags/delete-flag';
 // Create Routes
 router.post('/createFlag', verificationMiddleware  ,createFlag); // -> Done
@@ -15,6 +15,7 @@ router.post('/createEnvironment',verificationMiddleware,createEnvironment);
 router.put('/updateFeatureFlag', verificationMiddleware,updateFeatureFlag); // -> Done
 router.put('/updateFlagRule',  verificationMiddleware  ,updateFlagRule); // -> Done
 router.put('/updateFlagRollout', verificationMiddleware  , updateFlagRollout); // -> Done
+router.put('/updateEnvironment',verificationMiddleware,updateEnvironment);
 
 // Read Routes
 router.get('/getAllFeatureFlags', verificationMiddleware  ,getAllFeatureFlags); // -> Done

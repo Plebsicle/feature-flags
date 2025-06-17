@@ -2,7 +2,7 @@ import {redisSession} from "../services/redis-session";
 import {RedisStore } from 'connect-redis'
 import session, { Store } from 'express-session';
 
-const SESSION_SECRET = process.env.SESSION_SECRET!;
+const SESSION_SECRET = process.env.REDIS_SESSION_URL!;
 
 const redisStore = new RedisStore({
     client : redisSession,
@@ -20,7 +20,8 @@ const sessionMiddleware = session({
     cookie : {
         secure : false,
         httpOnly : true,
-        maxAge : 1000*30*60
+        maxAge : 1000*60*60*24*5,
+        sameSite : "lax"
     }
 });
 

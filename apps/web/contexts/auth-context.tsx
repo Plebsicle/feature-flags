@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if(password){
             const response = await axios.post(`http://localhost:8000/auth/emailSignin`,{
               email,password
-            });
+            },{withCredentials:true});
             if(response.status === 200){
               // toast here
               console.log('Signin Succesfull');
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           else{
             const response = await axios.post(`http://localhost:8000/auth/googleSignin`,{
               googleId : googleToken
-            });
+            },{withCredentials:true});
             if(response.status === 200){
               // toast here 
               console.log('google sigin succesfull');
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if(!password){
         const response = await axios.post(`http://localhost:8000/auth/googleSignup`,{
           googleId : googleToken,orgName : organizationName
-        });
+        },{withCredentials:true});
         if(response.status === 200){
           // Setup Toasts Here 
           console.log("Signup Succesfull");
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       else{
         const response = await axios.post(`http://localhost:8000/auth/emailSignup`,{
           name , email , password , orgName : organizationName
-        });
+        },{withCredentials:true});
         if(response.status === 200){
           // setup toasts here
           console.log("Email sent  Successfully");

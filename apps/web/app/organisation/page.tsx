@@ -29,10 +29,11 @@ export default function OrganizationPage() {
       const {googleToken} = partialSignupDetails;
       console.log(googleToken);
        const response = await completeSignup(organizationName);
+       console.log(response);
       if(response ){
         if(googleToken)
        { 
-        router.push("dashboard");
+        router.push("/dashboard");
        }
         else {
           router.push('/auth/check-email-verify');

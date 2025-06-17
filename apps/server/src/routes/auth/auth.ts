@@ -5,6 +5,7 @@ import { sendVerificationEmailManual, verifyEmailManual, verifyEmailSignup } fro
 import { checkVerificationEmailForgetPassword, sendVerificationEmailForgetPassword } from '../../controllers/auth/forgotPassword';
 import { memberSignupSendInvitation, memberSignupVerification } from '../../controllers/auth/member';
 import { verificationMiddleware } from '../../middlewares/verification';
+import { logout } from '../../controllers/auth/logout';
 
 const router = express.Router();
 
@@ -29,6 +30,9 @@ router.post('/checkVerificationEmailForgetPassword',checkVerificationEmailForget
 // Member Signup
 router.post('/memberSignupVerification',memberSignupVerification);
 router.post('/memberSignupSendInvitation', verificationMiddleware,memberSignupSendInvitation);
+
+// logout
+router.get('/logout',logout);
 
 
 export default router;

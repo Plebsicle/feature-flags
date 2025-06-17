@@ -6,11 +6,13 @@ import { deleteKillSwitch } from '../../controllers/kill-switches/delete-switch'
 
 const router = express.Router();
 
-router.post('/switch',createKillSwitch);
+router.post('/',createKillSwitch);
 
-router.get('/switch/:killSwitchId',getKillSwitchById);
-router.get('/switch',getAllKillSwitches);
+router.get('/:killSwitchId',getKillSwitchById);
+router.get('/',getAllKillSwitches);
 
-router.put('/switch',updateKillSwitch);
+router.put('/',updateKillSwitch);
 
-router.delete('/switch',deleteKillSwitch);
+router.delete('/',deleteKillSwitch);
+
+export default router;

@@ -13,6 +13,8 @@ import { limiter } from './middlewares/rate-limit';
 // Route Imports
 import authRoutes from './routes/auth/auth'
 import flagRoutes from './routes/flags/flag'
+import killSwitchRoutes from './routes/kill-switches/switch'
+import dashboardRoutes from './routes/dashboard/dashboard'
 
 
 // Standard Contansts for express application
@@ -31,6 +33,8 @@ app.use(sessionMiddleware);
 //Routes
 app.use('/auth',authRoutes);
 app.use('/flag',flagRoutes);
+app.use('/killswitch',killSwitchRoutes);
+app.use('/dashboard',dashboardRoutes);
 
 
 //Security Measure

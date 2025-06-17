@@ -1,6 +1,7 @@
 import Redis from 'ioredis'
 
 const REDIS_SESSION_URL = process.env.REDIS_SESSION_URL!;
+// console.log(REDIS_SESSION_URL);
 
 const redisSession = new Redis(REDIS_SESSION_URL,{
   retryStrategy(times) {
