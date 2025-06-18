@@ -196,8 +196,8 @@ export const getFlagEnvironmentData = async (req : express.Request,res : express
 export const getRules = async (req : express.Request,res : express.Response) => {
     try{
         // Zod validation
-        const parsedParams = getRulesParamsSchema.parse(req.params);
-        req.params = parsedParams;
+        // const parsedParams = getRulesParamsSchema.parse(req.params);
+        // req.params = parsedParams;
         
         const environmentId = req.params.environmentId;
         
@@ -244,11 +244,7 @@ export const getRules = async (req : express.Request,res : express.Response) => 
         
         // Return only rules data in the expected format
         const rulesResponse = environmentData.rules.map(rule => ({
-            ...rule,
-            flag_environment: {
-                ...environmentData,
-                flag: environmentData.flag
-            }
+            ...rule
         }));
         
         res.status(200).json({data : rulesResponse, success : true , message : "Rules for environment fetched successfuly"});
@@ -313,11 +309,7 @@ export const getRollout = async (req : express.Request , res : express.Response)
         
         // Return rollout data in the expected format
         const rolloutResponse = {
-            ...environmentData.rollout,
-            flag_rollout_environment: {
-                ...environmentData,
-                flag: environmentData.flag
-            }
+            ...environmentData.rollout
         };
         
         res.status(200).json({data : rolloutResponse, success : true , message : "Rollout for environment fetched successfuly"});

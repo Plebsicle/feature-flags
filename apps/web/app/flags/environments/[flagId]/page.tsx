@@ -13,6 +13,8 @@ import {
   Copy,
   Settings,
   Code,
+  Target,
+  BarChart3,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -335,6 +337,31 @@ const EnvironmentCard = ({ environment, flag_id, flag_type }: { environment: Fla
           <ValueDisplay valueObj={environment.value} label="Current Value" flagType={flag_type} />
           <ValueDisplay valueObj={environment.default_value} label="Default Value" flagType={flag_type} />
         </div>
+        
+        {/* Environment Action Buttons */}
+        <div className="flex flex-wrap gap-3">
+          <Link href={`/flags/rules/${flag_id}?environmentId=${environment.id}`}>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="border-orange-600/50 text-orange-400 hover:bg-orange-900/20"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              View Rules
+            </Button>
+          </Link>
+          <Link href={`/flags/rollout/${flag_id}?environmentId=${environment.id}`}>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="border-blue-600/50 text-blue-400 hover:bg-blue-900/20"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              View Rollout
+            </Button>
+          </Link>
+        </div>
+        
         <Separator className="bg-slate-700/50" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>

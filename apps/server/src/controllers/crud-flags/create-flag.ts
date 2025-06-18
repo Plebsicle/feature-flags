@@ -357,3 +357,51 @@ export const createEnvironment = async (req : express.Request , res : express.Re
         });
     }
 };  
+
+
+export const addRules = async (req : express.Request,res : express.Response) => {
+    try{
+        const rawIp = req.headers['x-forwarded-for'];
+        const ip = Array.isArray(rawIp) ? rawIp[0].split(',')[0] : (rawIp || req.socket.remoteAddress || '').split(',')[0];
+        
+        // User Agent extraction
+        const rawUserAgent = req.headers['x-user-agent'] || req.headers['user-agent'];
+        const userAgent = Array.isArray(rawUserAgent) ? rawUserAgent[0] : rawUserAgent || null;
+
+        const {environment_id , ruleDescription , conditions , ruleName , isEnabled} = req.body;
+        if(!environment_id){
+            res.json(400).json({success : false,message : "No Env Id"});
+            return;
+        }
+        const ruleCreation = await prisma.flag_rules.create({
+            data : {
+                flag_environment_id : environment_id,
+                name : ruleName,
+                conditions,
+                description : ruleDescription,
+                is_enabled : isEnabled
+            },
+            select : {
+                flag_environment : true,
+                id:true
+            }
+        });
+        const organisation_id = req.session.user?.userOrganisationId!;
+        const audit = await prisma.audit_logs.create({
+            data : {
+                action : "CREATE",
+                resource_type : "FLAG_RULE",
+                environment : ruleCreation.flag_environment.environment,
+                ip_address : ip,
+                organisation_id : organisation_id,
+                user_agent : userAgent,
+                user_id : req.session.user?.userId,
+                resource_id : ruleCreation.id,
+            }
+        })
+        // caching
+    }
+    catch(e){
+        console.error(e);
+    }
+}

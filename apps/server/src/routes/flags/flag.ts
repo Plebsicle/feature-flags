@@ -2,7 +2,7 @@ import express from 'express'
 
 const router = express.Router();
 
-import { createEnvironment, createFlag } from '../../controllers/crud-flags/create-flag';
+import { addRules, createEnvironment, createFlag } from '../../controllers/crud-flags/create-flag';
 import { verificationMiddleware } from '../../middlewares/verification';
 import { getAllFeatureFlags,getAuditLogs,getFeatureFlagData,getFlagEnvironmentData,getRollout,getRules } from '../../controllers/crud-flags/read-flag';
 import { updateEnvironment, updateFeatureFlag,updateFlagRollout,updateFlagRule } from '../../controllers/crud-flags/update-flag';
@@ -10,6 +10,7 @@ import { deleteEnvironment, deleteFeatureFlag, deleteRule } from '../../controll
 // Create Routes
 router.post('/createFlag', verificationMiddleware  ,createFlag); // -> Done
 router.post('/createEnvironment',verificationMiddleware,createEnvironment);
+router.post('/addRules',verificationMiddleware,addRules);
 
 // Update Routes
 router.put('/updateFeatureFlag', verificationMiddleware,updateFeatureFlag); // -> Done

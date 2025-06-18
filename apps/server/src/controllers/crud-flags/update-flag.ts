@@ -189,29 +189,34 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
         }
 
         const {
-            flag_id ,
             flagRuleId,       // FR
             ruleDescription,  // FR
             conditions,       // FR
             ruleName,         // FR
             isEnabled,        // FR
-            environment,      // For audit logging
+            environment_id,      // For audit logging
         } = req.body;
-
+        console.log(req.body);
         // Get user_id and organisation_id from session
         const user_id = req.session?.user?.userId;
         const organisationId = req.session?.user?.userOrganisationId!;
         const { ip, userAgent } = extractAuditInfo(req);
 
-        // Input validation
-        if (!flagRuleId || !flag_id) {
-            res.status(400).json({
-                success: false,
-                message: "ID is required"
-            });
-            return ;
+        const env = await prisma.flag_environments.findUnique({
+            where : {
+                id : environment_id
+            },
+            include : {
+                flag : true
+            }
+        });
+
+        if(!env){
+            res.status(400).json({success : true, message : "Incorrect Env ID"});
+            return;
         }
 
+        const flag_id = env?.flag.id
         const flagData = await prisma.feature_flags.findUnique({
             where : {
                 id : flag_id
@@ -263,9 +268,6 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
                     name: true,
                     is_enabled: true,
                     flag_environment: {
-                        select: {
-                            flag_id: true
-                        },
                         include : {
                             flag : true
                         }
@@ -305,7 +307,7 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
                     resource_type: 'FLAG_RULE',
                     resource_id: flagRuleId,
                     attributes_changed: attributesChanged,
-                    environment: environment || null,
+                    environment: env.environment || null,
                     ip_address: ip,
                     user_agent: userAgent
                 }
@@ -315,11 +317,11 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
         });
 
         // Get complete flag data for the specific environment
-        const redisFlagData = await constructRedisFlagData(flag_id, environment);
+        const redisFlagData = await constructRedisFlagData(flag_id, env.environment);
         const orgSlug = req.session.user?.userOrganisationSlug!;
         
         if (redisFlagData.length > 0) {
-            await updateFlagRulesRedis(orgSlug, flagData.key, environment, redisFlagData[0],result.currentFlagRule.flag_environment.flag.flag_type);
+            await updateFlagRulesRedis(orgSlug, flagData.key, env.environment, redisFlagData[0],result.currentFlagRule.flag_environment.flag.flag_type);
         }
 
         res.status(200).json({
@@ -351,31 +353,25 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
         }
 
         const {
-            flag_id,
-            rollout_id,       // FRout
             rollout_type,     // FRout
             rollout_config,   // FRout
-            environment,      // For audit logging
+            environment_id
         } = req.body;
-
+        console.log(req.body);
         // Get user_id from session
         const user_id = req.session?.user?.userId;
         const { ip, userAgent } = extractAuditInfo(req);
 
-        // Input validation
-        if (!rollout_id || !flag_id) {
-            res.status(400).json({
-                success: false,
-                message: "ID is required"
-            });
-            return;
-        }
-
-        const flagData = await prisma.feature_flags.findUnique({
+        const flagData = await prisma.flag_environments.findUnique({
             where : {
-                id : flag_id
+                id : environment_id
+            },
+            include : {
+                flag : true,
+                rollout : true
             }
-        });
+        })
+
 
         if(!flagData){
             res.status(401).json({success : false, message : "No Flag Found" });
@@ -398,7 +394,7 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
         const result = await prisma.$transaction(async (tx) => {
             // Get current values before update
             const currentFlagRollout = await tx.flag_rollout.findUnique({
-                where: { id: rollout_id },
+                where: { id: flagData.rollout?.id },
                 select: {
                     type: true,
                     config: true,
@@ -429,7 +425,7 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
 
             // Update flag rollout
             await tx.flag_rollout.update({
-                where: { id: rollout_id },
+                where: { id: flagData.rollout?.id },
                 data: flagRolloutUpdates
             });
 
@@ -441,9 +437,9 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
                     user_id: user_id || null,
                     action: 'UPDATE',
                     resource_type: 'FLAG_ROLLOUT',
-                    resource_id: rollout_id,
+                    resource_id: flagData.rollout?.id,
                     attributes_changed: attributesChanged,
-                    environment: environment || null,
+                    environment: flagData.environment || null,
                     ip_address: ip,
                     user_agent: userAgent
                 }
@@ -453,11 +449,11 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
         });
 
         // Get complete flag data for the specific environment after update
-        const redisFlagData = await constructRedisFlagData(flag_id, environment);
+        const redisFlagData = await constructRedisFlagData(flagData.flag.id, flagData.environment);
         const orgSlug = req.session.user?.userOrganisationSlug!;
         
         if (redisFlagData.length > 0) {
-            await updateFlagRolloutRedis(orgSlug, flagData.key, environment, redisFlagData[0],result.currentFlagRollout.flag_rollout_environment.flag.flag_type);
+            await updateFlagRolloutRedis(orgSlug, flagData.flag.key, flagData.environment, redisFlagData[0],result.currentFlagRollout.flag_rollout_environment.flag.flag_type);
         }
 
         res.status(200).json({
