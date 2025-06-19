@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
@@ -9,18 +9,28 @@ import {
   BarChart3,
   Bell,
   FileText,
-  UserPlus,
   MessageSquare,
   Settings,
   Menu,
   X,
   LogOut,
   Skull,
+  User,
+  LoaderIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL   || "http://localhost:8000" 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+
+interface UserData {
+  name: string
+  email: string
+  organisationName: string
+  role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER'
+  ownerEmail: string
+  ownerName: string
+}
 
 export default function DashboardLayout({
   children,
@@ -28,73 +38,147 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userData, setUserData] = useState<UserData | null>(null)
+  const [loading, setLoading] = useState(true)
   const pathname = usePathname()
   const router = useRouter()
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        
+        
+        
+        const  response = await fetch(`${BACKEND_URL}/auth/me`, {
+            method: "GET",
+            credentials: "include",
+          })
+        
+        
+        if (response.ok) {
+          const data = await response.json()
+          // Handle both possible response structures
+          const user = data.data || data
+          setUserData(user)
+        } else {
+          console.log("Authentication failed, redirecting to signin")
+          router.push("/auth/signin")
+        }
+      } catch (error) {
+        console.error("Failed to fetch user data:", error)
+        router.push("/auth/signin")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [router])
+
   const handleLogout = async () => {
-    await fetch(`${BACKEND_URL}/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    })
+    try {
+      await fetch(`${BACKEND_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      })
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
     router.push("/auth/signin")
   }
 
-  const sidebarItems = [
-    {
-      name: "Flags",
-      href: "/flags",
-      icon: Flag,
-      gradient: "from-blue-500 to-indigo-600",
-    },
-    {
-      name: "Metrics",
-      href: "/metrics",
-      icon: BarChart3,
-      gradient: "from-emerald-500 to-teal-600",
-    },
-    {
-      name: "Alerts",
-      href: "/alerts",
-      icon: Bell,
-      gradient: "from-orange-500 to-amber-600",
-    },
-    {
-      name : "Kill Switches",
-      href : "/killSwitch",
-      icon : Skull,
-      gradient: "from-emerald-500 to-teal-600"
-    },
-    {
-      name: "Audit Logs",
-      href: "/auditLogs",
-      icon: FileText,
-      gradient: "from-purple-500 to-violet-600",
-    },
-    {
-      name: "Invite Members",
-      href: "/organisationSettings/inviteMembers",
-      icon: UserPlus,
-      gradient: "from-pink-500 to-rose-600",
-    },
-    {
-      name: "Integrate Slack",
-      href: "/slack",
-      icon: MessageSquare,
-      gradient: "from-green-500 to-emerald-600",
-    },
-    {
-      name: "Settings",
-      href: "/organisation/settings",
-      icon: Settings,
-      gradient: "from-gray-500 to-slate-600",
-    },
-    {
-      name: "Logout",
-      icon: LogOut,
-      onClick: handleLogout,
-      gradient: "from-red-500 to-rose-600",
-    },
-  ]
+  const handleProfileClick = () => {
+    router.push("/profile")
+  }
+
+  const getFilteredSidebarItems = (role: string) => {
+    const allItems = [
+      {
+        name: "Flags",
+        href: "/flags",
+        icon: Flag,
+        gradient: "from-blue-500 to-indigo-600",
+        allowedRoles: ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'],
+      },
+      {
+        name: "Metrics",
+        href: "/metrics",
+        icon: BarChart3,
+        gradient: "from-emerald-500 to-teal-600",
+        allowedRoles: ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'],
+      },
+      {
+        name: "Alerts",
+        href: "/alerts",
+        icon: Bell,
+        gradient: "from-orange-500 to-amber-600",
+        allowedRoles: ['OWNER', 'ADMIN'],
+      },
+      {
+        name: "Kill Switches",
+        href: "/killSwitch",
+        icon: Skull,
+        gradient: "from-red-500 to-rose-600",
+        allowedRoles: ['OWNER', 'ADMIN'],
+      },
+      {
+        name: "Audit Logs",
+        href: "/auditLogs",
+        icon: FileText,
+        gradient: "from-purple-500 to-violet-600",
+        allowedRoles: ['OWNER', 'ADMIN'],
+      },
+      {
+        name: "Integrate Slack",
+        href: "/slack",
+        icon: MessageSquare,
+        gradient: "from-green-500 to-emerald-600",
+        allowedRoles: ['OWNER', 'ADMIN'],
+      },
+      {
+        name: "Organisation Settings",
+        href: "/organisationSettings/inviteMembers",
+        icon: Settings,
+        gradient: "from-gray-500 to-slate-600",
+        allowedRoles: ['OWNER', 'ADMIN', 'MEMBER'],
+      },
+      {
+        name: "Logout",
+        icon: LogOut,
+        onClick: handleLogout,
+        gradient: "from-red-500 to-rose-600",
+        allowedRoles: ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'],
+      },
+    ]
+
+    return allItems.filter(item => item.allowedRoles.includes(role as any))
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <div className="flex items-center space-x-3 text-white">
+          <LoaderIcon className="w-6 h-6 animate-spin" />
+          <span className="text-lg">Loading...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!userData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <div className="text-white text-center">
+          <p className="text-lg mb-4">Unable to load user data</p>
+          <Button onClick={() => router.push("/auth/signin")} className="bg-blue-600 hover:bg-blue-700">
+            Go to Sign In
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const sidebarItems = getFilteredSidebarItems(userData.role)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
@@ -122,7 +206,18 @@ export default function DashboardLayout({
               </Link>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full"></div>
+              <div className="hidden sm:flex flex-col items-end">
+                <span className="text-sm font-medium text-white">{userData.name}</span>
+                <span className="text-xs text-neutral-400">{userData.role}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center hover:scale-105 transition-transform duration-200 cursor-pointer"
+                onClick={handleProfileClick}
+              >
+                <User className="w-4 h-4 text-white" />
+              </Button>
             </div>
           </div>
         </div>
@@ -139,6 +234,20 @@ export default function DashboardLayout({
           )}
         >
           <div className="p-4 sm:p-6 h-full overflow-y-auto">
+            <div className="mb-6 p-4 bg-slate-800/40 rounded-xl border border-slate-700/30">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-semibold text-sm">
+                    {userData.organisationName.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-white font-medium text-sm">{userData.organisationName}</h3>
+                  <p className="text-neutral-400 text-xs">{userData.role}</p>
+                </div>
+              </div>
+            </div>
+
             <nav className="space-y-2">
               {sidebarItems.map((item, index) => {
                 const isActive = pathname === item.href

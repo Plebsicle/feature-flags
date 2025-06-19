@@ -6,6 +6,7 @@ import { checkVerificationEmailForgetPassword, sendVerificationEmailForgetPasswo
 import { memberSignupSendInvitation, memberSignupVerification } from '../../controllers/auth/member';
 import { verificationMiddleware } from '../../middlewares/verification';
 import { logout } from '../../controllers/auth/logout';
+import { getUserData } from '../../controllers/auth/me';
 
 const router = express.Router();
 
@@ -33,6 +34,8 @@ router.post('/memberSignupSendInvitation', verificationMiddleware,memberSignupSe
 
 // logout
 router.get('/logout',logout);
+
+router.get('/me',verificationMiddleware,getUserData);
 
 
 export default router;

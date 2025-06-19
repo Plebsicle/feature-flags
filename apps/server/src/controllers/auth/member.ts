@@ -5,6 +5,7 @@ import prisma from '@repo/db';
 import { hashPassword } from '../../util/hashing';
 import tokenGenerator from '../../util/token';
 import { sendMemberSignupMails } from '../../util/mail';
+import { user_role } from '@repo/db/client';
 
 export const memberSignupVerification = async (req:express.Request , res : express.Response)=>{
     try{
@@ -71,6 +72,18 @@ export const memberSignupVerification = async (req:express.Request , res : expre
                 member_id : member.id,
             }
         });
+        const orgData = await prisma.organizations.findUnique({
+            where : {
+                id : findToken.organization_id
+            },
+            select : {
+                name : true
+            }
+        });
+        if(!orgData){
+            res.status(400).json({success : false,message : "No Org"});
+            return;
+        }
         req.session.user = {
             userEmail : member.email,
             userId : member.id,
@@ -78,9 +91,13 @@ export const memberSignupVerification = async (req:express.Request , res : expre
             userRole : member.role,
             userOrganisationId : findToken.organization_id
         }
+        const returnUser : {name : string , email : string ,id : string ,  role : user_role, organisationName : string } = {
+            name : member.name 
+             , email : member.email , id :member.id , role : member.role,organisationName : orgData.name };
          res.status(200).json({
             success: true,
-            message: "Member Signup Succesfull"
+            message: "Member Signup Succesfull",
+            data : returnUser
         });
     }
     catch(e){

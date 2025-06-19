@@ -7,6 +7,7 @@ import { slugMaker } from '../../util/slug';
 import verifyGoogleToken from '../../util/oauth';
 import tokenGenerator from '../../util/token';
 import { sendVerificationEmail } from '../../util/mail';
+import { user_role } from '@repo/db/client';
 
 
 export const emailSignup = async (req: express.Request, res: express.Response)=>{
@@ -52,8 +53,8 @@ export const emailSignup = async (req: express.Request, res: express.Response)=>
             }
         });
         sendVerificationEmail(email , emailToken,orgName);
-
-         res.status(200).json({
+        
+        res.status(200).json({
             success: true,
             message: "Email Sent successfully"
         });
@@ -121,9 +122,13 @@ export const googleSignup = async (req : express.Request, res : express.Response
             userOrganisationId : organisationData.id,
             userOrganisationSlug : organisationData.slug
         }
+        const returnUser : {name : string , email : string ,id : string ,  role : user_role,organisationName : string } = {
+            name : userCreation.name 
+             , email : userCreation.email , id :userCreation.id , role : userCreation.role,organisationName : orgName};
          res.status(200).json({
             success: true,
-            message: "Signup with Google Succesfull"
+            message: "Signup with Google Succesfull",
+            data : returnUser
         });
     }
     catch(e){

@@ -4,6 +4,7 @@ import { emailSigninBodySchema, googleSigninBodySchema } from '../../util/zod';
 import prisma from '@repo/db'
 import { comparePassword } from '../../util/hashing';
 import verifyGoogleToken from '../../util/oauth';
+import { user_role } from '@repo/db/client';
 
 export const emailSignin = async (req: express.Request, res: express.Response) => {
     try{
@@ -26,7 +27,8 @@ export const emailSignin = async (req: express.Request, res: express.Response) =
                 isVerified : true,
                 password : true,
                 name : true,
-                role : true
+                role : true,
+                email : true
             }
         });
         if(!doesUserExist){
@@ -63,7 +65,8 @@ export const emailSignin = async (req: express.Request, res: express.Response) =
                 id : orgDetails.organization_id
             },
             select : {
-                slug : true
+                slug : true,
+                name : true
             }
         });
         if(!orgData){
@@ -78,9 +81,13 @@ export const emailSignin = async (req: express.Request, res: express.Response) =
             userOrganisationId : orgDetails.organization_id,
             userOrganisationSlug : orgData.slug
         };
+        const returnUser : {name : string , email : string ,id : string ,  role : user_role,organisationName : string } = {
+            name : doesUserExist.name 
+             , email : doesUserExist.email , id :doesUserExist.id , role : doesUserExist.role , organisationName : orgData.name };
         res.status(200).json({
             success: true,
-            message: "Signin with Email Succesfull"
+            message: "Signin with Email Succesfull",
+            data : returnUser
         });
     }
     catch(e){
@@ -117,7 +124,8 @@ export const googleSignin = async (req: express.Request, res: express.Response) 
                 id : true,
                 password : true,
                 name : true,
-                role : true
+                role : true,
+                email : true
             }
         });
         if(!doesUserExist){
@@ -141,7 +149,8 @@ export const googleSignin = async (req: express.Request, res: express.Response) 
                 id : orgDetails.organization_id
             },
             select : {
-                slug : true
+                slug : true,
+                name : true
             }
         });
         if(!orgData){
@@ -156,10 +165,16 @@ export const googleSignin = async (req: express.Request, res: express.Response) 
             userOrganisationId : orgDetails.organization_id,
             userOrganisationSlug : orgData.slug
         }
+        const returnUser : {name : string , email : string ,id : string ,  role : user_role,organisationName : string } = {
+            name : doesUserExist.name 
+             , email : doesUserExist.email , id :doesUserExist.id , role : doesUserExist.role , organisationName : orgData.name};
+
         res.status(200).json({
             success: true,
             message: "Signin With Google Succesfull",
+            data : returnUser
         });
+
     }
     catch(e){
         console.error(e);

@@ -5,6 +5,7 @@ import { slugMaker } from '../../util/slug';
 import prisma from '@repo/db';
 import tokenGenerator from '../../util/token';
 import { sendVerificationEmailManualMailer } from '../../util/mail';
+import { user_role } from '@repo/db/client';
 
 
 export const verifyEmailSignup = async (req:express.Request , res : express.Response) => {
@@ -73,6 +74,9 @@ export const verifyEmailSignup = async (req:express.Request , res : express.Resp
             userOrganisationId : organisationData.id,
             userOrganisationSlug : organisationData.slug
         }
+        const returnUser : {name : string , email : string ,id : string ,  role : user_role, organisationName : string } = {
+                    name : userCreation.name 
+                     , email : userCreation.email , id :userCreation.id , role : userCreation.role,organisationName : organisationData.name };
          res.status(200).json({
             success: true,
             message: "User Verification Succesfull"
