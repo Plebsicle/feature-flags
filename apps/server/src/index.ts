@@ -15,7 +15,7 @@ import authRoutes from './routes/auth/auth'
 import flagRoutes from './routes/flags/flag'
 import killSwitchRoutes from './routes/kill-switches/switch'
 import dashboardRoutes from './routes/dashboard/dashboard'
-
+import organisationRoutes from './routes/organisation/org'
 
 // Standard Contansts for express application
 const app : Express = express();
@@ -35,6 +35,7 @@ app.use('/auth',authRoutes);
 app.use('/flag',flagRoutes);
 app.use('/killswitch',killSwitchRoutes);
 app.use('/dashboard',dashboardRoutes);
+app.use('/organisation',organisationRoutes);
 
 
 //Security Measure

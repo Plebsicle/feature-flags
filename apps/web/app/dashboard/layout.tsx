@@ -72,7 +72,7 @@ export default function DashboardLayout({
     },
     {
       name: "Invite Members",
-      href: "/inviteMembers",
+      href: "/organisationSettings/inviteMembers",
       icon: UserPlus,
       gradient: "from-pink-500 to-rose-600",
     },
