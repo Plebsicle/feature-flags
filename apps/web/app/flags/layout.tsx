@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   LogOut,
+  Skull,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -56,6 +57,12 @@ export default function DashboardLayout({
       href: "/alerts",
       icon: Bell,
       gradient: "from-orange-500 to-amber-600",
+    },
+    {
+      name : "Kill Switches",
+      href : "/killSwitch",
+      icon : Skull,
+      gradient: "from-emerald-500 to-teal-600"
     },
     {
       name: "Audit Logs",

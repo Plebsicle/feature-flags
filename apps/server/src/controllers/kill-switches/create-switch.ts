@@ -6,7 +6,7 @@ import { killSwitchValue, setKillSwitch } from '../../services/redis-flag';
 
 interface MyRequestBody {
   name: string;
-  description: string;
+  description?: string;
   flags: killSwitchFlagConfig[];
 }
 
@@ -36,9 +36,23 @@ export const createKillSwitch = async(req : express.Request, res : express.Respo
 
             // Create kill switch flags and their audit logs
             for(const flag of flags){
-                const flagId = flag.flagId;
+                const flagKey = flag.flagKey;
                 const environments = flag.environments;
-                
+                const flagData = await prisma.feature_flags.findUnique({
+                    where : {
+                        organization_id_key : {
+                            organization_id : organisation_id,
+                            key : flagKey
+                        }
+                    },select : {
+                        id  : true
+                    }
+                });
+                if(!flagData){
+                    res.status(400).json({success : false,message : "Invalid FlagKey"});
+                    return;
+                }
+                const flagId = flagData.id;
                 // Create kill switch flag
                 const killSwitchFlag = await tx.kill_switch_flags.create({
                     data : {
@@ -92,6 +106,10 @@ export const createKillSwitch = async(req : express.Request, res : express.Respo
 
             return {killSwitch};
         });
+        if(!result){
+            res.status(400).json({success : false,message : "Invalid Inputs"});
+            return;
+        }
         const orgSlug = req.session.user?.userOrganisationSlug!;
         const killSwitchData : killSwitchValue = {
             id : result.killSwitch.id,

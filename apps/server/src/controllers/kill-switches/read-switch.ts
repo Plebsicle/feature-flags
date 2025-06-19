@@ -17,12 +17,18 @@ export const getAllKillSwitches = async (req: express.Request, res: express.Resp
         const data : killSwitchValue[] = []
         const orgSlug = req.session.user?.userOrganisationSlug!;
         for(const killSwitch of killSwitches){
-            const flag : killSwitchFlagConfig[] = killSwitch.flag_mappings.map((fm) => {
+            const flag : killSwitchFlagConfig[] = await Promise.all( killSwitch.flag_mappings.map(async (fm) => {
+                const flagData = await prisma.feature_flags.findUnique({
+                    where : {
+                        id : fm.flag_id
+                    }
+                });
+
                 return {
-                    flagId : fm.flag_id,
+                    flagKey : flagData?.key || "",
                     environments : fm.environments
                 }
-            });
+            }));
             
             const killSwitchData : killSwitchValue = {
                 id : killSwitch.id,
@@ -80,13 +86,20 @@ export const getKillSwitchById = async (req: express.Request, res: express.Respo
             });
             return;
         }
+        
+        const flag : killSwitchFlagConfig[] = await Promise.all(killSwitch.flag_mappings.map(async (fm) => {
+            const flagData = await prisma.feature_flags.findUnique({
+                where : {
+                    id : fm.flag_id
+                }
+            });
 
-        const flag : killSwitchFlagConfig[] = killSwitch.flag_mappings.map((fm) => {
                 return {
-                    flagId : fm.flag_id,
+                    flagKey : flagData?.key || '',
                     environments : fm.environments
                 }
-        });
+        }));
+
         const orgSlug = req.session.user?.userOrganisationSlug!;
         const killSwitchData : killSwitchValue = {
             id : killSwitchId,

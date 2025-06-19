@@ -13,6 +13,6 @@ router.get('/',getAllKillSwitches);
 
 router.put('/',updateKillSwitch);
 
-router.delete('/',deleteKillSwitch);
+router.delete('/:killSwitchId',deleteKillSwitch);
 
 export default router;

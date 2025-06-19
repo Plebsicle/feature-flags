@@ -2,11 +2,20 @@ import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 import prisma from '@repo/db';
 import { killSwitchValue, setKillSwitch } from '../../services/redis-flag';
+import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
+
+interface bodyType {
+    killSwitchId : string,
+    name : string,
+    description : string,
+    is_active : boolean,
+    flags : killSwitchFlagConfig
+}
 
 export const updateKillSwitch = async (req: express.Request, res: express.Response) => {
     try {
         const { killSwitchId, name, description, is_active, flags } = req.body;
-        
+        console.log(req.body);
         if (!killSwitchId) {
             res.status(400).json({
                 success: false,
@@ -127,10 +136,26 @@ export const updateKillSwitch = async (req: express.Request, res: express.Respon
                     });
                 }
 
-                // Add or update flags
+                // Add or update flag        
+
                 for (const flag of flags) {
+                    const flagData = await prisma.feature_flags.findUnique({
+                        where : {
+                            organization_id_key : {
+                                organization_id : organisation_id,
+                                key : flag.flagKey
+                            }
+                        }
+                    });
+
+                    const flagId = flagData?.id
+                    if(!flagId){
+                        res.status(400).json({success : false , message : "Incorrect Key"});
+                        return;
+                    }
                     const existingFlag = existingKillSwitch.flag_mappings.find(
-                        f => f.flag_id === flag.flagId
+
+                        f => f.flag_id === flagId
                     );
 
                     if (!existingFlag) {
@@ -138,7 +163,7 @@ export const updateKillSwitch = async (req: express.Request, res: express.Respon
                         const newFlagMapping = await tx.kill_switch_flags.create({
                             data: {
                                 kill_switch_id: killSwitchId,
-                                flag_id: flag.flagId,
+                                flag_id: flagId,
                                 environments: flag.environments
                             }
                         });
@@ -146,7 +171,7 @@ export const updateKillSwitch = async (req: express.Request, res: express.Respon
                         // Audit log for new flag
                         const flagCreateAttributes: Record<string, { newValue: any, oldValue: any }> = {
                             kill_switch_id: { newValue: killSwitchId, oldValue: null },
-                            flag_id: { newValue: flag.flagId, oldValue: null },
+                            flag_id: { newValue: flagId, oldValue: null },
                             environments: { newValue: flag.environments, oldValue: null }
                         };
 
