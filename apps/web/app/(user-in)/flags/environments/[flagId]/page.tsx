@@ -339,7 +339,7 @@ const EnvironmentCard = ({ environment, flag_id, flag_type }: { environment: Fla
         </div>
         
         {/* Environment Action Buttons */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-4">
           <Link href={`/flags/rules/${flag_id}?environmentId=${environment.id}`}>
             <Button 
               size="sm" 
@@ -358,6 +358,16 @@ const EnvironmentCard = ({ environment, flag_id, flag_type }: { environment: Fla
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               View Rollout
+            </Button>
+          </Link>
+          <Link href={`/create-metrics/${environment.id}`}>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="border-blue-600/50 text-blue-400 hover:bg-blue-900/20"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Add Metric
             </Button>
           </Link>
         </div>

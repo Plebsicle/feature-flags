@@ -320,7 +320,7 @@ model metrics {
   description        String?                   @db.Text
   created_at         DateTime                  @default(now()) @db.Timestamptz(6)
   updated_at         DateTime                  @default(now()) @db.Timestamptz(6)
-
+  tags               String[]                  @default([])
   // Relations
   organization     organizations      @relation(fields: [organization_id], references: [id], onDelete: Cascade)
   flag_environment flag_environments? @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
