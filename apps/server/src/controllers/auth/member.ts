@@ -112,15 +112,15 @@ export const memberSignupVerification = async (req:express.Request , res : expre
 export const memberSignupSendInvitation = async (req: express.Request, res: express.Response) => {
     try {
         // Zod validation
-        const parsedBody = memberSignupSendInvitationBodySchema.parse(req.body);
-        req.body = parsedBody;
+        // const parsedBody = memberSignupSendInvitationBodySchema.parse(req.body);
+        // req.body = parsedBody;
         
         const role = req.session.user?.userRole;
         if(role !== "OWNER"){
             res.status(401).json("Only Owner Can Invite memebers");
             return;
         }
-        const { emails } = req.body;
+        const { emails,memberRole } = req.body;
 
         if (!Array.isArray(emails)) {
              res.status(401).json("Invalid Inputs");
@@ -133,7 +133,7 @@ export const memberSignupSendInvitation = async (req: express.Request, res: expr
             return;
         }
         console.log(userId);
-        console.log(emails," ",role);
+        // console.log(emails," ",role);
         
         const org = await prisma.user_organizations.findUnique({
             where: {
@@ -175,7 +175,7 @@ export const memberSignupSendInvitation = async (req: express.Request, res: expr
                     token,
                     invited_by: userId,
                     organization_id: org.organization_id,
-                    role
+                    role : memberRole
                 }
             });
 

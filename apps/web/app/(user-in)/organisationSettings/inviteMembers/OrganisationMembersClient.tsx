@@ -101,9 +101,9 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
         credentials: 'include',
         body: JSON.stringify({
           emails,
-          role
+          memberRole : role
         })
-      })
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

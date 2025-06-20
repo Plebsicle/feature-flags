@@ -208,8 +208,8 @@ const KillSwitchesLoading = () => (
   </div>
 )
 
-// Main Kill Switches Page Component
-export default function KillSwitchesPage() {
+// Main Kill Switches Client Component
+export default function KillSwitchesClient() {
   const [killSwitches, setKillSwitches] = useState<KillSwitch[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -404,4 +404,4 @@ export default function KillSwitchesPage() {
       </div>
     </div>
   )
-}
+} 

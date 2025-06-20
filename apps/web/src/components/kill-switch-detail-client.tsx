@@ -82,10 +82,12 @@ type EditFormData = {
   flags: killSwitchFlagConfig[]
 }
 
-export default function KillSwitchDetailPage() {
-  const params = useParams()!
+interface KillSwitchDetailClientProps {
+  killSwitchId: string
+}
+
+export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetailClientProps) {
   const router = useRouter()
-  const killSwitchId = params.killSwitch as string
 
   const [killSwitch, setKillSwitch] = useState<KillSwitch | null>(null)
   const [loading, setLoading] = useState(true)
@@ -708,4 +710,4 @@ export default function KillSwitchDetailPage() {
       </div>
     </div>
   )
-}
+} 

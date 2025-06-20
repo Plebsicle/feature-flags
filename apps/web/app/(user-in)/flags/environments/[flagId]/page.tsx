@@ -21,8 +21,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
-import { DeleteEnvironmentButton } from "../../../../src/components/delete-environment-button"
-import { EditEnvironmentModal } from "../../../../src/components/edit-environment-button"
+import { DeleteEnvironmentButton } from "../../../../../src/components/delete-environment-button"
+import { EditEnvironmentModal } from "../../../../../src/components/edit-environment-button"
 import { flag_type } from "@repo/db/client"
 
 // Types for environment data
