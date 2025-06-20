@@ -7,7 +7,9 @@ import { deleteAlert } from '../../controllers/alerts/delete-alert';
 
 const router = express.Router();
 
-router.get('/', verificationMiddleware,getAlerts);
+router.get('/:metricId', verificationMiddleware,getAlerts);
 router.post('/',verificationMiddleware,createAlert);
 router.put('/',verificationMiddleware,updateAlert);
-router.delete('/',verificationMiddleware,deleteAlert);
+router.delete('/:metricId',verificationMiddleware,deleteAlert);
+
+export default router;

@@ -20,10 +20,10 @@ export const getMetrics = async (req : express.Request , res : express.Response)
 export const getMetricbyId = async(req : express.Request , res : express.Response) => {
     try{
         // const organisationId = req.session.user?.userOrganisationId;
-        const {metric_id} = req.body;
+        const metricId = req.params.metricId;
         const metrics = await prisma.metrics.findUnique({
             where : {
-                id: metric_id
+                id: metricId
             }
         });
 

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { cookies } from 'next/headers'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { 
@@ -11,6 +12,7 @@ import {
   Database,
   ArrowRight
 } from "lucide-react"
+import { metric_aggregation_method, metric_type } from "@repo/db/client"
 
 // Types based on the API response structure
 interface Metric {
@@ -24,10 +26,10 @@ interface Metric {
   flag_environment_id: string
   metric_name: string
   metric_key: string
-  metric_type: "CONVERSION" | "COUNT" | "NUMERIC"
+  metric_type: metric_type
   aggregation_window: number
   unit_measurement: string | null
-  aggregation_method: "SUM" | "AVERAGE" | "P99" | "P90" | "P95" | "P75" | "P50"
+  aggregation_method: metric_aggregation_method
 }
 
 interface MetricsResponse {
@@ -156,11 +158,15 @@ export default async function MetricsPage() {
   let error: string | null = null
 
   try {
+    const cookieStore = await cookies()
+    const sessionId = cookieStore.get('sessionId')?.value
+
     const response = await fetch(`${BACKEND_URL}/metrics`, {
       method: "GET",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        ...(sessionId && { "Cookie": `sessionId=${sessionId}` })
       },
       // Add cache control for server components
       next: { revalidate: 60 } // Revalidate every 60 seconds
@@ -211,12 +217,7 @@ export default async function MetricsPage() {
               )}
             </div>
             
-            <Link href="/create-metrics">
-              <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4" />
-                Create Metric
-              </button>
-            </Link>
+
           </div>
         </div>
 
@@ -248,11 +249,14 @@ export default async function MetricsPage() {
               <BarChart3 className="w-8 h-8 text-slate-400" />
             </div>
             <h3 className="text-xl font-medium text-neutral-300 mb-2">No metrics found</h3>
-            <p className="text-neutral-500 mb-6">Get started by creating your first metric to track feature performance.</p>
-            <Link href="/create-metrics">
+            <p className="text-neutral-500 mb-6">
+              To create metrics, navigate to your feature flags and select a specific environment. 
+              Metrics are created and configured per environment within your feature flags.
+            </p>
+            <Link href="/flags">
               <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-300 flex items-center gap-2 mx-auto">
                 <BarChart3 className="w-5 h-5" />
-                Create Your First Metric
+                Go to Feature Flags
                 <ArrowRight className="w-4 h-4" />
               </button>
             </Link>

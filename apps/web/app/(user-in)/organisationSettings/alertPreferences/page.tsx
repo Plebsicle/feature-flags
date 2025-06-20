@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { cookies } from 'next/headers'
 import { ArrowLeft, Bell, Settings, Mail, MessageSquare, Users, Clock, Calendar } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -33,22 +34,26 @@ export default async function AlertPreferencesPage() {
   let error: string | null = null
 
   try {
+    const cookieStore = await cookies()
+    const sessionId = cookieStore.get('sessionId')?.value
+
     const response = await fetch(`${BACKEND_URL}/organisation/preferences`, {
       method: "GET",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        ...(sessionId && { "Cookie": `sessionId=${sessionId}` })
       },
       // Add cache control for server components
       next: { revalidate: 60 } // Revalidate every 60 seconds
     })
-
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
 
     const data: AlertPreferencesResponse = await response.json()
-    
+    console.log(data);
     if (data.success) {
       preferences = data.data
     } else {
@@ -88,7 +93,7 @@ export default async function AlertPreferencesPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header with back navigation */}
         <div className="mb-8">
-          <Link href="/organisationSettings" className="inline-flex items-center gap-2 text-neutral-400 hover:text-white transition-colors duration-300 mb-6">
+          <Link href="/organisationSettings/inviteMembers" className="inline-flex items-center gap-2 text-neutral-400 hover:text-white transition-colors duration-300 mb-6">
             <ArrowLeft className="w-4 h-4" />
             Back to Organisation Settings
           </Link>

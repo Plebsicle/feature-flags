@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers'
-import { Users, UserPlus } from 'lucide-react'
+import { Users, UserPlus, Bell } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { OrganisationMembersClient } from './OrganisationMembersClient'
+import Link from 'next/link'
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000"
 
@@ -89,10 +90,20 @@ export default async function OrganisationMembersPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Organisation Members</h1>
-          <p className="text-neutral-400 text-lg">
-            Manage your team and control access to your organization
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2">Organisation Members</h1>
+              <p className="text-neutral-400 text-lg">
+                Manage your team and control access to your organization
+              </p>
+            </div>
+            <Link href="/organisationSettings/alertPreferences">
+              <button className="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2">
+                <Bell className="w-4 h-4" />
+                Alert Preferences
+              </button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats Card */}

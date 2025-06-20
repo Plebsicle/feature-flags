@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { cookies } from 'next/headers'
 import { notFound } from "next/navigation"
 import { ArrowLeft, BarChart3, Activity, Target, TrendingUp, Database, CalendarDays, Tag, Clock, Settings, Bell } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,6 +10,7 @@ import { DeleteMetricButton } from "@/components/delete-metric-button"
 import { CreateAlertModal } from "@/components/create-alert-modal"
 import { UpdateAlertModal } from "@/components/update-alert-modal"
 import { DeleteAlertButton } from "@/components/delete-alert-button"
+import { alert_operator, metric_aggregation_method, metric_type } from "@repo/db/client"
 
 // Types based on the API response structure
 interface Metric {
@@ -22,16 +24,16 @@ interface Metric {
   flag_environment_id: string
   metric_name: string
   metric_key: string
-  metric_type: "CONVERSION" | "COUNT" | "NUMERIC"
+  metric_type: metric_type
   aggregation_window: number
   unit_measurement: string | null
-  aggregation_method: "SUM" | "AVERAGE" | "P99" | "P90" | "P95" | "P75" | "P50"
+  aggregation_method: metric_aggregation_method
 }
 
 interface Alert {
   id: string
   metric_id: string
-  operator: "EQUALS_TO" | "GREATER_THAN" | "LESS_THAN"
+  operator: alert_operator
   threshold: number
   is_enabled: boolean
 }
@@ -63,21 +65,26 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
   let error: string | null = null
 
   try {
+    const cookieStore = await cookies()
+    const sessionId = cookieStore.get('sessionId')?.value
+
     // Fetch metric and alert data in parallel
     const [metricResponse, alertResponse] = await Promise.all([
-      fetch(`${BACKEND_URL}/metrics/metric?metric_id=${metricId}`, {
+      fetch(`${BACKEND_URL}/metrics/${metricId}`, {
         method: "GET",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          ...(sessionId && { "Cookie": `sessionId=${sessionId}` })
         },
         next: { revalidate: 30 }
       }),
-      fetch(`${BACKEND_URL}/alerts?metric_id=${metricId}`, {
+      fetch(`${BACKEND_URL}/alerts/${metricId}`, {
         method: "GET",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          ...(sessionId && { "Cookie": `sessionId=${sessionId}` })
         },
         next: { revalidate: 30 }
       })
@@ -102,13 +109,26 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
     if (alertResponse.ok) {
       try {
         const alertData: AlertResponse = await alertResponse.json()
-        if (alertData.success) {
-          alert = alertData.data
+        console.log("Alert response data:", alertData);
+        console.log("alertData.success:", alertData.success);
+        console.log("alertData.data:", alertData.data);
+        console.log("Condition check (alertData.success && alertData.data):", alertData.success && alertData.data);
+        
+        if (alertData.success && alertData.data) {
+          // Handle single alert object
+          alert = alertData.data as Alert
+          console.log("Alert assigned successfully:", alert);
+        } else {
+          console.log("Alert assignment skipped - condition not met");
+          console.log("alertData.success:", alertData.success);
+          console.log("alertData.data exists:", !!alertData.data);
         }
       } catch (alertErr) {
         console.warn("Error fetching alert data:", alertErr)
         // Continue without alert data
       }
+    } else {
+      console.log("Alert response not ok:", alertResponse.status);
     }
   } catch (err) {
     console.error("Error fetching data:", err)

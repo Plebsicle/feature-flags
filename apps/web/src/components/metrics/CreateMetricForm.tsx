@@ -71,8 +71,28 @@ export default function CreateMetricForm() {
     tags: []
   })
 
+  // Function to generate metric key from metric name
+  const generateMetricKey = (name: string): string => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '') // Remove special characters except spaces
+      .trim()
+      .replace(/\s+/g, '-') // Replace spaces with underscores
+      .replace(/-+/g, '-') // Replace multiple underscores with single
+      .replace(/^_|_$/g, '') // Remove leading/trailing underscores
+  }
+
   const handleInputChange = (field: keyof FormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value }
+      
+      // Auto-generate metric key when metric name changes
+      if (field === 'metric_name' && typeof value === 'string') {
+        updated.metric_key = generateMetricKey(value)
+      }
+      
+      return updated
+    })
   }
 
   const addTag = () => {
@@ -260,7 +280,7 @@ export default function CreateMetricForm() {
                       />
                     </div>
                     <div>
-                      <Label className="text-neutral-300">Metric Key *</Label>
+                      <Label className="text-neutral-300">Metric Key * (Auto-generated)</Label>
                       <Input
                         value={formData.metric_key}
                         onChange={(e) => handleInputChange('metric_key', e.target.value)}
@@ -268,6 +288,9 @@ export default function CreateMetricForm() {
                         placeholder="e.g., button_click_rate"
                         required
                       />
+                      <p className="text-xs text-neutral-500 mt-1">
+                        Generated from metric name. You can edit this if needed.
+                      </p>
                     </div>
                   </div>
 

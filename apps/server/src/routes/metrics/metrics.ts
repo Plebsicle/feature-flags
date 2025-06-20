@@ -10,7 +10,7 @@ const router = express.Router();
 router.post('/',verificationMiddleware,createMetric);
 router.put('/',verificationMiddleware,updateMetric);
 router.get('/',verificationMiddleware,getMetrics);
-router.get('/metric',verificationMiddleware,getMetricbyId);
+router.get('/:metricId',verificationMiddleware,getMetricbyId);
 router.delete('/:metricId',verificationMiddleware,deleteMetric);
 
 export default router;

@@ -17,6 +17,7 @@ import killSwitchRoutes from './routes/kill-switches/switch'
 import dashboardRoutes from './routes/dashboard/dashboard'
 import organisationRoutes from './routes/organisation/org'
 import metricRoutes from './routes/metrics/metrics'
+import alertRoutes from './routes/alerts/alert'
 
 // Standard Contansts for express application
 const app : Express = express();
@@ -38,6 +39,7 @@ app.use('/killswitch',killSwitchRoutes);
 app.use('/dashboard',dashboardRoutes);
 app.use('/organisation',organisationRoutes);
 app.use('/metrics',metricRoutes);  
+app.use('/alerts',alertRoutes);
 
 
 //Security Measure
