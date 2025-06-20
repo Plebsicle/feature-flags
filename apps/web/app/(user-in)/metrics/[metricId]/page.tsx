@@ -1,11 +1,14 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, BarChart3, Activity, Target, TrendingUp, Database, CalendarDays, Tag, Clock, Settings } from "lucide-react"
+import { ArrowLeft, BarChart3, Activity, Target, TrendingUp, Database, CalendarDays, Tag, Clock, Settings, Bell } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { EditMetricModal } from "@/components/edit-metric-modal"
 import { DeleteMetricButton } from "@/components/delete-metric-button"
+import { CreateAlertModal } from "@/components/create-alert-modal"
+import { UpdateAlertModal } from "@/components/update-alert-modal"
+import { DeleteAlertButton } from "@/components/delete-alert-button"
 
 // Types based on the API response structure
 interface Metric {
@@ -25,10 +28,24 @@ interface Metric {
   aggregation_method: "SUM" | "AVERAGE" | "P99" | "P90" | "P95" | "P75" | "P50"
 }
 
+interface Alert {
+  id: string
+  metric_id: string
+  operator: "EQUALS_TO" | "GREATER_THAN" | "LESS_THAN"
+  threshold: number
+  is_enabled: boolean
+}
+
 interface MetricResponse {
   success: boolean
   message: string
   data: Metric | null
+}
+
+interface AlertResponse {
+  success: boolean
+  message: string
+  data: Alert | null
 }
 
 interface MetricDetailPageProps {
@@ -42,35 +59,59 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
   const { metricId } = params
 
   let metric: Metric | null = null
+  let alert: Alert | null = null
   let error: string | null = null
 
   try {
-    const response = await fetch(`${BACKEND_URL}/metrics/metric?metric_id=${metricId}`, {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      // Add cache control for server components
-      next: { revalidate: 30 } // Revalidate every 30 seconds for detail pages
-    })
+    // Fetch metric and alert data in parallel
+    const [metricResponse, alertResponse] = await Promise.all([
+      fetch(`${BACKEND_URL}/metrics/metric?metric_id=${metricId}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        next: { revalidate: 30 }
+      }),
+      fetch(`${BACKEND_URL}/alerts?metric_id=${metricId}`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        next: { revalidate: 30 }
+      })
+    ])
 
-    if (!response.ok) {
-      if (response.status === 404) {
+    if (!metricResponse.ok) {
+      if (metricResponse.status === 404) {
         notFound()
       }
-      throw new Error(`HTTP error! status: ${response.status}`)
+      throw new Error(`HTTP error! status: ${metricResponse.status}`)
     }
 
-    const data: MetricResponse = await response.json()
+    const metricData: MetricResponse = await metricResponse.json()
     
-    if (data.success) {
-      metric = data.data
+    if (metricData.success) {
+      metric = metricData.data
     } else {
-      error = data.message || "Failed to fetch metric"
+      error = metricData.message || "Failed to fetch metric"
+    }
+
+    // Alert fetch is optional, don't fail if it errors
+    if (alertResponse.ok) {
+      try {
+        const alertData: AlertResponse = await alertResponse.json()
+        if (alertData.success) {
+          alert = alertData.data
+        }
+      } catch (alertErr) {
+        console.warn("Error fetching alert data:", alertErr)
+        // Continue without alert data
+      }
     }
   } catch (err) {
-    console.error("Error fetching metric:", err)
+    console.error("Error fetching data:", err)
     error = "Failed to fetch metric. Please try again later."
   }
 
@@ -167,112 +208,185 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
               </div>
 
               {/* Metric Details Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Basic Information */}
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Basic Information */}
+                  <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-neutral-100 flex items-center gap-2">
+                        <Settings className="w-5 h-5" />
+                        Basic Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {metric.description && (
+                        <div>
+                          <h4 className="text-sm font-medium text-neutral-300 mb-2">Description</h4>
+                          <p className="text-neutral-400 leading-relaxed">{metric.description}</p>
+                        </div>
+                      )}
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="text-sm font-medium text-neutral-300 mb-2">Metric Type</h4>
+                          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                            {metric.metric_type}
+                          </Badge>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-neutral-300 mb-2">Aggregation Method</h4>
+                          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                            {metric.aggregation_method}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      {metric.unit_measurement && (
+                        <div>
+                          <h4 className="text-sm font-medium text-neutral-300 mb-2">Unit of Measurement</h4>
+                          <Badge className="bg-teal-500/20 text-teal-400 border-teal-500/30">
+                            {metric.unit_measurement}
+                          </Badge>
+                        </div>
+                      )}
+
+                      <div>
+                        <h4 className="text-sm font-medium text-neutral-300 mb-2">Aggregation Window</h4>
+                        <div className="flex items-center gap-2 text-neutral-400">
+                          <Clock className="w-4 h-4" />
+                          {metric.aggregation_window} seconds
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Tags and Metadata */}
+                  <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-neutral-100 flex items-center gap-2">
+                        <Tag className="w-5 h-5" />
+                        Tags & Metadata
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {metric.tags && metric.tags.length > 0 ? (
+                        <div>
+                          <h4 className="text-sm font-medium text-neutral-300 mb-3">Tags</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {metric.tags.map((tag, index) => (
+                              <span 
+                                key={index}
+                                className="inline-flex items-center px-3 py-1 rounded-md bg-slate-700/50 text-slate-300 text-sm"
+                              >
+                                <Tag className="w-3 h-3 mr-2" />
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <h4 className="text-sm font-medium text-neutral-300 mb-2">Tags</h4>
+                          <p className="text-neutral-500 text-sm">No tags assigned</p>
+                        </div>
+                      )}
+
+                      <div className="space-y-3 pt-4 border-t border-slate-700/50">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-neutral-400">Created</span>
+                          <div className="flex items-center gap-2 text-neutral-300">
+                            <CalendarDays className="w-4 h-4" />
+                            {new Date(metric.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-neutral-400">Last Updated</span>
+                          <div className="flex items-center gap-2 text-neutral-300">
+                            <Activity className="w-4 h-4" />
+                            {new Date(metric.updated_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-neutral-400">Metric ID</span>
+                          <span className="text-neutral-300 font-mono text-sm">{metric.id}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-neutral-400">Environment ID</span>
+                          <span className="text-neutral-300 font-mono text-sm">{metric.flag_environment_id}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Alert Configuration */}
                 <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
                   <CardHeader>
-                    <CardTitle className="text-xl text-neutral-100 flex items-center gap-2">
-                      <Settings className="w-5 h-5" />
-                      Basic Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {metric.description && (
-                      <div>
-                        <h4 className="text-sm font-medium text-neutral-300 mb-2">Description</h4>
-                        <p className="text-neutral-400 leading-relaxed">{metric.description}</p>
-                      </div>
-                    )}
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-neutral-300 mb-2">Metric Type</h4>
-                        <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                          {metric.metric_type}
-                        </Badge>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-neutral-300 mb-2">Aggregation Method</h4>
-                        <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
-                          {metric.aggregation_method}
-                        </Badge>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xl text-neutral-100 flex items-center gap-2">
+                        <Bell className="w-5 h-5" />
+                        Alert Configuration
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        {!alert ? (
+                          <CreateAlertModal metricId={metric.id} />
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            disabled
+                            className="border-slate-600 text-slate-500 cursor-not-allowed"
+                          >
+                            <Bell className="w-4 h-4 mr-2" />
+                            Create Alert
+                          </Button>
+                        )}
                       </div>
                     </div>
-
-                    {metric.unit_measurement && (
-                      <div>
-                        <h4 className="text-sm font-medium text-neutral-300 mb-2">Unit of Measurement</h4>
-                        <Badge className="bg-teal-500/20 text-teal-400 border-teal-500/30">
-                          {metric.unit_measurement}
-                        </Badge>
-                      </div>
-                    )}
-
-                    <div>
-                      <h4 className="text-sm font-medium text-neutral-300 mb-2">Aggregation Window</h4>
-                      <div className="flex items-center gap-2 text-neutral-400">
-                        <Clock className="w-4 h-4" />
-                        {metric.aggregation_window} seconds
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Tags and Metadata */}
-                <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-neutral-100 flex items-center gap-2">
-                      <Tag className="w-5 h-5" />
-                      Tags & Metadata
-                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {metric.tags && metric.tags.length > 0 ? (
-                      <div>
-                        <h4 className="text-sm font-medium text-neutral-300 mb-3">Tags</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {metric.tags.map((tag, index) => (
-                            <span 
-                              key={index}
-                              className="inline-flex items-center px-3 py-1 rounded-md bg-slate-700/50 text-slate-300 text-sm"
-                            >
-                              <Tag className="w-3 h-3 mr-2" />
-                              {tag}
-                            </span>
-                          ))}
+                  <CardContent>
+                    {alert ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                              <Badge 
+                                variant={alert.is_enabled ? "default" : "secondary"} 
+                                className={alert.is_enabled ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-slate-500/20 text-slate-400 border-slate-500/30"}
+                              >
+                                {alert.is_enabled ? "Enabled" : "Disabled"}
+                              </Badge>
+                              <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                                {alert.operator.replace('_', ' ').toLowerCase()}
+                              </Badge>
+                            </div>
+                            <p className="text-neutral-300">
+                              Alert when metric value is{' '}
+                              <span className="font-medium text-white">
+                                {alert.operator.toLowerCase().replace('_', ' ')} {alert.threshold}
+                              </span>
+                              {metric.unit_measurement && (
+                                <span className="text-neutral-400"> {metric.unit_measurement}</span>
+                              )}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <UpdateAlertModal alert={alert} metricId={metric.id} />
+                            <DeleteAlertButton alertId={alert.id} metricId={metric.id} />
+                          </div>
                         </div>
                       </div>
                     ) : (
-                      <div>
-                        <h4 className="text-sm font-medium text-neutral-300 mb-2">Tags</h4>
-                        <p className="text-neutral-500 text-sm">No tags assigned</p>
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-slate-700/50 rounded-xl flex items-center justify-center mx-auto mb-4">
+                          <Bell className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <h3 className="text-lg font-medium text-neutral-300 mb-2">No alert setup</h3>
+                        <p className="text-neutral-500 mb-4">
+                          Set up an alert to be notified when this metric crosses a threshold.
+                        </p>
                       </div>
                     )}
-
-                    <div className="space-y-3 pt-4 border-t border-slate-700/50">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-neutral-400">Created</span>
-                        <div className="flex items-center gap-2 text-neutral-300">
-                          <CalendarDays className="w-4 h-4" />
-                          {new Date(metric.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-neutral-400">Last Updated</span>
-                        <div className="flex items-center gap-2 text-neutral-300">
-                          <Activity className="w-4 h-4" />
-                          {new Date(metric.updated_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-neutral-400">Metric ID</span>
-                        <span className="text-neutral-300 font-mono text-sm">{metric.id}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-neutral-400">Environment ID</span>
-                        <span className="text-neutral-300 font-mono text-sm">{metric.flag_environment_id}</span>
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
               </div>
