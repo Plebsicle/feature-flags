@@ -15,6 +15,7 @@ import { useAuth } from "../../../contexts/auth-context"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 import { useSearchParams } from "next/navigation"
+import { Toaster, toast } from "react-hot-toast"
 
 const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
   <li className={`flex items-center text-xs ${met ? "text-green-400" : "text-neutral-400"}`}>
@@ -30,8 +31,6 @@ export default function InfoPage() {
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
-  const [successMessage, setSuccessMessage] = useState("")
   const searchParams = useSearchParams();
   const [token,setToken] = useState<string>("");
   const {isLoading}  = useAuth();
@@ -54,40 +53,40 @@ export default function InfoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
-    setSuccessMessage("")
 
     if (!name.trim()) {
-      setError("Please enter your full name.")
+      toast.error("Please enter your full name.")
       return
     }
     if (!allPasswordRequirementsMet) {
-      setError("Password does not meet all requirements.")
+      toast.error("Password does not meet all requirements.")
       return
     }
 
-    try {
-      const results = await axios.post(`/${BACKEND_URL}/auth/memberSignupVerification`,{
+    const promise = axios.post(`/${BACKEND_URL}/auth/memberSignupVerification`,{
         name , password, token
-      });
-      if(results.status === 200){
-        setSuccessMessage("Account setup completed successfully! Redirecting to dashboard...")
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 2000);
-      }
-      else{
-        setError("Account setup failed. Please try again.")
+    });
+
+    toast.promise(promise, {
+      loading: 'Setting up your account...',
+      success: (response) => {
+        if(response.status === 200){
+          setTimeout(() => {
+            router.push('/dashboard');
+          }, 2000);
+          return "Account setup completed successfully! Redirecting...";
+        } else {
+          throw new Error('Account setup failed');
+        }
+      },
+      error: (err) => {
+        console.error(err);
         setTimeout(() => {
           router.push('/auth/signin');
         }, 3000);
+        return "An error occurred. Please try again."
       }
-    } catch (error) {
-      setError("An error occurred. Please try again.")
-      setTimeout(() => {
-        router.push('/auth/signin');
-      }, 3000);
-    }
+    });
   }
 
   const containerVariants = {
@@ -108,30 +107,31 @@ export default function InfoPage() {
   }
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-orange-900 to-red-900 flex items-center justify-center p-4">
-        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
-          <motion.div variants={itemVariants}>
-            <Card className="bg-slate-800/70 dark:bg-neutral-800/70 backdrop-blur-xl border-slate-700/50 shadow-2xl">
-              <CardHeader className="text-center pb-6 pt-6 sm:pt-8">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4"
-                >
-                  <Shield className="w-8 h-8 text-white" />
-                </motion.div>
-                <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                  Additional Information
-                </CardTitle>
-                <CardDescription className="text-neutral-400 dark:text-neutral-300">
-                  Please provide your details to complete the process
-                </CardDescription>
-              </CardHeader>
+    <>
+      <Toaster />
+      <TooltipProvider>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-orange-900 to-red-900 flex items-center justify-center p-4">
+          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
+            <motion.div variants={itemVariants}>
+              <Card className="bg-slate-800/70 dark:bg-neutral-800/70 backdrop-blur-xl border-slate-700/50 shadow-2xl">
+                <CardHeader className="text-center pb-6 pt-6 sm:pt-8">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                    className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4"
+                  >
+                    <Shield className="w-8 h-8 text-white" />
+                  </motion.div>
+                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                    Additional Information
+                  </CardTitle>
+                  <CardDescription className="text-neutral-400 dark:text-neutral-300">
+                    Please provide your details to complete the process
+                  </CardDescription>
+                </CardHeader>
 
-              <CardContent>
-                {!successMessage && (
+                <CardContent>
                   <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-6">
                     <motion.div variants={itemVariants} className="space-y-2">
                       <Label htmlFor="name" className="text-sm font-medium text-neutral-300 dark:text-neutral-200">
@@ -195,27 +195,10 @@ export default function InfoPage() {
                         </TooltipContent>
                       </Tooltip>
                     </motion.div>
-
-                    {error && (
-                      <motion.p
-                        variants={itemVariants}
-                        className="text-sm p-3 rounded-md bg-red-900/30 text-red-400 border border-red-700/50"
-                      >
-                        {error}
-                      </motion.p>
-                    )}
                   </motion.form>
-                )}
+                </CardContent>
 
-                {successMessage && (
-                  <motion.div variants={itemVariants} className="text-center space-y-4">
-                    <p className="text-lg text-green-400">{successMessage}</p>
-                  </motion.div>
-                )}
-              </CardContent>
-
-              <CardFooter>
-                {!successMessage && (
+                <CardFooter>
                   <motion.div variants={itemVariants} className="w-full">
                     <Button
                       onClick={handleSubmit}
@@ -236,12 +219,12 @@ export default function InfoPage() {
                       )}
                     </Button>
                   </motion.div>
-                )}
-              </CardFooter>
-            </Card>
+                </CardFooter>
+              </Card>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      </div>
-    </TooltipProvider>
+        </div>
+      </TooltipProvider>
+    </>
   )
 }

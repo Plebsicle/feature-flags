@@ -13,6 +13,7 @@ import { useFlagCreation } from "../../../contexts/flag-creation"
 import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
 import { ArrowRight, ArrowLeft, Plus, X, Target, Info } from "lucide-react"
+import { Toaster, toast } from 'react-hot-toast'
 
 const dataTypeOptions: { value: DataType; label: string }[] = [
   { value: 'STRING', label: 'String' },
@@ -26,13 +27,9 @@ const dataTypeOptions: { value: DataType; label: string }[] = [
 export default function RulesPage() {
   const router = useRouter()
   const { state, updateRules } = useFlagCreation()
-  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateRules({ name: e.target.value })
-    if (errors.name) {
-      setErrors({ ...errors, name: '' })
-    }
   }
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -67,12 +64,6 @@ export default function RulesPage() {
 
   const handleAttributeNameChange = (index: number, value: string) => {
     updateCondition(index, { attribute_name: value })
-    // Clear validation error when attribute name is changed
-    if (errors[`condition_${index}_name`]) {
-      const newErrors = { ...errors }
-      delete newErrors[`condition_${index}_name`]
-      setErrors(newErrors)
-    }
   }
 
   const handleAttributeTypeChange = (index: number, value: DataType) => {
@@ -95,12 +86,6 @@ export default function RulesPage() {
 
   const handleValuesChange = (index: number, values: string[]) => {
     updateCondition(index, { attribute_values: values })
-    // Clear validation error when values are updated and we have at least one value
-    if (values.length > 0 && errors[`condition_${index}_values`]) {
-      const newErrors = { ...errors }
-      delete newErrors[`condition_${index}_values`]
-      setErrors(newErrors)
-    }
   }
 
   const addValue = (conditionIndex: number, value: string) => {
@@ -124,13 +109,6 @@ export default function RulesPage() {
       
       // Update the condition with new values
       updateCondition(conditionIndex, { attribute_values: newValues })
-      
-      // Clear validation error immediately after adding values
-      if (newValues.length > 0 && errors[`condition_${conditionIndex}_values`]) {
-        const newErrors = { ...errors }
-        delete newErrors[`condition_${conditionIndex}_values`]
-        setErrors(newErrors)
-      }
     }
   }
 
@@ -143,25 +121,24 @@ export default function RulesPage() {
   }
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-    
     if (!state.rules.name.trim()) {
-      newErrors.name = 'Rule name is required'
+      toast.error('Rule name is required')
+      return false
     }
 
     // Validate conditions
-    state.rules.conditions.forEach((condition, index) => {
+    for (const [index, condition] of state.rules.conditions.entries()) {
       if (!condition.attribute_name.trim()) {
-        newErrors[`condition_${index}_name`] = 'Attribute name is required'
+        toast.error(`Attribute name is required for condition ${index + 1}`)
+        return false
       }
-      // Check if the condition has any values
       if (!condition.attribute_values || condition.attribute_values.length === 0) {
-        newErrors[`condition_${index}_values`] = 'At least one value is required'
+        toast.error(`At least one value is required for condition ${index + 1}`)
+        return false
       }
-    })
+    }
     
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return true
   }
 
   const handleNext = () => {
@@ -192,6 +169,8 @@ export default function RulesPage() {
   }
 
   return (
+    <>
+    <Toaster />
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -237,7 +216,6 @@ export default function RulesPage() {
                 placeholder="e.g., Premium Users Rule"
                 className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
               />
-              {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
             </div>
 
             {/* Rule Description */}
@@ -299,9 +277,6 @@ export default function RulesPage() {
                               placeholder="e.g., userId, email, country"
                               className="bg-slate-600/50 border-slate-500 text-white placeholder:text-slate-400"
                             />
-                            {errors[`condition_${index}_name`] && (
-                              <p className="text-red-400 text-sm">{errors[`condition_${index}_name`]}</p>
-                            )}
                           </div>
 
                           {/* Attribute Type */}
@@ -403,9 +378,6 @@ export default function RulesPage() {
                                   ))}
                                 </div>
                               )}
-                              {errors[`condition_${index}_values`] && (
-                                <p className="text-red-400 text-sm">{errors[`condition_${index}_values`]}</p>
-                              )}
                             </div>
                           </div>
                         </div>
@@ -439,5 +411,6 @@ export default function RulesPage() {
         </Card>
       </div>
     </div>
+    </>
   )
 }

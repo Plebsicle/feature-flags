@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { Toaster, toast } from "react-hot-toast";
 
 // TypeScript types
 export enum environment_type {
@@ -113,31 +113,37 @@ export default function CreateKillSwitchPage() {
       toast.error("Please fill all fields and add at least one flag with environments.");
       return;
     }
-    setIsSubmitting(true);
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-      const res = await fetch(`${backendUrl}/killSwitch`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (!res.ok) throw new Error("Failed to create kill switch");
-      const result = await res.json();
-      if (result.success) {
-        toast.success("Kill Switch created successfully!");
+    
+    const promise = (async () => {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+        const res = await fetch(`${backendUrl}/killSwitch`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form),
+        });
+        if (!res.ok) throw new Error("Failed to create kill switch");
+        const result = await res.json();
+        if (result.success) {
+            return result;
+        } else {
+            throw new Error(result.message || "Failed to create kill switch");
+        }
+    })();
+
+    toast.promise(promise, {
+      loading: 'Creating kill switch...',
+      success: (result) => {
         router.push("/killSwitch");
-      } else {
-        throw new Error(result.message || "Failed to create kill switch");
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Error creating kill switch");
-    } finally {
-      setIsSubmitting(false);
-    }
+        return 'Kill Switch created successfully!';
+      },
+      error: (err) => err.message || "Error creating kill switch"
+    });
   };
 
   return (
+    <>
+    <Toaster />
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -257,5 +263,6 @@ export default function CreateKillSwitchPage() {
         </form>
       </div>
     </div>
+    </>
   );
 }

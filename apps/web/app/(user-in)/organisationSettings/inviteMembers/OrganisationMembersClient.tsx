@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { MemberCard } from "@/components/MemberCard"
 import { InviteMembersModal } from "@/components/InviteMembersModal"
+import { Toaster, toast } from "react-hot-toast"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
 
@@ -69,26 +70,40 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
   }
 
   const handleMemberDelete = async (memberId: string) => {
-    if (!confirm('Are you sure you want to remove this member from the organization?')) {
-      return
+    const deleteAction = () => {
+      setIsUpdating(true)
+      try {
+        // For now, just remove from local state
+        // You can implement the actual DELETE endpoint later
+        setMembers(prevMembers =>
+          prevMembers.filter(member => member.id !== memberId)
+        )
+        
+        toast.success('Member removed successfully (stub).')
+      } catch (error) {
+        console.error('Error deleting member:', error)
+        toast.error('Failed to remove member. Please try again.')
+      } finally {
+        setIsUpdating(false)
+      }
     }
 
-    setIsUpdating(true)
-    try {
-      // For now, just remove from local state
-      // You can implement the actual DELETE endpoint later
-      setMembers(prevMembers =>
-        prevMembers.filter(member => member.id !== memberId)
-      )
-      
-      console.log('Member deleted successfully (stub implementation)')
-      alert('Member removal functionality will be implemented soon.')
-    } catch (error) {
-      console.error('Error deleting member:', error)
-      alert('Failed to remove member. Please try again.')
-    } finally {
-      setIsUpdating(false)
-    }
+    toast((t) => (
+      <div className="flex flex-col items-start gap-3">
+        <p className="font-semibold">Are you sure you want to remove this member?</p>
+        <div className="flex gap-2">
+          <Button variant="destructive" size="sm" onClick={() => {
+            deleteAction()
+            toast.dismiss(t.id)
+          }}>
+            Remove
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => toast.dismiss(t.id)}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    ))
   }
 
   const handleInviteMembers = async (emails: string[], role: UserRole) => {
@@ -116,7 +131,6 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
       }
 
       console.log('Invitations sent successfully')
-      alert(`Invitations sent successfully to ${emails.length} email${emails.length === 1 ? '' : 's'}!`)
       
       // Note: New members won't appear in the list until they accept the invitation
       // You might want to refresh the page or refetch data here
@@ -128,6 +142,7 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
 
   return (
     <div className="space-y-6">
+      <Toaster />
       {/* Members List Header */}
       <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
         <CardHeader>

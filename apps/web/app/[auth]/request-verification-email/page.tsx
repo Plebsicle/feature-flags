@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Toaster, toast } from "react-hot-toast"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://locahost:8000"
 
@@ -25,14 +26,27 @@ export default function RequestVerificationEmailPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    const results = await axios.post(`/${BACKEND_URL}/auth/sendVerificationEmailManual`,{
+    const promise = axios.post(`/${BACKEND_URL}/auth/sendVerificationEmailManual`,{
         email
     });
     
-    if(results.status === 200){
+    toast.promise(promise, {
+        loading: 'Sending verification link...',
+        success: (response) => {
+            if(response.status === 200){
+                router.push("/auth/check-email-verify");
+                return 'Verification link sent successfully!';
+            } else {
+                throw new Error('Failed to send verification link');
+            }
+        },
+        error: (err) => {
+            console.error(err);
+            return 'Failed to send verification link. Please try again.';
+        }
+    }).finally(() => {
         setIsLoading(false)
-        router.push("/auth/sigin");
-    }
+    })
   }
 
   const containerVariants = {
@@ -54,95 +68,98 @@ export default function RequestVerificationEmailPage() {
   }
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-sky-900 to-cyan-900 flex items-center justify-center p-4">
-        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
-          <Card className="bg-slate-800/70 dark:bg-neutral-800/70 backdrop-blur-xl border-slate-700/50 shadow-2xl">
-            <CardHeader className="text-center pb-6 pt-8">
-              <motion.div
-                variants={itemVariants}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.1, type: "spring", stiffness: 180 }}
-                className="w-16 h-16 bg-gradient-to-r from-sky-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4"
-              >
-                <Send className="w-8 h-8 text-white" />
-              </motion.div>
-              <motion.div variants={itemVariants}>
-                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent">
-                  Resend Verification
-                </CardTitle>
-                <CardDescription className="text-neutral-400 dark:text-neutral-300 mt-2">
-                  Enter your email to receive a new verification link.
-                </CardDescription>
-              </motion.div>
-            </CardHeader>
-
-            <CardContent>
-              <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-6">
-                <motion.div variants={itemVariants} className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-neutral-300 dark:text-neutral-200">
-                    Email Address
-                  </Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <Input
-                          id="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Enter your email"
-                          className="pl-10 h-12 bg-slate-700/50 dark:bg-neutral-700/50 border-2 border-slate-600 dark:border-neutral-600 focus:border-sky-500 transition-colors text-neutral-100 placeholder:text-neutral-400"
-                          required
-                        />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="bg-slate-700 text-neutral-200 border-slate-600">
-                      <p>The email you used during sign up.</p>
-                    </TooltipContent>
-                  </Tooltip>
+    <>
+      <Toaster />
+      <TooltipProvider>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-sky-900 to-cyan-900 flex items-center justify-center p-4">
+          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
+            <Card className="bg-slate-800/70 dark:bg-neutral-800/70 backdrop-blur-xl border-slate-700/50 shadow-2xl">
+              <CardHeader className="text-center pb-6 pt-8">
+                <motion.div
+                  variants={itemVariants}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.1, type: "spring", stiffness: 180 }}
+                  className="w-16 h-16 bg-gradient-to-r from-sky-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4"
+                >
+                  <Send className="w-8 h-8 text-white" />
                 </motion.div>
-
                 <motion.div variants={itemVariants}>
-                  <Button
-                    type="submit"
-                    disabled={isLoading || !email}
-                    className="w-full h-12 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-60"
-                  >
-                    {isLoading ? (
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                      />
-                    ) : (
-                      <>
-                        Send Verification Link
-                        <ArrowRight className="ml-2 w-5 h-5" />
-                      </>
-                    )}
-                  </Button>
+                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent">
+                    Resend Verification
+                  </CardTitle>
+                  <CardDescription className="text-neutral-400 dark:text-neutral-300 mt-2">
+                    Enter your email to receive a new verification link.
+                  </CardDescription>
                 </motion.div>
-              </motion.form>
-            </CardContent>
-            <CardFooter className="pt-6">
-              <motion.div variants={itemVariants} className="w-full">
-                <Link href="/auth/signin">
-                  <Button
-                    variant="ghost"
-                    className="w-full text-neutral-400 hover:text-neutral-200 hover:bg-slate-700/50 group"
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
-                    Back to Sign In
-                  </Button>
-                </Link>
-              </motion.div>
-            </CardFooter>
-          </Card>
-        </motion.div>
-      </div>
-    </TooltipProvider>
+              </CardHeader>
+
+              <CardContent>
+                <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-6">
+                  <motion.div variants={itemVariants} className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium text-neutral-300 dark:text-neutral-200">
+                      Email Address
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                          <Input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email"
+                            className="pl-10 h-12 bg-slate-700/50 dark:bg-neutral-700/50 border-2 border-slate-600 dark:border-neutral-600 focus:border-sky-500 transition-colors text-neutral-100 placeholder:text-neutral-400"
+                            required
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="bg-slate-700 text-neutral-200 border-slate-600">
+                        <p>The email you used during sign up.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </motion.div>
+
+                  <motion.div variants={itemVariants}>
+                    <Button
+                      type="submit"
+                      disabled={isLoading || !email}
+                      className="w-full h-12 bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-60"
+                    >
+                      {isLoading ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                          className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                        />
+                      ) : (
+                        <>
+                          Send Verification Link
+                          <ArrowRight className="ml-2 w-5 h-5" />
+                        </>
+                      )}
+                    </Button>
+                  </motion.div>
+                </motion.form>
+              </CardContent>
+              <CardFooter className="pt-6">
+                <motion.div variants={itemVariants} className="w-full">
+                  <Link href="/auth/signin">
+                    <Button
+                      variant="ghost"
+                      className="w-full text-neutral-400 hover:text-neutral-200 hover:bg-slate-700/50 group"
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
+                      Back to Sign In
+                    </Button>
+                  </Link>
+                </motion.div>
+              </CardFooter>
+            </Card>
+          </motion.div>
+        </div>
+      </TooltipProvider>
+    </>
   )
 }

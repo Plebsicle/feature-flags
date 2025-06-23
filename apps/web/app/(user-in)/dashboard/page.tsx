@@ -9,7 +9,7 @@ import {
   Clock,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { InteractiveElements } from "./interactive-elements"
+
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000"
 

@@ -12,6 +12,7 @@ import { MultipleSelector } from "@/components/ui/multiple-selector"
 import { useFlagCreation } from "../../../contexts/flag-creation"
 import { flag_type } from '@repo/db/client'
 import { ArrowRight, Flag } from "lucide-react"
+import { Toaster, toast } from "react-hot-toast"
 
 const flagTypeOptions = [
   { value: 'BOOLEAN', label: 'Boolean', description: 'True/False toggle' },
@@ -37,7 +38,6 @@ function generateKey(name: string): string {
 export default function DetailsPage() {
   const router = useRouter()
   const { state, updateDetails } = useFlagCreation()
-  const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Auto-generate key when name changes
   useEffect(() => {
@@ -50,9 +50,6 @@ export default function DetailsPage() {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value
     updateDetails({ name })
-    if (errors.name) {
-      setErrors({ ...errors, name: '' })
-    }
   }
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -68,18 +65,17 @@ export default function DetailsPage() {
   }
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-    
     if (!state.name.trim()) {
-      newErrors.name = 'Name is required'
+      toast.error('Name is required')
+      return false
     }
     
     if (!state.flag_type) {
-      newErrors.flag_type = 'Flag type is required'
+      toast.error('Flag type is required')
+      return false
     }
     
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return true
   }
 
   const handleNext = () => {
@@ -89,6 +85,8 @@ export default function DetailsPage() {
   }
 
   return (
+    <>
+    <Toaster />
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -134,7 +132,6 @@ export default function DetailsPage() {
                 placeholder="e.g., Dark Mode Toggle"
                 className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
               />
-              {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
             </div>
 
             {/* Key (auto-generated) */}
@@ -184,7 +181,6 @@ export default function DetailsPage() {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.flag_type && <p className="text-red-400 text-sm">{errors.flag_type}</p>}
             </div>
 
             {/* Tags */}
@@ -218,5 +214,6 @@ export default function DetailsPage() {
         </Card>
       </div>
     </div>
+    </>
   )
 }

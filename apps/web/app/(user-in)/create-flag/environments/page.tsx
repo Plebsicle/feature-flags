@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch"
 import { useFlagCreation } from "../../../contexts/flag-creation"
 import { environment_type } from '@repo/db/client'
 import { ArrowRight, ArrowLeft, Server } from "lucide-react"
+import { Toaster, toast } from "react-hot-toast"
 
 // Types for API responses
 interface EnvironmentResponse {
@@ -43,7 +44,6 @@ export default function EnvironmentsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { state, updateEnvironments, hydrateFromExistingFlag, setEnvironmentCreationMode } = useFlagCreation()
-  const [errors, setErrors] = useState<Record<string, string>>({})
   const [existingEnvironments, setExistingEnvironments] = useState<EnvironmentResponse[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -70,6 +70,7 @@ export default function EnvironmentsPage() {
             credentials: 'include'
           });
           if (!flagResponse.ok) {
+            toast.error(`HTTP error! status: ${flagResponse.status}`)
             throw new Error(`HTTP error! status: ${flagResponse.status}`)
           }
 
@@ -82,6 +83,7 @@ export default function EnvironmentsPage() {
           })
 
           if (!envResponse.ok) {
+            toast.error(`HTTP error! status: ${envResponse.status}`)
             throw new Error(`HTTP error! status: ${envResponse.status}`)
           }
 
@@ -111,7 +113,7 @@ export default function EnvironmentsPage() {
           // Store existing environments in local state
           setExistingEnvironments(environmentArray)
         } catch (error) {
-          console.error('Error fetching existing flag data:', error)
+          toast.error('Error fetching existing flag data')
           setExistingEnvironments([]) // Set to empty array on error
         } finally {
           setIsLoading(false)
@@ -203,10 +205,9 @@ export default function EnvironmentsPage() {
   }
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-    
     if (!state.environments.environment) {
-      newErrors.environment = 'Environment is required'
+      toast.error('Environment is required')
+      return false
     }
     
     // Validate JSON for specific flag types
@@ -214,18 +215,19 @@ export default function EnvironmentsPage() {
       try {
         JSON.parse(typeof state.environments.value.value === 'string' ? state.environments.value.value : JSON.stringify(state.environments.value.value))
       } catch {
-        newErrors.value = 'Invalid JSON format'
+        toast.error('Invalid JSON format for value')
+        return false
       }
       
       try {
         JSON.parse(typeof state.environments.default_value.value === 'string' ? state.environments.default_value.value : JSON.stringify(state.environments.default_value.value))
       } catch {
-        newErrors.default_value = 'Invalid JSON format'
+        toast.error('Invalid JSON format for default value')
+        return false
       }
     }
     
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return true
   }
 
   const handleNext = () => {
@@ -266,6 +268,8 @@ export default function EnvironmentsPage() {
   }, [state.isCreatingEnvironmentOnly, isLoading, usedEnvironments])
 
   return (
+    <>
+    <Toaster />
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -370,7 +374,6 @@ export default function EnvironmentsPage() {
                   </SelectContent>
                 </Select>
               )}
-              {errors.environment && <p className="text-red-400 text-sm">{errors.environment}</p>}
             </div>
 
             {/* Flag Type Info */}
@@ -394,7 +397,6 @@ export default function EnvironmentsPage() {
                 <div className="space-y-2">
                   <Label className="text-white">Value</Label>
                   {renderValueInput('value', 'Value')}
-                  {errors.value && <p className="text-red-400 text-sm">{errors.value}</p>}
                   <p className="text-xs text-slate-400">The value returned when the flag is enabled</p>
                 </div>
 
@@ -402,7 +404,6 @@ export default function EnvironmentsPage() {
                 <div className="space-y-2">
                   <Label className="text-white">Default Value</Label>
                   {renderValueInput('default_value', 'Default Value')}
-                  {errors.default_value && <p className="text-red-400 text-sm">{errors.default_value}</p>}
                   <p className="text-xs text-slate-400">The fallback value when the flag is disabled</p>
                 </div>
               </div>
@@ -434,5 +435,6 @@ export default function EnvironmentsPage() {
         </Card>
       </div>
     </div>
+    </>
   )
 }

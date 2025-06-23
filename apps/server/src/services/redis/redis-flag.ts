@@ -44,7 +44,6 @@ interface FlagData {
 
 // TTL configuration (in seconds)
 const FLAG_TTL: Record<flag_type, number> = {
-  [flag_type.KILL_SWITCH]: 60,        // 1 minute
   [flag_type.AB_TEST]: 900,           // 15 minutes
   [flag_type.BOOLEAN]: 1800,          // 30 minutes
   [flag_type.STRING]: 1800,           // 30 minutes

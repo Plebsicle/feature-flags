@@ -11,6 +11,7 @@ import { Slider } from "@/components/ui/slider"
 import { useFlagCreation } from "../../../contexts/flag-creation"
 import { rollout_type } from '@repo/db/client'
 import { ArrowLeft, Rocket, Check, Loader2 } from "lucide-react"
+import { Toaster, toast } from 'react-hot-toast'
 
 
 const wrapValue = (innerValue: any): { value: any } => {
@@ -38,9 +39,6 @@ const rolloutTypeOptions = [
 export default function RolloutPage() {
   const router = useRouter()
   const { state, updateRollout, submitFlag } = useFlagCreation()
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
 
   const handleRolloutTypeChange = (value: string) => {
     const type = value as rollout_type
@@ -335,103 +333,43 @@ export default function RolloutPage() {
   }
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-    
     if (!state.rollout.type) {
-      newErrors.type = 'Rollout type is required'
+      toast.error('Rollout type is required')
+      return false
     }
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    // Add more validation logic as needed
+    return true
   }
 
   const handleSubmit = async () => {
-    if (!validateForm()) return
-
-    setIsSubmitting(true)
-    try {
-      // Check if we're creating an environment for an existing flag
-      if (state.isCreatingEnvironmentOnly) {
-        // Submit to create environment endpoint
-        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
-        
-        const response = await fetch(`${BACKEND_URL}/flag/createEnvironment`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            flag_id: state.flag_id,
-            environment: state.environments.environment,
-            ruleName: state.rules.name,
-            ruleDescription: state.rules.description,
-            value: wrapValue(state.environments.value.value),
-            default_value: wrapValue(state.environments.default_value.value),
-            conditions: state.rules.conditions,
-            rollout_type: state.rollout.type,
-            rollout_config: state.rollout.config
-          })
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const result = await response.json()
-        console.log('Environment created successfully:', result)
-      } else {
-        // Use existing flag creation logic
-        await submitFlag()
-      }
-      
-      setIsSuccess(true)
-      
-      // Redirect to dashboard after a brief success message
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 2000)
-    } catch (error) {
-      console.error('Error creating flag/environment:', error)
-      setErrors({ 
-        submit: state.isCreatingEnvironmentOnly 
-          ? 'Failed to create environment. Please try again.' 
-          : 'Failed to create flag. Please try again.' 
-      })
-    } finally {
-      setIsSubmitting(false)
+    if (!validateForm()) {
+      return
     }
+
+    const promise = submitFlag()
+
+    toast.promise(promise, {
+      loading: 'Creating your feature flag...',
+      success: (flag_id) => {
+        setTimeout(() => {
+          router.push(`/flags/${flag_id}`)
+        }, 1500)
+        return 'Feature flag created successfully! Redirecting...'
+      },
+      error: (err) => {
+        console.error(err)
+        return 'Failed to create feature flag. Please try again.'
+      }
+    })
   }
 
   const handlePrevious = () => {
     router.push('/create-flag/rules')
   }
 
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
-        <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30 max-w-md w-full">
-          <CardContent className="text-center p-8">
-            <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-4">
-              <Check className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2">
-              {state.isCreatingEnvironmentOnly ? 'Environment Added Successfully!' : 'Flag Created Successfully!'}
-            </h2>
-            <p className="text-slate-400 mb-4">
-              {state.isCreatingEnvironmentOnly 
-                ? `New environment "${state.environments.environment}" has been added to your feature flag "${state.name}".`
-                : `Your feature flag "${state.name}" has been created and is ready to use.`
-              }
-            </p>
-            <p className="text-slate-500 text-sm">Redirecting to dashboard...</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
   return (
+    <>
+    <Toaster />
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
@@ -493,57 +431,40 @@ export default function RolloutPage() {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.type && <p className="text-red-400 text-sm">{errors.type}</p>}
             </div>
 
             {/* Dynamic Config */}
             {state.rollout.type && (
-              <div className="bg-slate-700/30 p-6 rounded-lg border border-slate-600/50">
+              <div className="p-4 rounded-md bg-slate-700/30 border border-slate-600/50">
                 <h3 className="text-white font-medium mb-4">Configuration</h3>
                 {renderRolloutConfig()}
-              </div>
-            )}
-
-            {/* Submit Error */}
-            {errors.submit && (
-              <div className="bg-red-900/30 border border-red-700/50 p-4 rounded-lg">
-                <p className="text-red-400">{errors.submit}</p>
               </div>
             )}
 
             {/* Navigation Buttons */}
             <div className="flex justify-between pt-6">
               <Button 
+                variant="outline" 
                 onClick={handlePrevious}
-                variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                disabled={isSubmitting}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Previous
+                Previous Step
               </Button>
-              
               <Button 
                 onClick={handleSubmit}
-                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-8"
-                disabled={isSubmitting}
+                className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-8"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {state.isCreatingEnvironmentOnly ? 'Adding Environment...' : 'Creating Flag...'}
-                  </>
-                ) : (
                   <>
                     <Rocket className="w-4 h-4 mr-2" />
-                    {state.isCreatingEnvironmentOnly ? 'Add Environment' : 'Create Feature Flag'}
+                    Create Flag
                   </>
-                )}
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
+    </>
   )
 }
