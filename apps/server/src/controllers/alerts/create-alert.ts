@@ -11,6 +11,11 @@ interface myBody {
 
 export const createAlert = async (req : express.Request , res : express.Response) => {
     try{    
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || ((userRole === "VIEWER") || (userRole === "MEMBER"))){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const {metric_id , operator,threshold,is_enabled} = req.body as myBody;
         const alertCreation = await prisma.alert_metric.create({
             data : {

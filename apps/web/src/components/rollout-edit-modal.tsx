@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider"
 import { rollout_type } from '@repo/db/client'
 import { Edit, Save, Loader2, Rocket, Plus, X } from "lucide-react"
+import { Toaster, toast } from "react-hot-toast"
 
 interface RolloutData {
   id: string;
@@ -146,42 +147,48 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
     }
 
     setLoading(true)
-    try {
-      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ||  "http://localhost:8000"
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ||  "http://localhost:8000"
       
-      const requestBody = {
-        environment_id: environmentId,
-        rollout_type: rolloutType,
-        rollout_config: rolloutConfig
-      }
-
-      const response = await fetch(`/${BACKEND_URL}/flag/updateFlagRollout`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
-      
-      if (result.success) {
-        setOpen(false)
-        router.refresh() // Refresh the page to show updated data
-      } else {
-        throw new Error(result.message || 'Failed to update rollout')
-      }
-    } catch (error) {
-      console.error('Error updating rollout:', error)
-      setErrors({ submit: 'Failed to update rollout. Please try again.' })
-    } finally {
-      setLoading(false)
+    const requestBody = {
+      environment_id: environmentId,
+      rollout_type: rolloutType,
+      rollout_config: rolloutConfig
     }
+
+    const promise = fetch(`/${BACKEND_URL}/flag/updateFlagRollout`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    })
+
+    toast.promise(promise, {
+      loading: 'Updating rollout...',
+      success: (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const result = response.json() as Promise<{ success: boolean; message?: string }>;
+        result.then(data => {
+            if (data.success) {
+                setOpen(false)
+                router.refresh()
+            } else {
+                throw new Error(data.message || 'Failed to update rollout')
+            }
+        })
+        return 'Rollout updated successfully!'
+      },
+      error: (err) => {
+        console.error('Error updating rollout:', err)
+        setErrors({ submit: 'Failed to update rollout. Please try again.' })
+        return 'Failed to update rollout. Please try again.'
+      }
+    }).finally(() => {
+      setLoading(false)
+    })
   }
 
   const renderRolloutConfig = () => {
@@ -407,99 +414,102 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="border-blue-600/50 text-blue-400 hover:bg-blue-900/20">
-          <Edit className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-800/95 backdrop-blur-xl border-slate-700/50">
-        <DialogHeader>
-          <DialogTitle className="text-white flex items-center">
-            <Rocket className="w-5 h-5 mr-2 text-blue-400" />
-            Edit Rollout Configuration
-          </DialogTitle>
-          <DialogDescription className="text-neutral-400">
-            Update the rollout strategy and configuration for this environment
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Toaster />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button size="sm" variant="outline" className="border-blue-600/50 text-blue-400 hover:bg-blue-900/20">
+            <Edit className="w-4 h-4" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-800/95 backdrop-blur-xl border-slate-700/50">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center">
+              <Rocket className="w-5 h-5 mr-2 text-blue-400" />
+              Edit Rollout Configuration
+            </DialogTitle>
+            <DialogDescription className="text-neutral-400">
+              Update the rollout strategy and configuration for this environment
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Rollout Type Selection */}
-          <div className="space-y-2">
-            <Label className="text-white">Rollout Type *</Label>
-            <Select value={rolloutType} onValueChange={handleRolloutTypeChange}>
-              <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
-                <SelectValue placeholder="Select rollout type" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                {rolloutTypeOptions.map((option) => (
-                  <SelectItem 
-                    key={option.value} 
-                    value={option.value}
-                    className="text-white hover:bg-slate-700 focus:bg-slate-700"
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-slate-400">{option.description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.type && <p className="text-red-400 text-sm">{errors.type}</p>}
-          </div>
-
-          {/* Rollout Configuration */}
-          <Card className="bg-slate-700/30 border-slate-600/50">
-            <CardHeader>
-              <CardTitle className="text-white">Configuration</CardTitle>
-              <CardDescription className="text-neutral-400">
-                Configure the settings for your selected rollout type
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {renderRolloutConfig()}
-            </CardContent>
-          </Card>
-
-          {/* Submit Error */}
-          {errors.submit && (
-            <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded-md">
-              {errors.submit}
+          <div className="space-y-6">
+            {/* Rollout Type Selection */}
+            <div className="space-y-2">
+              <Label className="text-white">Rollout Type *</Label>
+              <Select value={rolloutType} onValueChange={handleRolloutTypeChange}>
+                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                  <SelectValue placeholder="Select rollout type" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {rolloutTypeOptions.map((option) => (
+                    <SelectItem 
+                      key={option.value} 
+                      value={option.value}
+                      className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-medium">{option.label}</span>
+                        <span className="text-xs text-slate-400">{option.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.type && <p className="text-red-400 text-sm">{errors.type}</p>}
             </div>
-          )}
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-slate-700/50">
-            <Button
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={loading}
-              className="border-slate-600 text-slate-300 hover:bg-slate-700"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Update Rollout
-                </>
-              )}
-            </Button>
+            {/* Rollout Configuration */}
+            <Card className="bg-slate-700/30 border-slate-600/50">
+              <CardHeader>
+                <CardTitle className="text-white">Configuration</CardTitle>
+                <CardDescription className="text-neutral-400">
+                  Configure the settings for your selected rollout type
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {renderRolloutConfig()}
+              </CardContent>
+            </Card>
+
+            {/* Submit Error */}
+            {errors.submit && (
+              <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded-md">
+                {errors.submit}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4 pt-6 border-t border-slate-700/50">
+              <Button
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={loading}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Update Rollout
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 } 

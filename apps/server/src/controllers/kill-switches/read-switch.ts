@@ -5,6 +5,11 @@ import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
 
 export const getAllKillSwitches = async (req: express.Request, res: express.Response) => {
     try {
+         const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || ((userRole === "VIEWER") || (userRole === "MEMBER"))){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const organisation_id = req.session.user?.userOrganisationId!;
         const killSwitches = await prisma.kill_switches.findMany({
                 where: {

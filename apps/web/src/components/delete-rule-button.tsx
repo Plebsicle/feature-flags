@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useRouter } from 'next/navigation'
+import { Toaster, toast } from 'react-hot-toast'
 
 interface DeleteRuleButtonProps {
   ruleId: string
@@ -27,9 +28,8 @@ export default function DeleteRuleButton({ ruleId, ruleName }: DeleteRuleButtonP
 
   const handleDelete = async () => {
     setIsDeleting(true)
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      const response = await fetch(`/${backendUrl}/flag/deleteRule/${ruleId}`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const promise = fetch(`/${backendUrl}/flag/deleteRule/${ruleId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -37,58 +37,66 @@ export default function DeleteRuleButton({ ruleId, ruleName }: DeleteRuleButtonP
         },
       })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
-      if (result.success) {
-        // Refresh the page to update the rules list
-        router.refresh()
-      } else {
-        throw new Error(result.message || 'Failed to delete rule')
-      }
-    } catch (error) {
-      console.error('Error deleting rule:', error)
-      // You might want to show a toast notification here
-      alert('Failed to delete rule. Please try again.')
-    } finally {
-      setIsDeleting(false)
-    }
+    toast.promise(promise, {
+      loading: 'Deleting rule...',
+      success: (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const result = response.json() as Promise<{ success: boolean; message?: string }>;
+        result.then(data => {
+            if (data.success) {
+                router.refresh()
+            } else {
+                throw new Error(data.message || 'Failed to delete rule')
+            }
+        })
+        return 'Rule deleted successfully'
+      },
+      error: (err) => {
+        console.error('Error deleting rule:', err)
+        return 'Failed to delete rule. Please try again.'
+      },
+    }).finally(() => {
+        setIsDeleting(false)
+    })
   }
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button
-          size="sm"
-          variant="outline"
-          className="border-red-600/50 text-red-400 hover:bg-red-900/20"
-          disabled={isDeleting}
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent className="bg-slate-900 border-slate-700">
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-white">Delete Rule</AlertDialogTitle>
-          <AlertDialogDescription className="text-neutral-400">
-            Are you sure you want to delete the rule "{ruleName}"? This action cannot be undone.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel className="bg-slate-800 text-white border-slate-700 hover:bg-slate-700">
-            Cancel
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDelete}
+    <>
+      <Toaster />
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-red-600/50 text-red-400 hover:bg-red-900/20"
             disabled={isDeleting}
-            className="bg-red-600 text-white hover:bg-red-700"
           >
-            {isDeleting ? 'Deleting...' : 'Delete Rule'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent className="bg-slate-900 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Rule</AlertDialogTitle>
+            <AlertDialogDescription className="text-neutral-400">
+              Are you sure you want to delete the rule "{ruleName}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-800 text-white border-slate-700 hover:bg-slate-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Rule'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 } 

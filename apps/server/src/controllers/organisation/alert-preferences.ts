@@ -12,6 +12,11 @@ interface myBody {
 
 export const orgAlertPreferences = async (req : express.Request,res : express.Response) => {
     try{
+         const userRole = req.session.user?.userRole;
+        if(userRole === undefined ||  (userRole !== "OWNER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const organisationId = req.session.user?.userOrganisationId!;
         const {alert_notification_frequency,email_enabled,slack_enabled,email_roles_notification} = req.body as myBody;
         await prisma.alert_preferences.create({

@@ -62,10 +62,9 @@ export const updateFeatureFlag = async (req: express.Request, res: express.Respo
         // Zod validation
         // const parsedBody = updateFeatureFlagBodySchema.parse(req.body);
         // req.body = parsedBody;
-
-        const role = req.session.user?.userRole;
-        if(role === "VIEWER"){
-            res.status(401).json({success : false,message : "Role is not Sufficient"});
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
             return;
         }
 
@@ -182,9 +181,9 @@ export const updateFlagRule = async (req: express.Request, res: express.Response
         // const parsedBody = updateFlagRuleBodySchema.parse(req.body);
         // req.body = parsedBody;
         
-        const role = req.session.user?.userRole;
-         if(role === "VIEWER"){
-            res.status(401).json({success : false,message : "Role is not Sufficient"});
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
             return;
         }
 
@@ -346,9 +345,9 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
         // const parsedBody = updateFlagRolloutBodySchema.parse(req.body);
         // req.body = parsedBody;
         
-        const role = req.session.user?.userRole;
-         if(role === "VIEWER"){
-            res.status(401).json({success : false,message : "Role is not Sufficient"});
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
             return;
         }
 
@@ -473,6 +472,11 @@ export const updateFlagRollout = async (req: express.Request, res: express.Respo
 
 export const updateEnvironment = async (req: express.Request, res: express.Response) => {
     try{
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const {is_enabled,environment_id,value,default_value} = req.body;
         console.log(req.body);
         // Get environment details before update

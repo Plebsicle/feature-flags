@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { Toaster, toast } from 'react-hot-toast'
 
 // Types matching the API structure
 type metric_type = "CONVERSION" | "COUNT" | "NUMERIC"
@@ -125,37 +125,40 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
 
     setIsSubmitting(true)
     
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      const response = await fetch(`/${backendUrl}/metrics`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const promise = fetch(`/${backendUrl}/metrics`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
-      
-      if (result.success) {
-        toast.success('Metric updated successfully!')
-        setIsOpen(false)
-        // Refresh the current page to show updated data
-        router.refresh()
-      } else {
-        throw new Error(result.message || 'Failed to update metric')
-      }
-    } catch (error) {
-      console.error('Error updating metric:', error)
-      toast.error('Failed to update metric. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
+    toast.promise(promise, {
+        loading: 'Updating metric...',
+        success: (response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
+            }
+            const result = response.json() as Promise<{ success: boolean; message?: string }>;
+            result.then(data => {
+                if (data.success) {
+                    setIsOpen(false)
+                    router.refresh()
+                } else {
+                    throw new Error(data.message || 'Failed to update metric')
+                }
+            })
+            return 'Metric updated successfully!'
+        },
+        error: (err) => {
+            console.error('Error updating metric:', err)
+            return 'Failed to update metric. Please try again.'
+        }
+    }).finally(() => {
+        setIsSubmitting(false)
+    });
   }
 
   const getMetricTypeColor = (type: metric_type) => {
@@ -185,219 +188,222 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="border-blue-700 text-blue-300 hover:bg-blue-800/20"
-        >
-          <Edit className="w-4 h-4" />
-          Edit
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-white text-xl">Edit Metric</DialogTitle>
-          <DialogDescription className="text-neutral-400">
-            Update the configuration for <span className="font-medium text-white">{metric.metric_name}</span>
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Toaster />
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="border-blue-700 text-blue-300 hover:bg-blue-800/20"
+          >
+            <Edit className="w-4 h-4" />
+            Edit
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white text-xl">Edit Metric</DialogTitle>
+            <DialogDescription className="text-neutral-400">
+              Update the configuration for <span className="font-medium text-white">{metric.metric_name}</span>
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Metric Name */}
-          <div className="space-y-2">
-            <Label htmlFor="metric_name" className="text-neutral-300">
-              Metric Name *
-            </Label>
-            <Input
-              id="metric_name"
-              value={formData.metric_name}
-              onChange={(e) => handleInputChange('metric_name', e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
-              placeholder="Enter metric name"
-              required
-            />
-          </div>
-
-          {/* Metric Type */}
-          <div className="space-y-2">
-            <Label className="text-neutral-300">
-              Metric Type *
-            </Label>
-            <Select 
-              value={formData.metric_type} 
-              onValueChange={(value: metric_type) => handleInputChange('metric_type', value)}
-            >
-              <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                {(["CONVERSION", "COUNT", "NUMERIC"] as metric_type[]).map((type) => {
-                  const Icon = getMetricTypeIcon(type)
-                  return (
-                    <SelectItem key={type} value={type} className="text-white hover:bg-slate-700">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded bg-gradient-to-r ${getMetricTypeColor(type)} flex items-center justify-center`}>
-                          <Icon className="w-3 h-3 text-white" />
-                        </div>
-                        {type}
-                      </div>
-                    </SelectItem>
-                  )
-                })}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Active Status */}
-          <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
-            <div>
-              <Label className="text-neutral-300 font-medium">
-                Active Status
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Metric Name */}
+            <div className="space-y-2">
+              <Label htmlFor="metric_name" className="text-neutral-300">
+                Metric Name *
               </Label>
-              <p className="text-sm text-neutral-400">
-                Enable or disable this metric
-              </p>
-            </div>
-            <Switch
-              checked={formData.is_active}
-              onCheckedChange={(checked) => handleInputChange('is_active', checked)}
-              className="data-[state=checked]:bg-emerald-600"
-            />
-          </div>
-
-          {/* Unit of Measurement */}
-          <div className="space-y-2">
-            <Label htmlFor="unit_measurement" className="text-neutral-300">
-              Unit of Measurement *
-            </Label>
-            <Input
-              id="unit_measurement"
-              value={formData.unit_measurement}
-              onChange={(e) => handleInputChange('unit_measurement', e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
-              placeholder="e.g., clicks, conversions, ms"
-              required
-            />
-          </div>
-
-          {/* Aggregation Method */}
-          <div className="space-y-2">
-            <Label className="text-neutral-300">
-              Aggregation Method *
-            </Label>
-            <Select 
-              value={formData.aggregation_method} 
-              onValueChange={(value: metric_aggregation_method) => handleInputChange('aggregation_method', value)}
-            >
-              <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                {(["SUM", "AVERAGE", "P99", "P90", "P95", "P75", "P50"] as metric_aggregation_method[]).map((method) => (
-                  <SelectItem key={method} value={method} className="text-white hover:bg-slate-700">
-                    {method}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-neutral-300">
-              Description *
-            </Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 min-h-[100px]"
-              placeholder="Describe what this metric measures and how it's used"
-              required
-            />
-          </div>
-
-          {/* Tags */}
-          <div className="space-y-3">
-            <Label className="text-neutral-300">
-              Tags
-            </Label>
-            
-            {/* Add Tag Input */}
-            <div className="flex gap-2">
               <Input
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleTagInputKeyDown}
+                id="metric_name"
+                value={formData.metric_name}
+                onChange={(e) => handleInputChange('metric_name', e.target.value)}
                 className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
-                placeholder="Add a tag and press Enter"
+                placeholder="Enter metric name"
+                required
               />
+            </div>
+
+            {/* Metric Type */}
+            <div className="space-y-2">
+              <Label className="text-neutral-300">
+                Metric Type *
+              </Label>
+              <Select 
+                value={formData.metric_type} 
+                onValueChange={(value: metric_type) => handleInputChange('metric_type', value)}
+              >
+                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {(["CONVERSION", "COUNT", "NUMERIC"] as metric_type[]).map((type) => {
+                    const Icon = getMetricTypeIcon(type)
+                    return (
+                      <SelectItem key={type} value={type} className="text-white hover:bg-slate-700">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-6 h-6 rounded bg-gradient-to-r ${getMetricTypeColor(type)} flex items-center justify-center`}>
+                            <Icon className="w-3 h-3 text-white" />
+                          </div>
+                          {type}
+                        </div>
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Active Status */}
+            <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+              <div>
+                <Label className="text-neutral-300 font-medium">
+                  Active Status
+                </Label>
+                <p className="text-sm text-neutral-400">
+                  Enable or disable this metric
+                </p>
+              </div>
+              <Switch
+                checked={formData.is_active}
+                onCheckedChange={(checked) => handleInputChange('is_active', checked)}
+                className="data-[state=checked]:bg-emerald-600"
+              />
+            </div>
+
+            {/* Unit of Measurement */}
+            <div className="space-y-2">
+              <Label htmlFor="unit_measurement" className="text-neutral-300">
+                Unit of Measurement *
+              </Label>
+              <Input
+                id="unit_measurement"
+                value={formData.unit_measurement}
+                onChange={(e) => handleInputChange('unit_measurement', e.target.value)}
+                className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
+                placeholder="e.g., clicks, conversions, ms"
+                required
+              />
+            </div>
+
+            {/* Aggregation Method */}
+            <div className="space-y-2">
+              <Label className="text-neutral-300">
+                Aggregation Method *
+              </Label>
+              <Select 
+                value={formData.aggregation_method} 
+                onValueChange={(value: metric_aggregation_method) => handleInputChange('aggregation_method', value)}
+              >
+                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {(["SUM", "AVERAGE", "P99", "P90", "P95", "P75", "P50"] as metric_aggregation_method[]).map((method) => (
+                    <SelectItem key={method} value={method} className="text-white hover:bg-slate-700">
+                      {method}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-neutral-300">
+                Description *
+              </Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 min-h-[100px]"
+                placeholder="Describe what this metric measures and how it's used"
+                required
+              />
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-3">
+              <Label className="text-neutral-300">
+                Tags
+              </Label>
+              
+              {/* Add Tag Input */}
+              <div className="flex gap-2">
+                <Input
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleTagInputKeyDown}
+                  className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
+                  placeholder="Add a tag and press Enter"
+                />
+                <Button
+                  type="button"
+                  onClick={addTag}
+                  size="sm"
+                  variant="outline"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Display Tags */}
+              {formData.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {formData.tags.map((tag, index) => (
+                    <Badge
+                      key={index}
+                      className="bg-slate-700/50 text-slate-300 border-slate-600 flex items-center gap-1"
+                    >
+                      <Tag className="w-3 h-3" />
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="ml-1 hover:text-red-400"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="gap-2">
               <Button
                 type="button"
-                onClick={addTag}
-                size="sm"
                 variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                onClick={() => setIsOpen(false)}
+                disabled={isSubmitting}
+                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
               >
-                <Plus className="w-4 h-4" />
+                Cancel
               </Button>
-            </div>
-
-            {/* Display Tags */}
-            {formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {formData.tags.map((tag, index) => (
-                  <Badge
-                    key={index}
-                    className="bg-slate-700/50 text-slate-300 border-slate-600 flex items-center gap-1"
-                  >
-                    <Tag className="w-3 h-3" />
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="ml-1 hover:text-red-400"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              disabled={isSubmitting}
-              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Update Metric
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Update Metric
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 } 

@@ -54,6 +54,11 @@ const getCompleteFlagData = async (flagId: string, environment?: environment_typ
 
 export const getAllFeatureFlags = async(req : express.Request,res : express.Response)=>{
     try{
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const organisationId = req.session.user?.userOrganisationId;
         if(!organisationId){
             res.json(400).json({success:false,message:"Unauthorised User"});
@@ -78,6 +83,11 @@ export const getAllFeatureFlags = async(req : express.Request,res : express.Resp
 export const getFeatureFlagData = async ( req : express.Request,res : express.Response) => {
     try{
         // Zod validation
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const parsedParams = getFeatureFlagParamsSchema.parse(req.params);
         req.params = parsedParams;
         
@@ -136,7 +146,11 @@ export const getFlagEnvironmentData = async (req : express.Request,res : express
         // Zod validation
         // const parsedParams = getFlagEnvironmentParamsSchema.parse(req.params);
         // req.params = parsedParams;
-        
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const flagId = req.params.flagId;
         console.log(flagId);
         // Get complete flag data with all environments
@@ -198,7 +212,11 @@ export const getRules = async (req : express.Request,res : express.Response) => 
         // Zod validation
         // const parsedParams = getRulesParamsSchema.parse(req.params);
         // req.params = parsedParams;
-        
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const environmentId = req.params.environmentId;
         
         // Get flag environment with flag details
@@ -261,6 +279,11 @@ export const getRules = async (req : express.Request,res : express.Response) => 
 export const getRollout = async (req : express.Request , res : express.Response) => {
     try{
         // Zod validation
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const parsedParams = getRolloutParamsSchema.parse(req.params);
         req.params = parsedParams;
         
@@ -326,6 +349,11 @@ export const getRollout = async (req : express.Request , res : express.Response)
 export const getAuditLogs = async (req : express.Request,res : express.Response)=>{
     try{
         // Zod validation
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const parsedParams = getAuditLogsParamsSchema.parse(req.params);
         req.params = parsedParams;
         

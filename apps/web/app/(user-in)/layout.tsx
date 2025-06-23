@@ -105,7 +105,7 @@ export default function DashboardLayout({
         href: "/metrics",
         icon: BarChart3,
         gradient: "from-emerald-500 to-teal-600",
-        allowedRoles: ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'],
+        allowedRoles: ['OWNER', 'ADMIN'],
       },
       {
         name: "Alerts",
@@ -133,14 +133,14 @@ export default function DashboardLayout({
         href: "/slack",
         icon: MessageSquare,
         gradient: "from-green-500 to-emerald-600",
-        allowedRoles: ['OWNER', 'ADMIN'],
+        allowedRoles: ['OWNER'],
       },
       {
         name: "Organisation Settings",
         href: "/organisationSettings/inviteMembers",
         icon: Settings,
         gradient: "from-gray-500 to-slate-600",
-        allowedRoles: ['OWNER', 'ADMIN', 'MEMBER'],
+        allowedRoles: ['OWNER', 'ADMIN'],
       },
       {
         name: "Logout",

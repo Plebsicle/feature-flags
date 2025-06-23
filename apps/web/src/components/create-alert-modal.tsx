@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { Toaster, toast } from 'react-hot-toast'
 
 // Types matching the API structure
 type alert_operator = "EQUALS_TO" | "GREATER_THAN" | "LESS_THAN"
@@ -68,40 +68,43 @@ export function CreateAlertModal({ metricId }: CreateAlertModalProps) {
 
     setIsSubmitting(true)
     
-    try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      const response = await fetch(`/${backendUrl}/alerts`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const promise = fetch(`/${backendUrl}/alerts`, {
         method: 'POST',
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
-          threshold: Number(formData.threshold)
+            ...formData,
+            threshold: Number(formData.threshold)
         }),
-      })
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
-      
-      if (result.success) {
-        toast.success('Alert created successfully!')
-        setIsOpen(false)
-        // Refresh the current page to show the new alert
-        router.refresh()
-      } else {
-        throw new Error(result.message || 'Failed to create alert')
-      }
-    } catch (error) {
-      console.error('Error creating alert:', error)
-      toast.error('Failed to create alert. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
+    toast.promise(promise, {
+        loading: 'Creating alert...',
+        success: (response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
+            }
+            const result = response.json() as Promise<{ success: boolean; message?: string }>;
+            result.then(data => {
+                if (data.success) {
+                    setIsOpen(false)
+                    router.refresh()
+                } else {
+                    throw new Error(data.message || 'Failed to create alert')
+                }
+            })
+            return 'Alert created successfully!'
+        },
+        error: (err) => {
+            console.error('Error creating alert:', err)
+            return 'Failed to create alert. Please try again.'
+        }
+    }).finally(() => {
+        setIsSubmitting(false)
+    });
   }
 
   const getOperatorLabel = (operator: alert_operator) => {
@@ -131,118 +134,121 @@ export function CreateAlertModal({ metricId }: CreateAlertModalProps) {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="border-blue-700 text-blue-300 hover:bg-blue-800/20"
-        >
-          <Bell className="w-4 h-4 mr-2" />
-          Create Alert
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="bg-slate-800 border-slate-700 max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="text-white text-xl">Create Alert</DialogTitle>
-          <DialogDescription className="text-neutral-400">
-            Set up an alert to be notified when this metric crosses a threshold.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Toaster />
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="border-blue-700 text-blue-300 hover:bg-blue-800/20"
+          >
+            <Bell className="w-4 h-4 mr-2" />
+            Create Alert
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="bg-slate-800 border-slate-700 max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-white text-xl">Create Alert</DialogTitle>
+            <DialogDescription className="text-neutral-400">
+              Set up an alert to be notified when this metric crosses a threshold.
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Operator */}
-          <div className="space-y-2">
-            <Label className="text-neutral-300">
-              Condition *
-            </Label>
-            <Select 
-              value={formData.operator} 
-              onValueChange={(value: alert_operator) => handleInputChange('operator', value)}
-            >
-              <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                {(["GREATER_THAN", "LESS_THAN", "EQUALS_TO"] as alert_operator[]).map((operator) => (
-                  <SelectItem key={operator} value={operator} className="text-white hover:bg-slate-700">
-                    <div className="flex flex-col items-start">
-                      <span className="font-medium">{getOperatorLabel(operator)}</span>
-                      <span className="text-xs text-neutral-400">{getOperatorDescription(operator)}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Threshold */}
-          <div className="space-y-2">
-            <Label htmlFor="threshold" className="text-neutral-300">
-              Threshold Value *
-            </Label>
-            <Input
-              id="threshold"
-              type="number"
-              step="any"
-              value={formData.threshold}
-              onChange={(e) => handleInputChange('threshold', parseFloat(e.target.value) || 0)}
-              className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
-              placeholder="Enter threshold value"
-              required
-            />
-            <p className="text-xs text-neutral-500">
-              Alert will trigger when metric value is {getOperatorLabel(formData.operator).toLowerCase()} this value
-            </p>
-          </div>
-
-          {/* Enabled Status */}
-          <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
-            <div>
-              <Label className="text-neutral-300 font-medium">
-                Enable Alert
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Operator */}
+            <div className="space-y-2">
+              <Label className="text-neutral-300">
+                Condition *
               </Label>
-              <p className="text-sm text-neutral-400">
-                Alert will be active immediately after creation
+              <Select 
+                value={formData.operator} 
+                onValueChange={(value: alert_operator) => handleInputChange('operator', value)}
+              >
+                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {(["GREATER_THAN", "LESS_THAN", "EQUALS_TO"] as alert_operator[]).map((operator) => (
+                    <SelectItem key={operator} value={operator} className="text-white hover:bg-slate-700">
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">{getOperatorLabel(operator)}</span>
+                        <span className="text-xs text-neutral-400">{getOperatorDescription(operator)}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Threshold */}
+            <div className="space-y-2">
+              <Label htmlFor="threshold" className="text-neutral-300">
+                Threshold Value *
+              </Label>
+              <Input
+                id="threshold"
+                type="number"
+                step="any"
+                value={formData.threshold}
+                onChange={(e) => handleInputChange('threshold', parseFloat(e.target.value) || 0)}
+                className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
+                placeholder="Enter threshold value"
+                required
+              />
+              <p className="text-xs text-neutral-500">
+                Alert will trigger when metric value is {getOperatorLabel(formData.operator).toLowerCase()} this value
               </p>
             </div>
-            <Switch
-              checked={formData.is_enabled}
-              onCheckedChange={(checked) => handleInputChange('is_enabled', checked)}
-              className="data-[state=checked]:bg-emerald-600"
-            />
-          </div>
 
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              disabled={isSubmitting}
-              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Create Alert
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            {/* Enabled Status */}
+            <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+              <div>
+                <Label className="text-neutral-300 font-medium">
+                  Enable Alert
+                </Label>
+                <p className="text-sm text-neutral-400">
+                  Alert will be active immediately after creation
+                </p>
+              </div>
+              <Switch
+                checked={formData.is_enabled}
+                onCheckedChange={(checked) => handleInputChange('is_enabled', checked)}
+                className="data-[state=checked]:bg-emerald-600"
+              />
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                disabled={isSubmitting}
+                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Create Alert
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 } 

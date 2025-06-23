@@ -5,6 +5,11 @@ import { removeKillSwitch } from '../../services/redis/redis-flag';
 
 export const deleteKillSwitch = async (req: express.Request, res: express.Response) => {
     try {
+         const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || ((userRole === "VIEWER") || (userRole === "MEMBER"))){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const killSwitchId = req.params.killSwitchId;
         
         if (!killSwitchId) {

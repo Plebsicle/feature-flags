@@ -11,7 +11,11 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
         // Zod validation
         // const parsedBody = createFlagBodySchema.parse(req.body);
         // req.body = parsedBody;
-
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const role = req.session.user?.userRole;
         if(role === "VIEWER"){
             res.status(401).json({success : false,message : "Role is not Sufficient"});
@@ -205,7 +209,11 @@ export const createEnvironment = async (req : express.Request , res : express.Re
         // Zod validation
         // const parsedBody = createEnvironmentBodySchema.parse(req.body);
         // req.body = parsedBody;
-        
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const userId = req.session.user?.userId!;
         const organisationId = req.session.user?.userOrganisationId!;
         

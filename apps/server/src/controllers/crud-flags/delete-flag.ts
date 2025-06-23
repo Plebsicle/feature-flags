@@ -6,6 +6,11 @@ import { removeAllOrgFlags, deleteRuleRedis, removeFlag } from '../../services/r
 export const deleteFeatureFlag = async (req: express.Request, res: express.Response) => {
     try {
         // Zod validation
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const parsedParams = deleteFeatureFlagParamsSchema.parse(req.params);
         req.params = parsedParams;
         
@@ -75,6 +80,11 @@ export const deleteFeatureFlag = async (req: express.Request, res: express.Respo
 export const deleteEnvironment = async (req: express.Request, res: express.Response) => {
     try {
         // Zod validation
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const parsedParams = deleteEnvironmentParamsSchema.parse(req.params);
         req.params = parsedParams;
         
@@ -141,6 +151,11 @@ export const deleteEnvironment = async (req: express.Request, res: express.Respo
 export const deleteRule = async (req: express.Request, res: express.Response) => {
     try {
         // Zod validation
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || (userRole === "VIEWER")){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const parsedParams = deleteRuleParamsSchema.parse(req.params);
         req.params = parsedParams;
         

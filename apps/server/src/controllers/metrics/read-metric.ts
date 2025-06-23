@@ -3,6 +3,11 @@ import express from 'express'
 
 export const getMetrics = async (req : express.Request , res : express.Response) => {
     try{
+         const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || ((userRole === "ADMIN") || (userRole === "OWNER"))){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const organisationId = req.session.user?.userOrganisationId;
         const metrics = await prisma.metrics.findMany({
             where : {
@@ -19,6 +24,11 @@ export const getMetrics = async (req : express.Request , res : express.Response)
 
 export const getMetricbyId = async(req : express.Request , res : express.Response) => {
     try{
+        const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || ((userRole === "VIEWER") || (userRole === "MEMBER"))){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         // const organisationId = req.session.user?.userOrganisationId;
         const metricId = req.params.metricId;
         const metrics = await prisma.metrics.findUnique({

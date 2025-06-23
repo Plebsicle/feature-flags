@@ -12,6 +12,11 @@ interface MyRequestBody {
 
 export const createKillSwitch = async(req : express.Request, res : express.Response) => {
     try{
+         const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || ((userRole === "VIEWER") || (userRole === "MEMBER"))){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         let {name, description, flags} = req.body as MyRequestBody;
         // input sanitation
 

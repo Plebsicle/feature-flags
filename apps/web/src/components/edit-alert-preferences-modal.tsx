@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { Toaster, toast } from 'react-hot-toast'
 
 // Types matching the API structure and database schema
 type user_role = "ADMIN" | "MEMBER" | "VIEWER" | "OWNER"
@@ -97,47 +97,49 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
 
     setIsSubmitting(true)
     
-    try {
-      // Convert time string to ISO Date string
-      const [hours, minutes] = formData.alert_notification_frequency.split(':')
-      if(!hours) return;
-      if(!minutes) return;
-      const frequencyDate = new Date()
-      frequencyDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+    const [hours, minutes] = formData.alert_notification_frequency.split(':')
+    if(!hours) return;
+    if(!minutes) return;
+    const frequencyDate = new Date()
+    frequencyDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      const response = await fetch(`/${backendUrl}/organisation/preferences`, {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const promise = fetch(`/${backendUrl}/organisation/preferences`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
-          alert_notification_frequency: frequencyDate.toISOString()
+            ...formData,
+            alert_notification_frequency: frequencyDate.toISOString()
         }),
-      })
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
-      
-      if (result.success) {
-        toast.success('Alert preferences updated successfully!')
-        setIsOpen(false)
-        // Refresh the current page to show the updated preferences
-        router.refresh()
-      } else {
-        throw new Error(result.message || 'Failed to update alert preferences')
-      }
-    } catch (error) {
-      console.error('Error updating alert preferences:', error)
-      toast.error('Failed to update alert preferences. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
+    toast.promise(promise, {
+        loading: 'Updating alert preferences...',
+        success: (response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`)
+            }
+            const result = response.json() as Promise<{ success: boolean; message?: string }>;
+            result.then(data => {
+                if (data.success) {
+                    setIsOpen(false)
+                    router.refresh()
+                } else {
+                    throw new Error(data.message || 'Failed to update alert preferences')
+                }
+            })
+            return 'Alert preferences updated successfully!'
+        },
+        error: (err) => {
+            console.error('Error updating alert preferences:', err)
+            return 'Failed to update alert preferences. Please try again.'
+        }
+    }).finally(() => {
+        setIsSubmitting(false)
+    });
   }
 
   const getRoleColor = (role: user_role, isSelected: boolean) => {
@@ -151,155 +153,158 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="border-blue-700 text-blue-300 hover:bg-blue-800/20"
-        >
-          <Edit className="w-4 h-4 mr-2" />
-          Edit Preferences
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-white text-xl">Edit Alert Preferences</DialogTitle>
-          <DialogDescription className="text-neutral-400">
-            Update your organisation's alert notification settings.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Toaster />
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="border-blue-700 text-blue-300 hover:bg-blue-800/20"
+          >
+            <Edit className="w-4 h-4 mr-2" />
+            Edit Preferences
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white text-xl">Edit Alert Preferences</DialogTitle>
+            <DialogDescription className="text-neutral-400">
+              Update your organisation's alert notification settings.
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Notification Frequency */}
-          <div className="space-y-2">
-            <Label htmlFor="frequency" className="text-neutral-300 flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Notification Frequency *
-            </Label>
-            <Input
-              id="frequency"
-              type="time"
-              value={formData.alert_notification_frequency}
-              onChange={(e) => handleInputChange('alert_notification_frequency', e.target.value)}
-              className="bg-slate-700/50 border-slate-600 text-white"
-              required
-            />
-            <p className="text-xs text-neutral-500">
-              Daily time when alert notifications will be sent (if any alerts are triggered)
-            </p>
-          </div>
-
-          {/* Notification Methods */}
-          <div className="space-y-4">
-            <Label className="text-neutral-300 text-base font-medium">
-              Notification Methods
-            </Label>
-            
-            {/* Email Notifications */}
-            <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-blue-400" />
-                <div>
-                  <Label className="text-neutral-300 font-medium">
-                    Email Notifications
-                  </Label>
-                  <p className="text-sm text-neutral-400">
-                    Send alert notifications via email
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={formData.email_enabled}
-                onCheckedChange={(checked) => handleInputChange('email_enabled', checked)}
-                className="data-[state=checked]:bg-blue-600"
-              />
-            </div>
-
-            {/* Slack Notifications */}
-            <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <MessageSquare className="w-5 h-5 text-green-400" />
-                <div>
-                  <Label className="text-neutral-300 font-medium">
-                    Slack Notifications
-                  </Label>
-                  <p className="text-sm text-neutral-400">
-                    Send alert notifications to Slack channels
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={formData.slack_enabled}
-                onCheckedChange={(checked) => handleInputChange('slack_enabled', checked)}
-                className="data-[state=checked]:bg-green-600"
-              />
-            </div>
-          </div>
-
-          {/* Email Recipients */}
-          {formData.email_enabled && (
-            <div className="space-y-3">
-              <Label className="text-neutral-300 flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Email Recipients *
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Notification Frequency */}
+            <div className="space-y-2">
+              <Label htmlFor="frequency" className="text-neutral-300 flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Notification Frequency *
               </Label>
-              <p className="text-sm text-neutral-400">
-                Select which user roles should receive email notifications
+              <Input
+                id="frequency"
+                type="time"
+                value={formData.alert_notification_frequency}
+                onChange={(e) => handleInputChange('alert_notification_frequency', e.target.value)}
+                className="bg-slate-700/50 border-slate-600 text-white"
+                required
+              />
+              <p className="text-xs text-neutral-500">
+                Daily time when alert notifications will be sent (if any alerts are triggered)
               </p>
-              
-              <div className="grid grid-cols-2 gap-3">
-                {(["OWNER", "ADMIN", "MEMBER", "VIEWER"] as user_role[]).map((role) => {
-                  const isSelected = formData.email_roles_notification.includes(role)
-                  return (
-                    <button
-                      key={role}
-                      type="button"
-                      onClick={() => handleRoleToggle(role)}
-                      className={`p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${getRoleColor(role, isSelected)}`}
-                    >
-                      <div className="text-sm font-medium">{role}</div>
-                    </button>
-                  )
-                })}
-              </div>
-              
-              {formData.email_roles_notification.length === 0 && (
-                <p className="text-red-400 text-sm">Please select at least one role</p>
-              )}
             </div>
-          )}
 
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              disabled={isSubmitting}
-              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Update Preferences
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            {/* Notification Methods */}
+            <div className="space-y-4">
+              <Label className="text-neutral-300 text-base font-medium">
+                Notification Methods
+              </Label>
+              
+              {/* Email Notifications */}
+              <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-blue-400" />
+                  <div>
+                    <Label className="text-neutral-300 font-medium">
+                      Email Notifications
+                    </Label>
+                    <p className="text-sm text-neutral-400">
+                      Send alert notifications via email
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={formData.email_enabled}
+                  onCheckedChange={(checked) => handleInputChange('email_enabled', checked)}
+                  className="data-[state=checked]:bg-blue-600"
+                />
+              </div>
+
+              {/* Slack Notifications */}
+              <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <MessageSquare className="w-5 h-5 text-green-400" />
+                  <div>
+                    <Label className="text-neutral-300 font-medium">
+                      Slack Notifications
+                    </Label>
+                    <p className="text-sm text-neutral-400">
+                      Send alert notifications to Slack channels
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={formData.slack_enabled}
+                  onCheckedChange={(checked) => handleInputChange('slack_enabled', checked)}
+                  className="data-[state=checked]:bg-green-600"
+                />
+              </div>
+            </div>
+
+            {/* Email Recipients */}
+            {formData.email_enabled && (
+              <div className="space-y-3">
+                <Label className="text-neutral-300 flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Email Recipients *
+                </Label>
+                <p className="text-sm text-neutral-400">
+                  Select which user roles should receive email notifications
+                </p>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  {(["OWNER", "ADMIN", "MEMBER", "VIEWER"] as user_role[]).map((role) => {
+                    const isSelected = formData.email_roles_notification.includes(role)
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => handleRoleToggle(role)}
+                        className={`p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${getRoleColor(role, isSelected)}`}
+                      >
+                        <div className="text-sm font-medium">{role}</div>
+                      </button>
+                    )
+                  })}
+                </div>
+                
+                {formData.email_roles_notification.length === 0 && (
+                  <p className="text-red-400 text-sm">Please select at least one role</p>
+                )}
+              </div>
+            )}
+
+            <DialogFooter className="gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                disabled={isSubmitting}
+                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Update Preferences
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 } 

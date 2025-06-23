@@ -16,6 +16,11 @@ interface myBody {
 
 export const createMetric = async (req : express.Request , res : express.Response) => {
     try{
+         const userRole = req.session.user?.userRole;
+        if(userRole === undefined  || ((userRole === "VIEWER") || (userRole === "MEMBER"))){
+            res.status(403).json({success : true,message : "Not Authorised"})
+            return;
+        }
         const {
             flag_environment_id,metric_name,metric_key,metric_type,is_active,unit_measurement,aggregation_method,description,tags
         } = req.body as myBody
