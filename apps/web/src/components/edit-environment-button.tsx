@@ -70,7 +70,7 @@ export function EditEnvironmentModal({
       const parsedValue = wrapValue(value)
       const parsedDefaultValue = wrapValue(defaultValue)
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/updateEnvironment`, {
+      const response = await fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/updateEnvironment`, {
         method: 'PUT',
         credentials: 'include',
         headers: {

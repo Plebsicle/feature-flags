@@ -31,7 +31,7 @@ export function DeleteEnvironmentButton({ environmentId, environmentName }: Dele
     setIsDeleting(true)
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/deleteEnvironment/${environmentId}`, {
+      const response = await fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/deleteEnvironment/${environmentId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {

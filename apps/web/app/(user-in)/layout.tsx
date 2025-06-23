@@ -78,7 +78,7 @@ export default function DashboardLayout({
   const handleLogout = async () => {
     try {
       await fetch(`${BACKEND_URL}/auth/logout`, {
-        method: "POST",
+        method: "GET",
         credentials: "include",
       })
     } catch (error) {

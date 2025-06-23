@@ -13,6 +13,9 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://locahost:8000"
+
+
 export default function RequestVerificationEmailPage() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -22,7 +25,7 @@ export default function RequestVerificationEmailPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    const results = await axios.post(`http://localhost:8000/auth/sendVerificationEmailManual`,{
+    const results = await axios.post(`/${BACKEND_URL}/auth/sendVerificationEmailManual`,{
         email
     });
     

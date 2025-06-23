@@ -218,7 +218,7 @@ export default function KillSwitchesClient() {
     const fetchKillSwitches = async () => {
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-        const response = await fetch(`${backendUrl}/killSwitch`, {
+        const response = await fetch(`/${backendUrl}/killSwitch`, {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',

@@ -31,7 +31,7 @@ export function DeleteMetricButton({ metricId, metricName }: DeleteMetricButtonP
     setIsDeleting(true)
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/metrics/${metricId}`, {
+      const response = await fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/metrics/${metricId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {

@@ -36,8 +36,8 @@ interface FlagsResponse {
 // Server-side data fetching
 async function getFeatureFlags(): Promise<FeatureFlag[]> {
   try {
-    const cookieStore = await cookies()
-    const sessionId = cookieStore.get('sessionId')?.value
+      const cookieStore = await cookies()
+      const sessionId = cookieStore.get('sessionId')?.value
     console.log(sessionId);
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000'
     const response = await fetch(`${backendUrl}/flag/getAllFeatureFlags`, {

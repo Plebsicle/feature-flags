@@ -4,6 +4,8 @@ import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import axios from 'axios'
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+
 
 interface User {
   id: string
@@ -57,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
     try {
           if(password){
-            const response = await axios.post(`http://localhost:8000/auth/emailSignin`,{
+            const response = await axios.post(`/${BACKEND_URL}/auth/emailSignin`,{
               email,password
             },{withCredentials:true});
             if(response.status === 200){
@@ -69,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
           else{
-            const response = await axios.post(`http://localhost:8000/auth/googleSignin`,{
+            const response = await axios.post(`/${BACKEND_URL}/auth/googleSignin`,{
               googleId : googleToken
             },{withCredentials:true});
             if(response.status === 200){
@@ -104,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { name, email, password,googleToken } = partialSignupDetails
       if(!password){
-        const response = await axios.post(`http://localhost:8000/auth/googleSignup`,{
+        const response = await axios.post(`/${BACKEND_URL}/auth/googleSignup`,{
           googleId : googleToken,orgName : organizationName
         },{withCredentials:true});
         if(response.status === 200){
@@ -117,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       else{
-        const response = await axios.post(`http://localhost:8000/auth/emailSignup`,{
+        const response = await axios.post(`/${BACKEND_URL}/auth/emailSignup`,{
           name , email , password , orgName : organizationName
         },{withCredentials:true});
         if(response.status === 200){

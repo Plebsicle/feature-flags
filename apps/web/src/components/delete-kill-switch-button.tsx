@@ -31,7 +31,7 @@ export function DeleteKillSwitchButton({ killSwitchId, killSwitchName }: DeleteK
     setIsDeleting(true)
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/killSwitch`, {
+      const response = await fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/killSwitch`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {

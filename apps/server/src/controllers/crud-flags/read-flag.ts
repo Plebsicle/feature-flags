@@ -1,10 +1,10 @@
 import prisma from '@repo/db';
 import express from 'express'
 import { getFeatureFlagParamsSchema, getFlagEnvironmentParamsSchema, getRulesParamsSchema, getRolloutParamsSchema, getAuditLogsParamsSchema } from '../../util/zod';
-import { Redis_Value, refreshOrSetFlagTTL } from '../../services/redis-flag';
+import { Redis_Value, refreshOrSetFlagTTL } from '../../services/redis/redis-flag';
 import { Condition, Conditions } from '@repo/types/rule-config';
-import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis-flag';
-import { environment_type,RedisCacheRules } from '../../services/redis-flag';
+import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis/redis-flag';
+import { environment_type,RedisCacheRules } from '../../services/redis/redis-flag';
 
 // Internal function to get complete flag data for caching
 const getCompleteFlagData = async (flagId: string, environment?: environment_type): Promise<Redis_Value[]> => {

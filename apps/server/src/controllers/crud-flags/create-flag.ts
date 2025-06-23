@@ -4,7 +4,7 @@ import { Conditions } from '@repo/types/rule-config';
 import { createFlagBodySchema, createEnvironmentBodySchema } from '../../util/zod';
 import { extractCustomAttributes } from '../../util/extract-attributes';
 import { insertCustomAttributes } from '../../util/insert-custom-attribute';
-import { Redis_Value, RedisCacheRules,setFlag } from '../../services/redis-flag';
+import { Redis_Value, RedisCacheRules,setFlag } from '../../services/redis/redis-flag';
 
 export const createFlag = async (req: express.Request, res: express.Response) => {
     try {

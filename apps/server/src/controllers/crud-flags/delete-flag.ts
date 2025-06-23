@@ -1,7 +1,7 @@
 import prisma from '@repo/db';
 import express from 'express';
 import { deleteFeatureFlagParamsSchema, deleteEnvironmentParamsSchema, deleteRuleParamsSchema } from '../../util/zod';
-import { removeAllOrgFlags, deleteRuleRedis, removeFlag } from '../../services/redis-flag';
+import { removeAllOrgFlags, deleteRuleRedis, removeFlag } from '../../services/redis/redis-flag';
 
 export const deleteFeatureFlag = async (req: express.Request, res: express.Response) => {
     try {

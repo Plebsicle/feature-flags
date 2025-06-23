@@ -31,7 +31,7 @@ export function DeleteAlertButton({ alertId, metricId }: DeleteAlertButtonProps)
     setIsDeleting(true)
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/alerts/${metricId}`, {
+      const response = await fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/alerts/${metricId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {

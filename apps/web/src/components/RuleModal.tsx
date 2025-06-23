@@ -215,7 +215,7 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
 
     setLoading(true)
     try {
-      const BACKEND_URL =  "http://localhost:8000"
+      const BACKEND_URL =  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
       
       const requestBody = {
         flagRuleId,
@@ -227,8 +227,8 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
       }
 
       const endpoint = mode === 'create' 
-        ? `${BACKEND_URL}/flag/addRules`
-        : `${BACKEND_URL}/flag/updateFlagRule`
+        ? `/${BACKEND_URL}/flag/addRules`
+        : `/${BACKEND_URL}/flag/updateFlagRule`
       let response;
       if(mode === 'create'){
          response = await fetch(endpoint, {

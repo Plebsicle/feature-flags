@@ -18,10 +18,13 @@ import dashboardRoutes from './routes/dashboard/dashboard'
 import organisationRoutes from './routes/organisation/org'
 import metricRoutes from './routes/metrics/metrics'
 import alertRoutes from './routes/alerts/alert'
+import slackRoutes from './routes/slack/slack'
 
 // Standard Contansts for express application
 const app : Express = express();
 const PORT : number = parseInt(process.env.PORT!) || 8000;
+
+app.set('trust proxy', 1);
 
 app.use(limiter);
 
@@ -40,7 +43,7 @@ app.use('/dashboard',dashboardRoutes);
 app.use('/organisation',organisationRoutes);
 app.use('/metrics',metricRoutes);  
 app.use('/alerts',alertRoutes);
-
+app.use('/slack',slackRoutes);
 
 //Security Measure
 app.disable('x-powered-by');

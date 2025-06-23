@@ -354,24 +354,38 @@ model alert_preferences {
 
 model SlackIntegration {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organisation_id String   @db.Uuid()
-  team_id         String   // Slack workspace ID
-  team_name       String   // Optional - user-friendly
-  bot_token       String   // Slack bot token for this workspace
-  authed_user_id  String?  // Optional
-  bot_user_id     String?  // Optional
+  organisation_id String   @db.Uuid
+  team_id         String   @unique // Slack workspace ID
+  team_name       String   // Workspace name
+  bot_token       String   // Bot token for sending messages
+  user_id         String?  // User who installed the app
+  scope           String   // Permissions granted
+  installed_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @db.Timestamptz(6)
+  is_active       Boolean  @default(true)
 
-  channels        SlackChannel[]       // One workspace can have many alert channels
-  organisation    organizations         @relation(fields: [organisation_id], references: [id])
+  // Relations
+  organisation    organizations     @relation(fields: [organisation_id], references: [id], onDelete: Cascade)
+  channels        SlackChannel[]
+
+  @@index([organisation_id])
+  @@index([team_id])
 }
 
 model SlackChannel {
-  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slackIntegrationId  String   @db.Uuid()// Foreign key to workspace
-  channel_id          String   // Slack channel ID (not name)
-  channel_name        String   // Optional, for display
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slack_integration_id String   @db.Uuid
+  channel_id         String   // Slack channel ID (C1234567890)
+  channel_name       String   // Channel name (#general)
+  is_private         Boolean  @default(false)
+  is_active          Boolean  @default(true)
+  added_at           DateTime @default(now()) @db.Timestamptz(6)
 
-  slackIntegration    SlackIntegration @relation(fields: [slackIntegrationId], references: [id])
+  // Relations
+  slack_integration  SlackIntegration @relation(fields: [slack_integration_id], references: [id], onDelete: Cascade)
+
+  @@unique([slack_integration_id, channel_id])
+  @@index([slack_integration_id])
 }
 
 

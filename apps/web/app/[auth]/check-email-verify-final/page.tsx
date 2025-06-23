@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import axios from "axios"
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://locahost:8000"
+
 export default function CheckEmailVerifyFinalPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -27,7 +29,7 @@ export default function CheckEmailVerifyFinalPage() {
     if(!orgName){
         // Manual Email Verification
         const fetchDetails = async () => {
-            const results = await axios.post(`http://localhost:8000/auth/verifyEmailManual`,{
+            const results = await axios.post(`/${BACKEND_URL}/auth/verifyEmailManual`,{
                 token
             });
             if(results.status === 200){
@@ -46,7 +48,7 @@ export default function CheckEmailVerifyFinalPage() {
     else{
         // Signup Email Verification
         const fetchDetails = async ()=>{
-            const results = await axios.post(`http://localhost:8000/auth/verifyEmailSignup`,{
+            const results = await axios.post(`/${BACKEND_URL}/auth/verifyEmailSignup`,{
                 orgName,token
             });
             if(results.status === 200){

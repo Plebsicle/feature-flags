@@ -3,9 +3,11 @@ import express from 'express'
 
 export const getUserData = async (req : express.Request , res : express.Response) => {
     try{
+        const organisationId = req.session.user?.userOrganisationId;
+        console.log(organisationId);
         const orgData = await prisma.organizations.findUnique({
             where : {
-                id : req.session.user?.userOrganisationId
+                id : organisationId
             },
             select : {
                 owner : true,

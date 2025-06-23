@@ -108,7 +108,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
     const fetchKillSwitch = async () => {
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-        const response = await fetch(`${backendUrl}/killSwitch/${killSwitchId}`, {
+        const response = await fetch(`/${backendUrl}/killSwitch/${killSwitchId}`, {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
     setIsSaving(true)
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      const response = await fetch(`${backendUrl}/killSwitch`, {
+      const response = await fetch(`/${backendUrl}/killSwitch`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -254,7 +254,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
     setIsDeleting(true)
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      const response = await fetch(`${backendUrl}/killSwitch/${killSwitchId}`, {
+      const response = await fetch(`/${backendUrl}/killSwitch/${killSwitchId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {

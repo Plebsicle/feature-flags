@@ -29,7 +29,7 @@ export default function DeleteRuleButton({ ruleId, ruleName }: DeleteRuleButtonP
     setIsDeleting(true)
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      const response = await fetch(`${backendUrl}/flag/deleteRule/${ruleId}`, {
+      const response = await fetch(`/${backendUrl}/flag/deleteRule/${ruleId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {

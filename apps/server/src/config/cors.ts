@@ -1,4 +1,4 @@
-const allowedOrigins : string[] = ['http://localhost:3000'];
+const allowedOrigins : string[] = ['http://localhost:3000' ,process.env.FRONTEND_URL!];
 
 const corsConfiguration = {
     origin : (origin : string | undefined ,callback : (err: Error | null, allow?: boolean) => void ) : void =>{

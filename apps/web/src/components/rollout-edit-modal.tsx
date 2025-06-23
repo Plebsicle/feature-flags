@@ -147,7 +147,7 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
 
     setLoading(true)
     try {
-      const BACKEND_URL =  "http://localhost:8000"
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ||  "http://localhost:8000"
       
       const requestBody = {
         environment_id: environmentId,
@@ -155,7 +155,7 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
         rollout_config: rolloutConfig
       }
 
-      const response = await fetch(`${BACKEND_URL}/flag/updateFlagRollout`, {
+      const response = await fetch(`/${BACKEND_URL}/flag/updateFlagRollout`, {
         method: 'PUT',
         credentials: 'include',
         headers: {

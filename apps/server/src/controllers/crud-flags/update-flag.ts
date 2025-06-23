@@ -5,8 +5,8 @@ import { Conditions } from '@repo/types/rule-config';
 import { updateFeatureFlagBodySchema, updateFlagRuleBodySchema, updateFlagRolloutBodySchema } from '../../util/zod';
 import { extractCustomAttributes } from '../../util/extract-attributes';
 import { insertCustomAttributes } from '../../util/insert-custom-attribute';
-import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis-flag';
-import { Redis_Value, RedisCacheRules } from '../../services/redis-flag'; // Import your Redis types
+import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis/redis-flag';
+import { Redis_Value, RedisCacheRules } from '../../services/redis/redis-flag'; // Import your Redis types
 import { extractAuditInfo } from '../../util/ip-agent';
 
 

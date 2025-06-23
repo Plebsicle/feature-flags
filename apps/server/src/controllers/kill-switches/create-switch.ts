@@ -2,7 +2,7 @@ import prisma from '@repo/db';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 import {killSwitchFlagConfig} from '@repo/types/kill-switch-flag-config'
-import { killSwitchValue, setKillSwitch } from '../../services/redis-flag';
+import { killSwitchValue, setKillSwitch } from '../../services/redis/redis-flag';
 
 interface MyRequestBody {
   name: string;

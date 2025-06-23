@@ -1,4 +1,4 @@
-import {redisSession} from "../services/redis-session";
+import {redisSession} from "../services/redis/redis-session";
 import {RedisStore } from 'connect-redis'
 import session, { Store } from 'express-session';
 
@@ -12,16 +12,17 @@ const redisStore = new RedisStore({
 
 
 const sessionMiddleware = session({
-    store : redisStore as unknown as Store,
-    secret : SESSION_SECRET,
-    name : "sessionId",
-    resave : false,
-    saveUninitialized : false,
-    cookie : {
-        secure : false,
-        httpOnly : true,
-        maxAge : 1000*60*60*24*5,
-        sameSite : "lax"
+    store: redisStore as unknown as Store,
+    secret: SESSION_SECRET,
+    name: "sessionId",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'PRODUCTION',
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 5,
+        sameSite: process.env.NODE_ENV === 'PRODUCTION' ? 'none' : 'lax',
+        path: "/" 
     }
 });
 

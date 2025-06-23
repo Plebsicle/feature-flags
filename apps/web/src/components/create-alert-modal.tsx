@@ -70,7 +70,7 @@ export function CreateAlertModal({ metricId }: CreateAlertModalProps) {
     
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      const response = await fetch(`${backendUrl}/alerts`, {
+      const response = await fetch(`/${backendUrl}/alerts`, {
         method: 'POST',
         credentials: 'include',
         headers: {

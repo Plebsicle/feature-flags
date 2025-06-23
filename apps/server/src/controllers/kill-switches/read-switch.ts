@@ -1,6 +1,6 @@
 import express from 'express'
 import prisma from '@repo/db';
-import { killSwitchValue, setKillSwitch } from '../../services/redis-flag';
+import { killSwitchValue, setKillSwitch } from '../../services/redis/redis-flag';
 import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
 
 export const getAllKillSwitches = async (req: express.Request, res: express.Response) => {

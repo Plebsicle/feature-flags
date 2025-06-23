@@ -31,7 +31,7 @@ export function DeleteFlagButton({ flagId, flagName }: DeleteFlagButtonProps) {
     setIsDeleting(true)
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/deleteFeatureFlag/${flagId}`, {
+      const response = await fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/deleteFeatureFlag/${flagId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {

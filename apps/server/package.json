@@ -16,7 +16,9 @@
   "description": "",
   "dependencies": {
     "@repo/db": "workspace:*",
-    "@repo/types" : "workspace:*",
+    "@repo/types": "workspace:*",
+    "@slack/bolt": "^4.4.0",
+    "@slack/web-api": "^7.9.3",
     "argon2": "^0.43.0",
     "connect-redis": "^8.1.0",
     "cors": "^2.8.5",

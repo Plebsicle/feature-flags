@@ -127,7 +127,7 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
     
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      const response = await fetch(`${backendUrl}/metrics`, {
+      const response = await fetch(`/${backendUrl}/metrics`, {
         method: 'PUT',
         credentials: 'include',
         headers: {

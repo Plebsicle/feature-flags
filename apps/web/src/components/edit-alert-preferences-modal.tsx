@@ -100,11 +100,13 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
     try {
       // Convert time string to ISO Date string
       const [hours, minutes] = formData.alert_notification_frequency.split(':')
+      if(!hours) return;
+      if(!minutes) return;
       const frequencyDate = new Date()
       frequencyDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
 
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-      const response = await fetch(`${backendUrl}/organisation/preferences`, {
+      const response = await fetch(`/${backendUrl}/organisation/preferences`, {
         method: 'PUT',
         credentials: 'include',
         headers: {

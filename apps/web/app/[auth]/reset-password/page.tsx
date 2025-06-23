@@ -20,6 +20,9 @@ const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
   </li>
 )
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://locahost:8000"
+
+
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -73,7 +76,7 @@ export default function ResetPasswordPage() {
 
     setIsLoading(true)
     
-    const results = await axios.post(`http://localhost:8000/auth/checkVerificationEmailForgetPassword`,{
+    const results = await axios.post(`/${BACKEND_URL}/auth/checkVerificationEmailForgetPassword`,{
       password,token
     });
     if(results.status === 200){

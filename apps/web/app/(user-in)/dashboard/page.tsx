@@ -70,35 +70,15 @@ async function getDashboardDataWithSpecificCookies(): Promise<DashboardData | nu
     // Debug: Log all available cookies
     const allCookies = cookieStore.getAll();
     console.log('All available cookies:', allCookies);
-    console.log('Total cookies found:', allCookies.length);
-    
-    // Get specific cookies that your backend needs
-    const authToken = cookieStore.get('auth-token')?.value;
-    const sessionId = cookieStore.get('session-id')?.value;
-    const userId = cookieStore.get('user-id')?.value;
-    
-    // Also try common cookie names
-    const token = cookieStore.get('token')?.value;
-    const accessToken = cookieStore.get('access_token')?.value;
-    const jwt = cookieStore.get('jwt')?.value;
+    const sessionId = cookieStore.get('sessionId')?.value;
     
     console.log('Specific cookies found:', {
-      authToken,
       sessionId,
-      userId,
-      token,
-      accessToken,
-      jwt
     });
     
     // Build cookie header with only the cookies you need
     const cookiePairs = [];
-    if (authToken) cookiePairs.push(`auth-token=${authToken}`);
     if (sessionId) cookiePairs.push(`session-id=${sessionId}`);
-    if (userId) cookiePairs.push(`user-id=${userId}`);
-    if (token) cookiePairs.push(`token=${token}`);
-    if (accessToken) cookiePairs.push(`access_token=${accessToken}`);
-    if (jwt) cookiePairs.push(`jwt=${jwt}`);
     
     const cookieHeader = cookiePairs.join('; ');
     

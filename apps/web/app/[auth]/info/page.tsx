@@ -23,6 +23,9 @@ const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
   </li>
 )
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://locahost:8000"
+
+
 export default function InfoPage() {
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
@@ -64,7 +67,7 @@ export default function InfoPage() {
     }
 
     try {
-      const results = await axios.post('http://localhost:8000/auth/memberSignupVerification',{
+      const results = await axios.post(`/${BACKEND_URL}/auth/memberSignupVerification`,{
         name , password, token
       });
       if(results.status === 200){

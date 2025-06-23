@@ -156,7 +156,7 @@ export function FlagCreationProvider({ children }: { children: ReactNode }) {
     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
     
     try {
-      const response = await fetch(`${BACKEND_URL}/flag/createFlag`, {
+      const response = await fetch(`/${BACKEND_URL}/flag/createFlag`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

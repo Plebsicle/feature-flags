@@ -70,7 +70,7 @@ export function EditFeatureFlagModal({
     setIsLoading(true)
     console.log(flagId);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/updateFeatureFlag`, {
+      const response = await fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/updateFeatureFlag`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
