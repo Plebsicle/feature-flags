@@ -481,7 +481,6 @@ enum flag_type {
   NUMBER
   JSON
   AB_TEST
-  KILL_SWITCH
   MULTIVARIATE
 }
 
