@@ -108,6 +108,7 @@ export const getKillSwitch = async (
       const killSwitchData: killSwitchValue = {
         id: killSwitchFromDB.id,
         killSwitchKey: killSwitchFromDB.killSwitchKey,
+        
         flag: flagConfigs,
         is_active: killSwitchFromDB.is_active
       };

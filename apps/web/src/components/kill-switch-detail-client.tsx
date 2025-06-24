@@ -67,6 +67,7 @@ type KillSwitch = {
   created_by: string;
   activated_at: Date | null;
   activated_by: string | null;
+  killSwitchKey?: string;
 }
 
 interface KillSwitchResponse {
@@ -499,6 +500,17 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
                         <p className="text-white mt-1">{killSwitch.name}</p>
                       )}
                     </div>
+                    {killSwitch.killSwitchKey && (
+                      <div>
+                        <Label className="text-neutral-300">Kill Switch Key</Label>
+                        <div className="mt-1 p-2 bg-slate-700/50 rounded border border-slate-600/30">
+                          <code className="text-sm text-blue-300 font-mono">{killSwitch.killSwitchKey}</code>
+                        </div>
+                        <p className="text-xs text-neutral-400 mt-1">
+                          Unique identifier for this kill switch
+                        </p>
+                      </div>
+                    )}
                     <div>
                       <Label className="text-neutral-300">Description</Label>
                       {isEditing ? (

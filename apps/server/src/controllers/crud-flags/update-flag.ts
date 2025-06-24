@@ -8,6 +8,7 @@ import { insertCustomAttributes } from '../../util/insert-custom-attribute';
 import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis/redis-flag';
 import { Redis_Value, RedisCacheRules } from '../../services/redis/redis-flag'; // Import your Redis types
 import { extractAuditInfo } from '../../util/ip-agent';
+import { RolloutConfig } from '@repo/types/rollout-config';
 
 
 // Helper function to construct Redis flag data
@@ -49,7 +50,7 @@ const constructRedisFlagData = async (flagId: string, environment?: environment_
             value : environment.value as Record<string,any>,
             default_value : environment.default_value as Record<string,any>,
             rules,
-            rollout_config : environment.rollout?.config
+            rollout_config : environment.rollout?.config as unknown as RolloutConfig
         }
         finalData.push(objectToPush);
     }

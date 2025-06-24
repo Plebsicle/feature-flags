@@ -33,6 +33,7 @@ export interface killSwitchFlagConfig {
 interface MyRequestBody {
   name: string;
   description: string;
+  killSwitchKey: string;
   flags: killSwitchFlagConfig[];
 }
 
@@ -48,13 +49,36 @@ export default function CreateKillSwitchPage() {
   const [form, setForm] = useState<MyRequestBody>({
     name: "",
     description: "",
+    killSwitchKey: "",
     flags: [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Function to auto-generate killSwitchKey from name
+  const generateKillSwitchKey = (name: string): string => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '') // Remove special characters except spaces
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+  };
+
   // Handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => {
+      const updated = { ...prev, [name]: value };
+      // Auto-generate killSwitchKey when name changes
+      if (name === 'name') {
+        updated.killSwitchKey = generateKillSwitchKey(value);
+      }
+      return updated;
+    });
+  };
+
+  const handleKillSwitchKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, killSwitchKey: e.target.value }));
   };
 
   const addFlag = () => {
@@ -98,6 +122,7 @@ export default function CreateKillSwitchPage() {
   const validate = (): boolean => {
     if (!form.name.trim()) return false;
     if (!form.description.trim()) return false;
+    if (!form.killSwitchKey.trim()) return false;
     if (!Array.isArray(form.flags) || form.flags.length === 0) return false;
     for (const flag of form.flags) {
       if (!flag.flagKey.trim()) return false;
@@ -166,6 +191,21 @@ export default function CreateKillSwitchPage() {
                   placeholder="Enter kill switch name"
                   required
                 />
+              </div>
+              <div>
+                <Label htmlFor="killSwitchKey" className="text-neutral-300">Kill Switch Key</Label>
+                <Input
+                  id="killSwitchKey"
+                  name="killSwitchKey"
+                  value={form.killSwitchKey}
+                  onChange={handleKillSwitchKeyChange}
+                  className="mt-1 bg-slate-800/40 border-slate-700/30 text-white"
+                  placeholder="Auto-generated from name (editable)"
+                  required
+                />
+                <p className="text-xs text-neutral-400 mt-1">
+                  Auto-generated from name. You can edit this key if needed.
+                </p>
               </div>
               <div>
                 <Label htmlFor="description" className="text-neutral-300">Description</Label>

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
-import { useFlagCreation } from "../../../contexts/flag-creation"
+import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { rollout_type } from '@repo/db/client'
 import { ArrowLeft, Rocket, Check, Loader2 } from "lucide-react"
 import { Toaster, toast } from 'react-hot-toast'
@@ -352,7 +352,7 @@ export default function RolloutPage() {
       loading: 'Creating your feature flag...',
       success: (flag_id) => {
         setTimeout(() => {
-          router.push(`/flags/${flag_id}`)
+          router.push(`/flags`)
         }, 1500)
         return 'Feature flag created successfully! Redirecting...'
       },

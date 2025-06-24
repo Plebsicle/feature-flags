@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { useFlagCreation } from "../../../contexts/flag-creation"
+import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
 import { ArrowRight, ArrowLeft, Plus, X, Target, Info } from "lucide-react"
@@ -88,6 +88,61 @@ export default function RulesPage() {
     updateCondition(index, { attribute_values: values })
   }
 
+  const validateAndFormatValue = (value: string, dataType: DataType): string | null => {
+    const trimmedValue = value.trim()
+    
+    switch (dataType) {
+      case 'DATE':
+        // Validate DD/MM/YYYY format
+        const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/
+        const dateMatch = trimmedValue.match(dateRegex)
+        if (!dateMatch) {
+          toast.error('Date must be in DD/MM/YYYY format')
+          return null
+        }
+        // Additional validation to check if it's a valid date
+        const day = dateMatch[1]!
+        const month = dateMatch[2]!
+        const year = dateMatch[3]!
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+        if (date.getDate() !== parseInt(day) || 
+            date.getMonth() !== parseInt(month) - 1 || 
+            date.getFullYear() !== parseInt(year)) {
+          toast.error('Please enter a valid date')
+          return null
+        }
+        return trimmedValue
+      
+      case 'NUMBER':
+        // Validate number format
+        if (isNaN(Number(trimmedValue))) {
+          toast.error('Please enter a valid number')
+          return null
+        }
+        return trimmedValue
+      
+      case 'BOOLEAN':
+        // Validate boolean format
+        if (trimmedValue.toLowerCase() !== 'true' && trimmedValue.toLowerCase() !== 'false') {
+          toast.error('Boolean value must be "true" or "false"')
+          return null
+        }
+        return trimmedValue.toLowerCase()
+      
+      case 'SEMVER':
+        // Validate semantic version format (basic validation)
+        const semverRegex = /^\d+\.\d+\.\d+(-[a-zA-Z0-9-.]+)?(\+[a-zA-Z0-9-.]+)?$/
+        if (!semverRegex.test(trimmedValue)) {
+          toast.error('Please enter a valid semantic version (e.g., 1.0.0)')
+          return null
+        }
+        return trimmedValue
+      
+      default:
+        return trimmedValue
+    }
+  }
+
   const addValue = (conditionIndex: number, value: string) => {
     const condition = state.rules.conditions[conditionIndex]
     if (condition && value.trim()) {
@@ -96,14 +151,16 @@ export default function RulesPage() {
       if (condition.attribute_type === 'ARRAY') {
         // For array type, split by comma and trim each value
         const arrayValues = value.split(',').map(v => v.trim()).filter(v => v.length > 0)
-        const uniqueValues = [...new Set([...condition.attribute_values, ...arrayValues])]
+        const validatedValues = arrayValues.map(v => validateAndFormatValue(v, 'STRING')).filter(v => v !== null) as string[]
+        const uniqueValues = [...new Set([...condition.attribute_values, ...validatedValues])]
         newValues = uniqueValues
       } else {
-        // For other types, add single value if not already present
-        if (!condition.attribute_values.includes(value.trim())) {
-          newValues = [...condition.attribute_values, value.trim()]
+        // For non-array types, only allow single value and replace existing
+        const validatedValue = validateAndFormatValue(value, condition.attribute_type)
+        if (validatedValue !== null) {
+          newValues = [validatedValue] // Replace with single value
         } else {
-          newValues = condition.attribute_values
+          return // Don't update if validation failed
         }
       }
       
@@ -156,15 +213,34 @@ export default function RulesPage() {
       case 'ARRAY':
         return 'Enter values separated by commas (e.g., value1, value2, value3)'
       case 'NUMBER':
-        return 'Enter number value and press Enter'
+        return 'Enter a number value (e.g., 42)'
       case 'BOOLEAN':
-        return 'Enter true or false and press Enter'
+        return 'Enter true or false'
       case 'DATE':
-        return 'Enter date value and press Enter'
+        return 'Enter date in DD/MM/YYYY format (e.g., 25/12/2023)'
       case 'SEMVER':
-        return 'Enter semantic version (e.g., 1.0.0) and press Enter'
+        return 'Enter semantic version (e.g., 1.0.0)'
+      case 'STRING':
+        return 'Enter a text value'
       default:
-        return 'Enter value and press Enter'
+        return 'Enter a single value'
+    }
+  }
+
+  const getValueHelperText = (attributeType: DataType) => {
+    switch (attributeType) {
+      case 'ARRAY':
+        return 'Multiple values allowed - separate with commas'
+      case 'DATE':
+        return 'Must be in DD/MM/YYYY format'
+      case 'BOOLEAN':
+        return 'Only "true" or "false" allowed'
+      case 'NUMBER':
+        return 'Numeric values only'
+      case 'SEMVER':
+        return 'Must follow semantic versioning format'
+      default:
+        return 'Single value only - new entry replaces existing'
     }
   }
 
@@ -329,7 +405,9 @@ export default function RulesPage() {
 
                           {/* Values */}
                           <div className="space-y-2">
-                            <Label className="text-white">Values</Label>
+                            <Label className="text-white">
+                              {condition.attribute_type === 'ARRAY' ? 'Values' : 'Value'}
+                            </Label>
                             <div className="space-y-2">
                               <Input
                                 placeholder={getValuePlaceholder(condition.attribute_type)}
@@ -353,12 +431,10 @@ export default function RulesPage() {
                                   }
                                 }}
                               />
-                              {condition.attribute_type === 'ARRAY' && (
-                                <div className="flex items-center space-x-2 text-sm text-blue-400">
-                                  <Info className="w-4 h-4" />
-                                  <span>For arrays, enter multiple values separated by commas</span>
-                                </div>
-                              )}
+                              <div className="flex items-center space-x-2 text-sm text-slate-400">
+                                <Info className="w-4 h-4" />
+                                <span>{getValueHelperText(condition.attribute_type)}</span>
+                              </div>
                               {condition.attribute_values.length > 0 && (
                                 <div className="flex flex-wrap gap-2">
                                   {condition.attribute_values.map((value, valueIndex) => (
@@ -371,6 +447,7 @@ export default function RulesPage() {
                                       <button
                                         onClick={() => removeValue(index, valueIndex)}
                                         className="ml-2 hover:bg-red-500/20 rounded-full p-0.5"
+                                        title="Remove value"
                                       >
                                         <X className="w-3 h-3" />
                                       </button>

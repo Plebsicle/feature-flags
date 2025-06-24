@@ -10,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { useFlagCreation } from "../../../contexts/flag-creation"
+import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { environment_type } from '@repo/db/client'
-import { ArrowRight, ArrowLeft, Server } from "lucide-react"
+import { ABValue, ABMultiVariate } from '@repo/config-types/value-config'
+import { ArrowRight, ArrowLeft, Server, Plus, Minus } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 
 // Types for API responses
@@ -32,6 +33,11 @@ interface EnvironmentData  {
   flag_type: any;
 }
 
+// Types for variants
+interface Variant {
+  name: string;
+  value: any;
+}
 
 const environmentOptions = [
   { value: 'DEV', label: 'Development', description: 'Development environment' },
@@ -46,6 +52,13 @@ export default function EnvironmentsPage() {
   const { state, updateEnvironments, hydrateFromExistingFlag, setEnvironmentCreationMode } = useFlagCreation()
   const [existingEnvironments, setExistingEnvironments] = useState<EnvironmentResponse[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  
+  // State for variant management
+  const [variants, setVariants] = useState<Variant[]>([
+    { name: 'Variant A', value: '' },
+    { name: 'Variant B', value: '' }
+  ])
+  const [defaultValue, setDefaultValue] = useState<string>('')
 
   // Check if we're in "add environment" mode
   const flagKey = searchParams?.get('flagKey')
@@ -134,8 +147,188 @@ export default function EnvironmentsPage() {
     })
   }
 
+  // New handlers for variant management
+  const handleVariantChange = (index: number, field: 'name' | 'value', newValue: string) => {
+    const updatedVariants = [...variants]
+    updatedVariants[index] = { ...updatedVariants[index], [field]: newValue }
+    setVariants(updatedVariants)
+    
+    // Update the context based on flag type
+    if (state.flag_type === 'AB_TEST') {
+      const abValue: ABValue = {}
+      updatedVariants.forEach(variant => {
+        if (variant.name && variant.value !== undefined && variant.value !== '') {
+          // Try to parse as number first, then boolean, then keep as string
+          let parsedValue: any = variant.value
+          if (!isNaN(Number(variant.value)) && variant.value.trim() !== '') {
+            parsedValue = Number(variant.value)
+          } else if (variant.value.toLowerCase() === 'true') {
+            parsedValue = true
+          } else if (variant.value.toLowerCase() === 'false') {
+            parsedValue = false
+          }
+          abValue[variant.name] = parsedValue
+        }
+      })
+      handleValueChange('value', abValue)
+    } else if (state.flag_type === 'MULTIVARIATE') {
+      const abValue: ABValue = {}
+      updatedVariants.forEach(variant => {
+        if (variant.name && variant.value !== undefined && variant.value !== '') {
+          // Try to parse as number first, then boolean, then keep as string
+          let parsedValue: any = variant.value
+          if (!isNaN(Number(variant.value)) && variant.value.trim() !== '') {
+            parsedValue = Number(variant.value)
+          } else if (variant.value.toLowerCase() === 'true') {
+            parsedValue = true
+          } else if (variant.value.toLowerCase() === 'false') {
+            parsedValue = false
+          }
+          abValue[variant.name] = parsedValue
+        }
+      })
+      const multiVariateValue: ABMultiVariate = { value: abValue }
+      handleValueChange('value', multiVariateValue)
+    }
+  }
+
+  const addVariant = () => {
+    if (state.flag_type === 'MULTIVARIATE') {
+      setVariants([...variants, { name: `Variant ${String.fromCharCode(65 + variants.length)}`, value: '' }])
+    }
+  }
+
+  const removeVariant = (index: number) => {
+    if (state.flag_type === 'MULTIVARIATE' && variants.length > 1) {
+      const updatedVariants = variants.filter((_, i) => i !== index)
+      setVariants(updatedVariants)
+      handleVariantChange(0, 'value', '') // Trigger update
+    }
+  }
+
+  const handleDefaultValueChange = (newValue: string) => {
+    setDefaultValue(newValue)
+    try {
+      const parsed = JSON.parse(newValue)
+      handleValueChange('default_value', parsed)
+    } catch {
+      handleValueChange('default_value', newValue)
+    }
+  }
+
+  // Initialize variants when flag type changes
+  useEffect(() => {
+    if (state.flag_type === 'AB_TEST') {
+      setVariants([
+        { name: 'Variant A', value: '' },
+        { name: 'Variant B', value: '' }
+      ])
+    } else if (state.flag_type === 'MULTIVARIATE') {
+      setVariants([
+        { name: 'Variant A', value: '' },
+        { name: 'Variant B', value: '' }
+      ])
+    }
+  }, [state.flag_type])
+
+  const renderVariantConfiguration = () => {
+    if (!['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type)) {
+      return null
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label className="text-white">Variants</Label>
+          {state.flag_type === 'MULTIVARIATE' && (
+            <Button
+              type="button"
+              onClick={addVariant}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Variant
+            </Button>
+          )}
+        </div>
+        
+        <div className="space-y-3">
+          {variants.map((variant, index) => (
+            <div key={index} className="p-4 border border-slate-700/30 rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-neutral-300">Variant {index + 1}</Label>
+                {state.flag_type === 'MULTIVARIATE' && variants.length > 1 && (
+                  <Button
+                    type="button"
+                    onClick={() => removeVariant(index)}
+                    size="sm"
+                    variant="outline"
+                    className="border-red-700 text-red-300 hover:bg-red-800/20"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-neutral-300 text-sm">Name</Label>
+                  <Input
+                    value={variant.name}
+                    onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
+                    placeholder="Variant name"
+                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
+                  />
+                </div>
+                
+                <div>
+                  <Label className="text-neutral-300 text-sm">Value</Label>
+                  <Input
+                    value={variant.value}
+                    onChange={(e) => handleVariantChange(index, 'value', e.target.value)}
+                    placeholder="Enter variant value (string, number, true/false)"
+                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">
+                    Supports strings, numbers, and booleans (true/false)
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <p className="text-xs text-slate-400">
+          {state.flag_type === 'AB_TEST' 
+            ? 'Configure exactly two variants for A/B testing. Each variant needs a unique name and value.'
+            : 'Configure multiple variants for multivariate testing. Each variant needs a unique name and value.'
+          }
+        </p>
+      </div>
+    )
+  }
+
   const renderValueInput = (field: 'value' | 'default_value', label: string) => {
     const currentValue = field === 'value' ? state.environments.value.value : state.environments.default_value.value
+
+    // For AB_TEST and MULTIVARIATE, use variant configuration for value
+    if ((state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') && field === 'value') {
+      return renderVariantConfiguration()
+    }
+
+    // For default_value with AB_TEST and MULTIVARIATE, allow JSON input
+    if ((state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') && field === 'default_value') {
+      return (
+        <Textarea
+          value={defaultValue || (typeof currentValue === 'string' ? currentValue : JSON.stringify(currentValue, null, 2))}
+          onChange={(e) => handleDefaultValueChange(e.target.value)}
+          placeholder='{"key": "value"} or simple value'
+          className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 font-mono text-sm"
+          rows={4}
+        />
+      )
+    }
 
     switch (state.flag_type) {
       case 'BOOLEAN':
@@ -172,8 +365,6 @@ export default function EnvironmentsPage() {
         )
 
       case 'JSON':
-      case 'AB_TEST':
-      case 'MULTIVARIATE':
         return (
           <Textarea
             value={typeof currentValue === 'string' ? currentValue : JSON.stringify(currentValue, null, 2)}
@@ -210,20 +401,55 @@ export default function EnvironmentsPage() {
       return false
     }
     
+    // Validate variants for AB_TEST and MULTIVARIATE
+    if (state.flag_type === 'AB_TEST') {
+      if (variants.length !== 2) {
+        toast.error('AB test requires exactly 2 variants')
+        return false
+      }
+      for (const variant of variants) {
+        if (!variant.name.trim()) {
+          toast.error('All variants must have names')
+          return false
+        }
+        if (variant.value === undefined || variant.value === '') {
+          toast.error('All variants must have values')
+          return false
+        }
+      }
+    } else if (state.flag_type === 'MULTIVARIATE') {
+      if (variants.length < 1) {
+        toast.error('Multivariate test requires at least 1 variant')
+        return false
+      }
+             for (const variant of variants) {
+         if (!variant.name.trim()) {
+           toast.error('All variants must have names')
+           return false
+         }
+         if (variant.value === undefined || variant.value === '') {
+           toast.error('All variants must have values')
+           return false
+         }
+       }
+    }
+    
     // Validate JSON for specific flag types
-    if (['JSON', 'AB_TEST', 'MULTIVARIATE'].includes(state.flag_type)) {
+    if (['JSON'].includes(state.flag_type)) {
       try {
         JSON.parse(typeof state.environments.value.value === 'string' ? state.environments.value.value : JSON.stringify(state.environments.value.value))
       } catch {
         toast.error('Invalid JSON format for value')
         return false
       }
-      
+    }
+    
+    // Validate default value for AB_TEST and MULTIVARIATE
+    if (['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type) && defaultValue) {
       try {
-        JSON.parse(typeof state.environments.default_value.value === 'string' ? state.environments.default_value.value : JSON.stringify(state.environments.default_value.value))
+        JSON.parse(defaultValue)
       } catch {
-        toast.error('Invalid JSON format for default value')
-        return false
+        // Allow non-JSON default values
       }
     }
     
@@ -384,27 +610,30 @@ export default function EnvironmentsPage() {
                 {state.flag_type === 'STRING' && 'Configure text values for this string flag.'}
                 {state.flag_type === 'NUMBER' && 'Configure numeric values for this number flag.'}
                 {state.flag_type === 'JSON' && 'Configure JSON objects for this complex flag.'}
-                {state.flag_type === 'AB_TEST' && 'Configure variants for A/B testing.'}
-                {state.flag_type === 'MULTIVARIATE' && 'Configure multiple variants for testing.'}
-                {state.flag_type === 'KILL_SWITCH' && 'Configure emergency disable functionality.'}
+                {state.flag_type === 'AB_TEST' && 'Configure exactly two variants (A and B) for A/B testing.'}
+                {state.flag_type === 'MULTIVARIATE' && 'Configure multiple variants for multivariate testing.'}
               </p>
             </div>
 
             {/* Value Configuration - Only show if environment selection is available */}
             {availableEnvironments.length > 0 && (
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Value */}
-                <div className="space-y-2">
-                  <Label className="text-white">Value</Label>
+              <div className="space-y-6">
+                {/* Value Configuration */}
+                <div className="space-y-4">
+                  <Label className="text-white text-lg">Value Configuration</Label>
                   {renderValueInput('value', 'Value')}
-                  <p className="text-xs text-slate-400">The value returned when the flag is enabled</p>
+                  {!['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type) && (
+                    <p className="text-xs text-slate-400">The value returned when the flag is enabled</p>
+                  )}
                 </div>
 
-                {/* Default Value */}
+                {/* Default Value - Always available */}
                 <div className="space-y-2">
                   <Label className="text-white">Default Value</Label>
                   {renderValueInput('default_value', 'Default Value')}
-                  <p className="text-xs text-slate-400">The fallback value when the flag is disabled</p>
+                  <p className="text-xs text-slate-400">
+                    The fallback value when the flag is disabled or when an error occurs
+                  </p>
                 </div>
               </div>
             )}

@@ -5,6 +5,7 @@ import { Redis_Value, refreshOrSetFlagTTL } from '../../services/redis/redis-fla
 import { Condition, Conditions } from '@repo/types/rule-config';
 import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis/redis-flag';
 import { environment_type,RedisCacheRules } from '../../services/redis/redis-flag';
+import { RolloutConfig } from '@repo/types/rollout-config';
 
 // Internal function to get complete flag data for caching
 const getCompleteFlagData = async (flagId: string, environment?: environment_type): Promise<Redis_Value[]> => {
@@ -45,7 +46,7 @@ const getCompleteFlagData = async (flagId: string, environment?: environment_typ
             value : environment.value as Record<string,any>,
             default_value : environment.default_value as Record<string,any>,
             rules,
-            rollout_config : environment.rollout?.config
+            rollout_config : environment.rollout?.config as unknown as RolloutConfig
         }
         finalData.push(objectToPush);
     }
@@ -243,7 +244,7 @@ export const getRules = async (req : express.Request,res : express.Response) => 
                 conditions: rule.conditions as unknown as Conditions,
                 is_enabled: rule.is_enabled
             })),
-            rollout_config: environmentData.rollout?.config || null
+            rollout_config: environmentData.rollout?.config as unknown as RolloutConfig
         };
         
         // Cache the complete data
@@ -313,7 +314,7 @@ export const getRollout = async (req : express.Request , res : express.Response)
                 conditions: rule.conditions as unknown as Conditions,
                 is_enabled: rule.is_enabled
             })),
-            rollout_config: environmentData.rollout?.config || null
+            rollout_config: environmentData.rollout?.config as unknown as RolloutConfig
         };
         
         // Cache the complete data

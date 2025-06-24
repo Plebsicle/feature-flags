@@ -1,5 +1,3 @@
-import prisma from "../db/index";
-
 const OPERATORS_BY_TYPE = {
   STRING: [
     'equals', 'not_equals', 'contains', 'not_contains', 
@@ -40,73 +38,9 @@ const  BASE_ATTRIBUTES = {
 export type DataType = keyof typeof OPERATORS_BY_TYPE;
 export type Operator = (typeof OPERATORS_BY_TYPE)[DataType][number];
 
-// Custom attribute from database
-export interface CustomAttribute {
-  attribute_name: string;
-  data_type: DataType;
-  description: string | null;
-  validation_rules?: any;
-  is_required: boolean;
-  organization_id: string;
-}
-
-// Attribute response structure
-export interface AttributeInfo {
-  type: DataType;
-  operators: readonly Operator[];
-  description: string;
-  isCustom: boolean;
-  validation?: any;
-  required?: boolean;
-}
-
-// API response structure
-export interface AttributesResponse {
-  base: Record<string, AttributeInfo>;
-  custom: Record<string, AttributeInfo>;
-}
-
 // Helper function
 function getOperatorsByType(dataType: DataType): readonly Operator[] {
   return OPERATORS_BY_TYPE[dataType] || [];
-}
-
-// API implementation
-export async function getOrgAttributes(orgId: string): Promise<AttributesResponse> {
-  // Get custom attributes from DB
-  const customAttributes: CustomAttribute[] = await prisma.organization_attributes.findMany({
-    where: { organization_id: orgId }
-  });
-
-  // Build response
-  const response: AttributesResponse = {
-    base: {},
-    custom: {}
-  };
-
-  // Add base attributes with their operators
-  Object.entries(BASE_ATTRIBUTES).forEach(([name, config]) => {
-    response.base[name] = {
-      type: config.type,
-      operators: getOperatorsByType(config.type),
-      description: config.description,
-      isCustom: false
-    };
-  });
-
-  // Add custom attributes with their operators
-  customAttributes.forEach(attr => {
-    response.custom[attr.attribute_name] = {
-      type: attr.data_type,
-      operators: getOperatorsByType(attr.data_type),
-      description: attr.description || '',
-      validation: attr.validation_rules,
-      required: attr.is_required,
-      isCustom: true
-    };
-  });
-
-  return response;
 }
 
 // Validation function

@@ -17,12 +17,11 @@ model organizations {
   updated_at DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  owner              users                     @relation("OrganizationOwner", fields: [owner_id], references: [id], onDelete: Restrict)
+  owner              users                @relation("OrganizationOwner", fields: [owner_id], references: [id], onDelete: Restrict)
   flags              feature_flags[]
   user_organizations user_organizations[]
   invitations        invitations[]
-  attributes         organization_attributes[]
-  audit_logs         audit_logs[]              @relation("OrgAuditLogs")
+  audit_logs         audit_logs[]         @relation("OrgAuditLogs")
   kill_switches      kill_switches[]
   metrics            metrics[]
   slackIntegration   SlackIntegration[]
@@ -117,28 +116,6 @@ model invitations {
   @@index([expires_at, is_used])
 }
 
-// Organization Attributes - Define custom attributes per organization
-model organization_attributes {
-  id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organization_id  String              @db.Uuid
-  attribute_name   String              @db.VarChar(255)
-  data_type        attribute_data_type
-  is_custom        Boolean             @default(true)
-  is_required      Boolean             @default(false)
-  default_value    Json?
-  validation_rules Json? // For enum values, min/max, regex patterns, etc.
-  description      String?             @db.VarChar(500)
-  created_at       DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at       DateTime            @default(now()) @db.Timestamptz(6)
-
-  // Relations
-  organization organizations @relation(fields: [organization_id], references: [id], onDelete: Cascade)
-
-  @@unique([organization_id, attribute_name])
-  @@index([organization_id, data_type])
-  @@index([organization_id, is_custom])
-}
-
 // Main Feature Flag Model
 model feature_flags {
   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -166,14 +143,14 @@ model feature_flags {
 
 // Environment-specific flag configuration
 model flag_environments {
-  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  flag_id     String           @db.Uuid
-  environment environment_type
-  value           Json
-  default_value   Json
-  is_enabled  Boolean          @default(true)
-  created_at  DateTime         @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime         @default(now()) @db.Timestamptz(6)
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flag_id       String           @db.Uuid
+  environment   environment_type
+  value         Json
+  default_value Json
+  is_enabled    Boolean          @default(true)
+  created_at    DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime         @default(now()) @db.Timestamptz(6)
 
   // Relations
   flag    feature_flags @relation(fields: [flag_id], references: [id], onDelete: Cascade)
@@ -322,8 +299,8 @@ model metrics {
   updated_at         DateTime                  @default(now()) @db.Timestamptz(6)
   tags               String[]                  @default([])
   // Relations
-  organization     organizations      @relation(fields: [organization_id], references: [id], onDelete: Cascade)
-  flag_environment flag_environments? @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
+  organization       organizations             @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  flag_environment   flag_environments?        @relation(fields: [flag_environment_id], references: [id], onDelete: Cascade)
 
   // New relations - now using metric_id instead of metric_key
   metric_events       metric_events[]
@@ -341,14 +318,14 @@ model alert_preferences {
   organisation_id              String   @db.Uuid()
   alert_notification_frequency DateTime
 
-  email_enabled                Boolean  @default(true)
-  slack_enabled                Boolean  @default(false)
-  email_roles_notification     user_role[] @default([ADMIN,OWNER])
-  
-  created_at                   DateTime @default(now()) @db.Timestamptz(6)
-  updated_at                   DateTime @default(now()) @db.Timestamptz(6)
-  organisation                 organizations @relation(fields: [organisation_id], references: [id])
-  
+  email_enabled            Boolean     @default(true)
+  slack_enabled            Boolean     @default(false)
+  email_roles_notification user_role[] @default([ADMIN, OWNER])
+
+  created_at   DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime      @default(now()) @db.Timestamptz(6)
+  organisation organizations @relation(fields: [organisation_id], references: [id])
+
   @@unique([organisation_id])
 }
 
@@ -356,56 +333,55 @@ model SlackIntegration {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organisation_id String   @db.Uuid
   team_id         String   @unique // Slack workspace ID
-  team_name       String   // Workspace name
-  bot_token       String   // Bot token for sending messages
-  user_id         String?  // User who installed the app
-  scope           String   // Permissions granted
+  team_name       String // Workspace name
+  bot_token       String // Bot token for sending messages
+  user_id         String? // User who installed the app
+  scope           String // Permissions granted
   installed_at    DateTime @default(now()) @db.Timestamptz(6)
   updated_at      DateTime @default(now()) @db.Timestamptz(6)
   is_active       Boolean  @default(true)
 
   // Relations
-  organisation    organizations     @relation(fields: [organisation_id], references: [id], onDelete: Cascade)
-  channels        SlackChannel[]
+  organisation organizations  @relation(fields: [organisation_id], references: [id], onDelete: Cascade)
+  channels     SlackChannel[]
 
   @@index([organisation_id])
   @@index([team_id])
 }
 
 model SlackChannel {
-  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   slack_integration_id String   @db.Uuid
-  channel_id         String   // Slack channel ID (C1234567890)
-  channel_name       String   // Channel name (#general)
-  is_private         Boolean  @default(false)
-  is_active          Boolean  @default(true)
-  added_at           DateTime @default(now()) @db.Timestamptz(6)
+  channel_id           String // Slack channel ID (C1234567890)
+  channel_name         String // Channel name (#general)
+  is_private           Boolean  @default(false)
+  is_active            Boolean  @default(true)
+  added_at             DateTime @default(now()) @db.Timestamptz(6)
 
   // Relations
-  slack_integration  SlackIntegration @relation(fields: [slack_integration_id], references: [id], onDelete: Cascade)
+  slack_integration SlackIntegration @relation(fields: [slack_integration_id], references: [id], onDelete: Cascade)
 
   @@unique([slack_integration_id, channel_id])
   @@index([slack_integration_id])
 }
 
-
 model alert_metric {
-  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  metric_id    String          @unique @db.Uuid()
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  metric_id    String         @unique @db.Uuid()
   operator     alert_operator
   threshold    Float
-  is_enabled   Boolean         @default(true)
-  metric_setup metrics         @relation(fields: [metric_id], references: [id])
+  is_enabled   Boolean        @default(true)
+  metric_setup metrics        @relation(fields: [metric_id], references: [id])
 }
 
 model triggered_alerts {
-  id            String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  metric_id     String @db.Uuid()
-  current_value Float
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  metric_id       String       @db.Uuid()
+  current_value   Float
   threshold_value Float
-  alert_status alert_status  @default(TRIGGERED)
-  resolved_at           DateTime?           @db.Timestamptz(6)
-  acknowledged_at       DateTime?           @db.Timestamptz(6)
+  alert_status    alert_status @default(TRIGGERED)
+  resolved_at     DateTime?    @db.Timestamptz(6)
+  acknowledged_at DateTime?    @db.Timestamptz(6)
 
   created_at   DateTime @default(now()) @db.Timestamptz(6)
   metric_setup metrics  @relation(fields: [metric_id], references: [id])
@@ -454,7 +430,7 @@ model kill_switches {
   activator     users?              @relation("KillSwitchActivator", fields: [activated_by], references: [id])
   flag_mappings kill_switch_flags[]
 
-  @@unique([organization_id,killSwitchKey])
+  @@unique([organization_id, killSwitchKey])
   @@index([organization_id, is_active])
   @@index([organization_id, created_at])
 }

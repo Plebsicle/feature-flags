@@ -135,7 +135,7 @@ export const getDashboard = async (req: express.Request, res: express.Response) 
             });
 
             if (evaluationCount === 0) {
-                flagEvaluations = "No FLags Evaluated";
+                flagEvaluations = "No Flags Evaluated";
             } else {
                 // Format large numbers (e.g., 12400 -> "12.4K")
                 if (evaluationCount >= 1000000) {

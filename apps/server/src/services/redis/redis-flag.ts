@@ -1,7 +1,7 @@
 import Redis from 'ioredis'
 import { Conditions } from '@repo/types/rule-config';
 import {RolloutConfig} from "@repo/types/rollout-config"
-import {flag_type,environment_type} from '@repo/db/client'
+import {flag_type,environment_type, rollout_type} from '@repo/db/client'
 import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
 import prisma from '@repo/db';
 
@@ -29,7 +29,7 @@ export interface Redis_Value {
   value : Record<string,any>,
   default_value : Record<string,any>,
   rules : RedisCacheRules[],
-  rollout_config : any
+  rollout_config : RolloutConfig
 }
 
 
@@ -139,6 +139,9 @@ async function getFlag(orgSlug: string, environment: environment_type, flagKey: 
                 is_enabled : rule.is_enabled
             });
         });
+        if(!environments.rollout){
+          return null;
+        }
         const objectToPush : Redis_Value = {
             flagId : flagFromDB.id,
             environment,
@@ -147,7 +150,7 @@ async function getFlag(orgSlug: string, environment: environment_type, flagKey: 
             value : environments.value as Record<string,any>,
             default_value : environments.default_value as Record<string,any>,
             rules,
-            rollout_config : environments.rollout?.config
+            rollout_config : environments.rollout.config as unknown as RolloutConfig
         }
         flagData = objectToPush;
         await setFlag(orgSlug,environment,flagKey,objectToPush,flagFromDB.flag_type);
@@ -161,6 +164,24 @@ async function getFlag(orgSlug: string, environment: environment_type, flagKey: 
     return null;
   }
 }
+
+export async function removeAllOrgFlags(orgSlug: string, flagKey : string): Promise<number> {
+  try {
+    const pattern = `flags:${orgSlug}:*:${flagKey}`;
+    const keys = await redisFlag.keys(pattern);
+
+    if (keys.length === 0) {
+      return 0;
+    }
+
+    const result = await redisFlag.del(keys);
+    return result;
+  } catch (error) {
+    console.error('Error removing all org flags from cache:', error);
+    return 0;
+  }
+}
+
 
 /**
  * Remove flag from Redis cache
