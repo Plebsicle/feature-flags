@@ -439,6 +439,7 @@ model kill_switches {
   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organization_id String    @db.Uuid
   name            String    @db.VarChar(255)
+  killSwitchKey   String    @db.VarChar(255)
   description     String?   @db.Text
   is_active       Boolean   @default(false)
   created_by      String    @db.Uuid
@@ -453,6 +454,7 @@ model kill_switches {
   activator     users?              @relation("KillSwitchActivator", fields: [activated_by], references: [id])
   flag_mappings kill_switch_flags[]
 
+  @@unique([organization_id,killSwitchKey])
   @@index([organization_id, is_active])
   @@index([organization_id, created_at])
 }

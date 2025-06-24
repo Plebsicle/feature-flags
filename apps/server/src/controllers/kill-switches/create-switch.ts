@@ -2,12 +2,12 @@ import prisma from '@repo/db';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 import {killSwitchFlagConfig} from '@repo/types/kill-switch-flag-config'
-import { killSwitchValue, setKillSwitch } from '../../services/redis/redis-flag';
-
+import { setKillSwitch, invalidateFlagCacheForKillSwitch } from '../../services/redis/killSwitchCaching';
 interface MyRequestBody {
   name: string;
   description?: string;
-  flags: killSwitchFlagConfig[];
+  flags: killSwitchFlagConfig[]
+  killSwitchKey : string
 }
 
 export const createKillSwitch = async(req : express.Request, res : express.Response) => {
@@ -17,7 +17,7 @@ export const createKillSwitch = async(req : express.Request, res : express.Respo
             res.status(403).json({success : true,message : "Not Authorised"})
             return;
         }
-        let {name, description, flags} = req.body as MyRequestBody;
+        let {name, description, flags,killSwitchKey} = req.body as MyRequestBody;
         // input sanitation
 
         flags = flags;
@@ -34,6 +34,7 @@ export const createKillSwitch = async(req : express.Request, res : express.Respo
                     name,
                     description,
                     created_by : user_id,
+                    killSwitchKey
                 }
             });
 
@@ -111,18 +112,26 @@ export const createKillSwitch = async(req : express.Request, res : express.Respo
 
             return {killSwitch};
         });
+        
         if(!result){
             res.status(400).json({success : false,message : "Invalid Inputs"});
             return;
         }
+        
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        const killSwitchData : killSwitchValue = {
+        const killSwitchData = {
             id : result.killSwitch.id,
+            killSwitchKey: result.killSwitch.killSwitchKey,
             is_active : result.killSwitch.is_active,
             flag : flags
         };
 
-        await setKillSwitch(result.killSwitch.id,orgSlug,killSwitchData);
+        // Use the new caching function
+        await setKillSwitch(killSwitchKey, orgSlug, killSwitchData);
+        
+        // Invalidate flag cache for affected flags
+        await invalidateFlagCacheForKillSwitch(orgSlug, killSwitchData);
+        
         // Return success response
         res.status(201).json({
             success: true,

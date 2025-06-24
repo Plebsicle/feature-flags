@@ -1,15 +1,16 @@
+import { updateKillSwitchFlagMappings, updateKillSwitchStatus } from '../../services/redis/killSwitchCaching';
+import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 import prisma from '@repo/db';
-import { killSwitchValue, setKillSwitch } from '../../services/redis/redis-flag';
-import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
+import { setKillSwitch,invalidateFlagCacheForKillSwitch } from '../../services/redis/killSwitchCaching';
 
-interface bodyType {
+interface UpdateBodyType {
     killSwitchId : string,
     name : string,
     description : string,
     is_active : boolean,
-    flags : killSwitchFlagConfig
+    flags : killSwitchFlagConfig[]
 }
 
 export const updateKillSwitch = async (req: express.Request, res: express.Response) => {
@@ -19,8 +20,9 @@ export const updateKillSwitch = async (req: express.Request, res: express.Respon
             res.status(403).json({success : true,message : "Not Authorised"})
             return;
         }
-        const { killSwitchId, name, description, is_active, flags } = req.body;
+        const { killSwitchId, name, description, is_active, flags } = req.body as UpdateBodyType;
         console.log(req.body);
+        
         if (!killSwitchId) {
             res.status(400).json({
                 success: false,
@@ -32,6 +34,7 @@ export const updateKillSwitch = async (req: express.Request, res: express.Respon
         const { ip, userAgent } = extractAuditInfo(req);
         const organisation_id = req.session.user?.userOrganisationId!;
         const user_id = req.session.user?.userId!;
+        const orgSlug = req.session.user?.userOrganisationSlug!;
 
         const result = await prisma.$transaction(async (tx) => {
             // Get existing kill switch for comparison
@@ -108,7 +111,26 @@ export const updateKillSwitch = async (req: express.Request, res: express.Respon
             // Handle flag updates if provided
             if (flags && Array.isArray(flags)) {
                 const existingFlagIds = existingKillSwitch.flag_mappings.map(f => f.flag_id);
-                const newFlagIds = flags.map(f => f.flagId);
+                const newFlagKeys = flags.map(f => f.flagKey);
+
+                // Get new flag IDs
+                const newFlagIds: string[] = [];
+                for (const flag of flags) {
+                    const flagData = await prisma.feature_flags.findUnique({
+                        where : {
+                            organization_id_key : {
+                                organization_id : organisation_id,
+                                key : flag.flagKey
+                            }
+                        }
+                    });
+
+                    if(!flagData?.id){
+                        res.status(400).json({success : false , message : "Incorrect Key"});
+                        return;
+                    }
+                    newFlagIds.push(flagData.id);
+                }
 
                 // Remove flags that are no longer in the list
                 const flagsToRemove = existingKillSwitch.flag_mappings.filter(
@@ -141,8 +163,7 @@ export const updateKillSwitch = async (req: express.Request, res: express.Respon
                     });
                 }
 
-                // Add or update flag        
-
+                // Add or update flags
                 for (const flag of flags) {
                     const flagData = await prisma.feature_flags.findUnique({
                         where : {
@@ -158,8 +179,8 @@ export const updateKillSwitch = async (req: express.Request, res: express.Respon
                         res.status(400).json({success : false , message : "Incorrect Key"});
                         return;
                     }
+                    
                     const existingFlag = existingKillSwitch.flag_mappings.find(
-
                         f => f.flag_id === flagId
                     );
 
@@ -227,13 +248,35 @@ export const updateKillSwitch = async (req: express.Request, res: express.Respon
 
             return updatedKillSwitch;
         });
-        const orgSlug = req.session.user?.userOrganisationSlug!;
-        const killSwitchData : killSwitchValue = {
-            id : killSwitchId,
-            is_active,
-            flag : flags
+        
+        if(!result){
+            return;
         }
-        await setKillSwitch(killSwitchId,orgSlug,killSwitchData);
+
+        // Update cache using the new functions
+        const killSwitchData = {
+            id : killSwitchId,
+            killSwitchKey: result.killSwitchKey,
+            is_active: is_active !== undefined ? is_active : result.is_active,
+            flag : flags || []
+        };
+
+        // Update kill switch cache
+        await setKillSwitch(result.killSwitchKey, orgSlug, killSwitchData);
+        
+        // If status changed, use the specific status update function
+        if (is_active !== undefined) {
+            await updateKillSwitchStatus(result.killSwitchKey, orgSlug, is_active);
+        }
+        
+        // If flags changed, update flag mappings
+        if (flags && Array.isArray(flags)) {
+            await updateKillSwitchFlagMappings(result.killSwitchKey, orgSlug, flags);
+        }
+        
+        // Invalidate flag cache for affected flags
+        await invalidateFlagCacheForKillSwitch(orgSlug, killSwitchData);
+        
         res.status(200).json({
             success: true,
             message: "Kill switch updated successfully",

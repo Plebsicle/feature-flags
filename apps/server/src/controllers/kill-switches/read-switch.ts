@@ -1,7 +1,8 @@
+import { getKillSwitch } from '../../services/redis/killSwitchCaching';
 import express from 'express'
 import prisma from '@repo/db';
-import { killSwitchValue, setKillSwitch } from '../../services/redis/redis-flag';
 import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
+import { setKillSwitch } from '../../services/redis/killSwitchCaching';
 
 export const getAllKillSwitches = async (req: express.Request, res: express.Response) => {
     try {
@@ -19,8 +20,10 @@ export const getAllKillSwitches = async (req: express.Request, res: express.Resp
                     flag_mappings : true
                 }
         });
-        const data : killSwitchValue[] = []
+
         const orgSlug = req.session.user?.userOrganisationSlug!;
+        
+        // Ensure all kill switches are cached
         for(const killSwitch of killSwitches){
             const flag : killSwitchFlagConfig[] = await Promise.all( killSwitch.flag_mappings.map(async (fm) => {
                 const flagData = await prisma.feature_flags.findUnique({
@@ -35,13 +38,15 @@ export const getAllKillSwitches = async (req: express.Request, res: express.Resp
                 }
             }));
             
-            const killSwitchData : killSwitchValue = {
+            const killSwitchData = {
                 id : killSwitch.id,
+                killSwitchKey: killSwitch.killSwitchKey,
                 is_active : killSwitch.is_active,
                 flag
-            }
+            };
             
-            await setKillSwitch(killSwitch.id,orgSlug,killSwitchData);
+            // Use the new caching function to ensure Redis is up to date
+            await setKillSwitch(killSwitch.killSwitchKey, orgSlug, killSwitchData);
         }
 
         res.status(200).json({
@@ -84,6 +89,7 @@ export const getKillSwitchById = async (req: express.Request, res: express.Respo
                 flag_mappings : true
             }
         });
+        
         if (!killSwitch) {
              res.status(404).json({
                 success: false,
@@ -106,12 +112,16 @@ export const getKillSwitchById = async (req: express.Request, res: express.Respo
         }));
 
         const orgSlug = req.session.user?.userOrganisationSlug!;
-        const killSwitchData : killSwitchValue = {
+        const killSwitchData = {
             id : killSwitchId,
+            killSwitchKey: killSwitch.killSwitchKey,
             is_active : killSwitch.is_active,
             flag
-        }
-        await setKillSwitch(killSwitchId,orgSlug,killSwitchData);
+        };
+        
+        // Use the new caching function to ensure Redis is up to date
+        await setKillSwitch(killSwitch.killSwitchKey, orgSlug, killSwitchData);
+        
         res.status(200).json({
             success: true,
             data: killSwitch

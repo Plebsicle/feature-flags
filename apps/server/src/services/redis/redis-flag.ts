@@ -3,6 +3,7 @@ import { Conditions } from '@repo/types/rule-config';
 import {RolloutConfig} from "@repo/types/rollout-config"
 import {flag_type,environment_type} from '@repo/db/client'
 import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
+import prisma from '@repo/db';
 
 const REDIS_FLAG_URL = process.env.REDIS_FLAG_URL!;
 
@@ -33,14 +34,7 @@ export interface Redis_Value {
 
 
 // Environment types enum
-interface FlagData {
-  value: any;
-  type: flag_type;
-  timestamp: number;
-  key: string;
-  orgSlug: string;
-  environment: environment_type;
-}
+
 
 // TTL configuration (in seconds)
 const FLAG_TTL: Record<flag_type, number> = {
@@ -86,24 +80,82 @@ async function setFlag(orgSlug: string, environment: environment_type, flagKey: 
 /**
  * Get flag value from Redis cache
  */
-async function getFlag(orgSlug: string, environment: environment_type, flagKey: string): Promise<FlagData | null> {
+async function getFlag(orgSlug: string, environment: environment_type, flagKey: string): Promise<Redis_Value | null> {
   try {
     const key = generateFlagKey(orgSlug, environment, flagKey);
     const cachedValue = await redisFlag.get(key);
-    
+    let flagData;
     if (!cachedValue) {
-      return null;
+      // Fall Back to DB
+      const orgData = await prisma.organizations.findUnique({
+        where : {
+          slug : orgSlug
+        },
+        select : {
+          id : true
+        }
+      });
+
+      if(!orgData){
+        return null;
+      }
+
+      const flagFromDB = await prisma.feature_flags.findUnique({
+        where : {
+          organization_id_key : {
+            organization_id : orgData?.id,
+            key : flagKey
+          }
+        },
+        include : {
+          environments : true
+        }
+      });
+      if(!flagFromDB){
+        return null;
+      }
+
+      const environments = await prisma.flag_environments.findUnique({
+        where : {
+          flag_id_environment : {
+            flag_id : flagFromDB.id,
+            environment
+          }
+        },
+        include : {
+          rules : true,
+          rollout : true
+        }
+      });
+      if(!environments){
+        return null;
+      }
+
+      const rules : RedisCacheRules[] = [];
+        environments.rules.forEach((rule)=>{
+            rules.push({
+                rule_id : rule.id,
+                conditions : rule.conditions as unknown as Conditions,
+                is_enabled : rule.is_enabled
+            });
+        });
+        const objectToPush : Redis_Value = {
+            flagId : flagFromDB.id,
+            environment,
+            is_active : flagFromDB.is_active,
+            is_environment_active : environments.is_enabled,
+            value : environments.value as Record<string,any>,
+            default_value : environments.default_value as Record<string,any>,
+            rules,
+            rollout_config : environments.rollout?.config
+        }
+        flagData = objectToPush;
+        await setFlag(orgSlug,environment,flagKey,objectToPush,flagFromDB.flag_type);
     }
-    
-    const flagData = JSON.parse(cachedValue as string);
-    return {
-      value: flagData.value,
-      type: flagData.type,
-      timestamp: flagData.timestamp,
-      key: flagKey,
-      orgSlug,
-      environment: flagData.environment || environment
-    };
+    else
+    flagData = JSON.parse(cachedValue as string);
+
+    return flagData;
   } catch (error) {
     console.error('Error getting flag from cache:', error);
     return null;
@@ -124,62 +176,7 @@ async function removeFlag(orgSlug: string, environment: environment_type, flagKe
   }
 }
 
-/**
- * Get multiple flags for an organization in a specific environment
- */
-async function getMultipleFlags(orgSlug: string, environment: environment_type, flagKeys: string[]): Promise<Record<string, FlagData | null>> {
-  try {
-    const keys = flagKeys.map(flagKey => generateFlagKey(orgSlug, environment, flagKey));
-    const values = await redisFlag.mget(keys);
-    
-    const result: Record<string, FlagData | null> = {};
-    flagKeys.forEach((flagKey, index) => {
-      if (values[index]) {
-        try {
-          const flagData = JSON.parse(values[index] as string);
-          result[flagKey] = {
-            value: flagData.value,
-            type: flagData.type,
-            timestamp: flagData.timestamp,
-            key: flagKey,
-            orgSlug,
-            environment: flagData.environment || environment
-          };
-        } catch (parseError) {
-          console.error(`Error parsing flag ${flagKey}:`, parseError);
-          result[flagKey] = null;
-        }
-      } else {
-        result[flagKey] = null;
-      }
-    });
-    
-    return result;
-  } catch (error) {
-    console.error('Error getting multiple flags from cache:', error);
-    return {};
-  }
-}
 
-/**
- * Remove all flags for an organization in a specific environment (use with caution)
- */
-async function removeAllOrgFlags(orgSlug: string, flagKey : string): Promise<number> {
-  try {
-    const pattern = `flags:${orgSlug}:*:${flagKey}`;
-    const keys = await redisFlag.keys(pattern);
-    
-    if (keys.length === 0) {
-      return 0;
-    }
-    
-    const result = await redisFlag.del(keys);
-    return result;
-  } catch (error) {
-    console.error('Error removing all org flags from cache:', error);
-    return 0;
-  }
-}
 
 /**
  * Update flag TTL without changing the value
@@ -227,41 +224,7 @@ async function refreshOrSetFlagTTL(
   }
 }
 
-// Alternative function if you want separate methods for get controllers
-async function getFlagWithCache(
-  orgSlug: string,
-  flagKey: string,
-  flagType: flag_type,
-  environment: environment_type,
-  fetchFlagFn: () => Promise<any> // Function to fetch flag from database
-): Promise<any> {
-  try {
-    const ttl = FLAG_TTL[flagType] || FLAG_TTL[flag_type.BOOLEAN];
-    const key = generateFlagKey(orgSlug, environment, flagKey);
-    
-    // Try to get from cache first
-    const cached = await redisFlag.get(key);
-    
-    if (cached) {
-      // Found in cache, refresh TTL and return
-      await redisFlag.expire(key, ttl);
-      return JSON.parse(cached);
-    }
-    
-    // Not in cache, fetch from source
-    const flagData = await fetchFlagFn();
-    
-    if (flagData) {
-      // Cache the fetched data
-      await redisFlag.setex(key, ttl, JSON.stringify(flagData));
-    }
-    
-    return flagData;
-  } catch (error) {
-    console.error('Error getting flag with cache:', error);
-    throw error;
-  }
-}
+
 
 
 export const updateFlagRolloutRedis = async (
@@ -397,39 +360,47 @@ const killSwitchKeyGenerator =(orgSlug:string,killSwitchId : string) => {
 
 
 
-export type killSwitchValue = {
-  id : string,
-  flag : killSwitchFlagConfig[],
-  is_active : boolean
-}
+// export type killSwitchValue = {
+//   id : string,
+//   flag : killSwitchFlagConfig[],
+//   is_active : boolean
+// }
 
-export const setKillSwitch = async (killSwitchId :string,orgSlug : string,killSwitchData : killSwitchValue
-) => {
-  try{
-    const key =  killSwitchKeyGenerator(orgSlug,killSwitchId)!;
+// export const setKillSwitch = async (killSwitchId :string,orgSlug : string,killSwitchData : killSwitchValue
+// ) => {
+//   try{
+//     const key =  killSwitchKeyGenerator(orgSlug,killSwitchId)!;
     
-    const result = await redisFlag.set(key,JSON.stringify(killSwitchData));
-    return result === "OK";
-  }
-  catch(e){
-    console.error(e);
-  }
-}
+//     const result = await redisFlag.set(key,JSON.stringify(killSwitchData));
+//     return result === "OK";
+//   }
+//   catch(e){
+//     console.error(e);
+//   }
+// }
 
-export const removeKillSwitch = async (killSwitchId : string , orgSlug : string)=>{
-  try{
-    const key = killSwitchKeyGenerator(orgSlug,killSwitchId)!;
-    const result = await redisFlag.del(key);
-    return result > 0;
-  }
-  catch(e){
-    console.error(e);
-  }
-}
-
-
+// export const removeKillSwitch = async (killSwitchId : string , orgSlug : string)=>{
+//   try{
+//     const key = killSwitchKeyGenerator(orgSlug,killSwitchId)!;
+//     const result = await redisFlag.del(key);
+//     return result > 0;
+//   }
+//   catch(e){
+//     console.error(e);
+//   }
+// }
 
 
+
+// // Get Redis Functions for Flags and Kill Switches
+// export const getKillSwitch = async(killSwitchId : string , orgSlug : string) => {
+//   try{
+
+//   }
+//   catch(e){
+//     console.error(e)
+//   }
+// }
 
 
 
@@ -446,14 +417,10 @@ export {
   flag_type,
   environment_type,
   FLAG_TTL,
-  FlagData,
   setFlag,
   getFlag,
   removeFlag,
-  getMultipleFlags,
-  removeAllOrgFlags,
   refreshOrSetFlagTTL,
-  getFlagWithCache,
   generateFlagKey
 };
 

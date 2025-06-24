@@ -143,9 +143,7 @@ export const getFeatureFlagData = async ( req : express.Request,res : express.Re
 
 export const getFlagEnvironmentData = async (req : express.Request,res : express.Response)=>{
     try{
-        // Zod validation
-        // const parsedParams = getFlagEnvironmentParamsSchema.parse(req.params);
-        // req.params = parsedParams;
+        
         const userRole = req.session.user?.userRole;
         if(userRole === undefined  || (userRole === "VIEWER")){
             res.status(403).json({success : true,message : "Not Authorised"})
@@ -209,9 +207,7 @@ export const getFlagEnvironmentData = async (req : express.Request,res : express
 
 export const getRules = async (req : express.Request,res : express.Response) => {
     try{
-        // Zod validation
-        // const parsedParams = getRulesParamsSchema.parse(req.params);
-        // req.params = parsedParams;
+        
         const userRole = req.session.user?.userRole;
         if(userRole === undefined  || (userRole === "VIEWER")){
             res.status(403).json({success : true,message : "Not Authorised"})
@@ -278,7 +274,7 @@ export const getRules = async (req : express.Request,res : express.Response) => 
 
 export const getRollout = async (req : express.Request , res : express.Response) => {
     try{
-        // Zod validation
+        
         const userRole = req.session.user?.userRole;
         if(userRole === undefined  || (userRole === "VIEWER")){
             res.status(403).json({success : true,message : "Not Authorised"})

@@ -1,7 +1,8 @@
+import { removeKillSwitch } from '../../services/redis/killSwitchCaching';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 import prisma from '@repo/db';
-import { removeKillSwitch } from '../../services/redis/redis-flag';
+import { invalidateFlagCacheForKillSwitch } from '../../services/redis/killSwitchCaching';
 
 export const deleteKillSwitch = async (req: express.Request, res: express.Response) => {
     try {
@@ -23,6 +24,7 @@ export const deleteKillSwitch = async (req: express.Request, res: express.Respon
         const { ip, userAgent } = extractAuditInfo(req);
         const organisation_id = req.session.user?.userOrganisationId!;
         const user_id = req.session.user?.userId!;
+        const orgSlug = req.session.user?.userOrganisationSlug!;
 
         const result = await prisma.$transaction(async (tx) => {
             // Get existing kill switch with all related data for audit logging
@@ -32,13 +34,28 @@ export const deleteKillSwitch = async (req: express.Request, res: express.Respon
                     organization_id: organisation_id 
                 },
                 include: {
-                    flag_mappings: true
+                    flag_mappings: {
+                        include: {
+                            flag: true
+                        }
+                    }
                 }
             });
 
             if (!existingKillSwitch) {
                 throw new Error("Kill switch not found or access denied");
             }
+
+            // Prepare kill switch data for cache invalidation
+            const killSwitchData = {
+                id: killSwitchId,
+                killSwitchKey: existingKillSwitch.killSwitchKey,
+                is_active: existingKillSwitch.is_active,
+                flag: existingKillSwitch.flag_mappings.map(fm => ({
+                    flagKey: fm.flag.key,
+                    environments: fm.environments
+                }))
+            };
 
             // Create audit logs for each flag mapping deletion
             for (const flagMapping of existingKillSwitch.flag_mappings) {
@@ -90,17 +107,22 @@ export const deleteKillSwitch = async (req: express.Request, res: express.Respon
                     attributes_changed: killSwitchDeleteAttributes
                 }
             });
-            const orgSlug = req.session.user?.userOrganisationSlug!;
-            await removeKillSwitch(killSwitchId,orgSlug);
-            return deletedKillSwitch;
+
+            return { deletedKillSwitch, killSwitchData };
         });
+
+        // Remove from cache using the new function
+        await removeKillSwitch(result.killSwitchData.killSwitchKey, orgSlug);
+        
+        // Invalidate flag cache for affected flags
+        await invalidateFlagCacheForKillSwitch(orgSlug, result.killSwitchData);
 
         res.status(200).json({
             success: true,
             message: "Kill switch deleted successfully",
             data: {
                 id: killSwitchId,
-                name: result.name
+                name: result.deletedKillSwitch.name
             }
         });
 
