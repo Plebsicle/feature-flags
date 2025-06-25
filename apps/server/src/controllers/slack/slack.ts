@@ -1,4 +1,11 @@
 import express from 'express';
+import { 
+    slackConnectBodySchema, 
+    slackConfigBodySchema, 
+    slackChannelParamsSchema,
+    validateBody,
+    validateParams 
+} from '../../util/zod';
 import { slackService } from '../../services/slack-integration/slack';
 
 interface SlackControllerDependencies {
@@ -115,6 +122,10 @@ class SlackController {
     // Get available channels
     getChannels = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedParams = validateParams(slackChannelParamsSchema, req, res);
+            if (!validatedParams) return;
+
             const { teamId } = req.params;
             
             const channels = await this.slackService.getChannels(teamId);
@@ -129,6 +140,10 @@ class SlackController {
     // Save selected channels
     saveChannels = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedBody = validateBody(slackConfigBodySchema, req, res);
+            if (!validatedBody) return;
+
             const integrationId = req.params.integrationId;
             const { channels } = req.body;
             

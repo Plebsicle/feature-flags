@@ -2,6 +2,7 @@ import prisma from '@repo/db';
 import { metric_aggregation_method, metric_type } from '@repo/db/client';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
+import { createMetricBodySchema, validateBody } from '../../util/zod';
 
 interface CreateMetricBody {
     flag_environment_id: string;
@@ -37,6 +38,10 @@ class CreateMetricController {
 
     createMetric = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedBody = validateBody(createMetricBodySchema, req, res);
+            if (!validatedBody) return;
+
             if (!this.checkUserAuthorization(req, res)) return;
 
             const {
@@ -50,8 +55,6 @@ class CreateMetricController {
                 description,
                 tags
             } = req.body as CreateMetricBody;
-
-            // Zod validation could be added here
             const organisationId = req.session.user?.userOrganisationId!;
             const userId = req.session.user?.userId;
             

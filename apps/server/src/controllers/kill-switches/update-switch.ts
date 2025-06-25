@@ -3,6 +3,7 @@ import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 import prisma from '@repo/db';
+import { updateKillSwitchBodySchema, validateBody } from '../../util/zod';
 import { setKillSwitch,invalidateFlagCacheForKillSwitch } from '../../services/redis/killSwitchCaching';
 
 interface UpdateBodyType {
@@ -35,6 +36,10 @@ class UpdateKillSwitchController {
 
     updateKillSwitch = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedBody = validateBody(updateKillSwitchBodySchema, req, res);
+            if (!validatedBody) return;
+
             if (!this.checkUserAuthorization(req, res)) return;
 
             const { killSwitchId, name, description, is_active, flags } = req.body as UpdateBodyType;

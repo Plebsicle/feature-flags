@@ -1,6 +1,10 @@
 import prisma from '@repo/db';
 import express from 'express'
-import { getFeatureFlagParamsSchema, getFlagEnvironmentParamsSchema, getRulesParamsSchema, getRolloutParamsSchema, getAuditLogsParamsSchema } from '../../util/zod';
+import { 
+    flagIdParamsSchema, 
+    environmentIdParamsSchema,
+    validateParams 
+} from '../../util/zod';
 import { Redis_Value, refreshOrSetFlagTTL, updateFeatureFlagRedis, environment_type, RedisCacheRules } from '../../services/redis/redis-flag';
 import { Condition, Conditions } from '@repo/types/rule-config';
 import { RolloutConfig } from '@repo/types/rollout-config';
@@ -101,10 +105,10 @@ class ReadFlagController {
     getFeatureFlagData = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            if (!this.checkUserAuthorization(req, res)) return;
+            const validatedParams = validateParams(flagIdParamsSchema, req, res);
+            if (!validatedParams) return;
 
-            const parsedParams = getFeatureFlagParamsSchema.parse(req.params);
-            req.params = parsedParams;
+            if (!this.checkUserAuthorization(req, res)) return;
 
             const flagId = req.params.flagId;
 
@@ -220,6 +224,9 @@ class ReadFlagController {
 
     getRules = async (req: express.Request, res: express.Response) => {
         try {
+            const validatedParams = validateParams(environmentIdParamsSchema, req, res);
+            if (!validatedParams) return;
+
             if (!this.checkUserAuthorization(req, res)) return;
 
             const environmentId = req.params.environmentId;
@@ -285,10 +292,10 @@ class ReadFlagController {
 
     getRollout = async (req: express.Request, res: express.Response) => {
         try {
-            if (!this.checkUserAuthorization(req, res)) return;
+            const validatedParams = validateParams(environmentIdParamsSchema, req, res);
+            if (!validatedParams) return;
 
-            const parsedParams = getRolloutParamsSchema.parse(req.params);
-            req.params = parsedParams;
+            if (!this.checkUserAuthorization(req, res)) return;
 
             const environmentId = req.params.environmentId;
 
@@ -354,10 +361,10 @@ class ReadFlagController {
     getAuditLogs = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            if (!this.checkUserAuthorization(req, res)) return;
+            const validatedParams = validateParams(flagIdParamsSchema, req, res);
+            if (!validatedParams) return;
 
-            const parsedParams = getAuditLogsParamsSchema.parse(req.params);
-            req.params = parsedParams;
+            if (!this.checkUserAuthorization(req, res)) return;
 
             const role = req.session.user?.userRole;
             if (role === "VIEWER") {

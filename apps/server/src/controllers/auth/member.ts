@@ -1,7 +1,7 @@
 import express from 'express'
 import { PrismaClient, user_role } from '@repo/db/client';
-import { memberSignupValidation } from '../../util/zod';
-import { memberSignupVerificationBodySchema, memberSignupSendInvitationBodySchema } from '../../util/zod';
+import { memberSignupValidation } from '../../util/zod/zod';
+import { memberSignupVerificationBodySchema, memberSignupSendInvitationBodySchema } from '../../util/zod/zod';
 import { hashPassword } from '../../util/hashing';
 import tokenGenerator from '../../util/token';
 import { sendMemberSignupMails } from '../../util/mail';
@@ -198,8 +198,8 @@ class MemberController {
     memberSignupSendInvitation = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            // const parsedBody = memberSignupSendInvitationBodySchema.parse(req.body);
-            // req.body = parsedBody;
+            const parsedBody = memberSignupSendInvitationBodySchema.parse(req.body);
+            req.body = parsedBody;
 
             const role = req.session.user?.userRole;
             if (role !== "OWNER") {

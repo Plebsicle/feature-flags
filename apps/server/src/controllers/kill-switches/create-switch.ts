@@ -1,5 +1,6 @@
 import prisma from '@repo/db';
 import express from 'express'
+import { createKillSwitchBodySchema, validateBody } from '../../util/zod';
 import { extractAuditInfo } from '../../util/ip-agent';
 import {killSwitchFlagConfig} from '@repo/types/kill-switch-flag-config'
 import { setKillSwitch, invalidateFlagCacheForKillSwitch } from '../../services/redis/killSwitchCaching';
@@ -33,6 +34,10 @@ class CreateKillSwitchController {
 
     createKillSwitch = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedBody = validateBody(createKillSwitchBodySchema, req, res);
+            if (!validatedBody) return;
+
             if (!this.checkUserAuthorization(req, res)) return;
 
             let {name, description, flags, killSwitchKey} = req.body as MyRequestBody;

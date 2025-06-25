@@ -1,8 +1,8 @@
 import express from 'express'
 import { PrismaClient, user_role } from '@repo/db/client';
 import { hashPassword } from "../../util/hashing"
-import { signupValidation } from '../../util/zod';
-import { emailSignupBodySchema, googleSignupBodySchema } from '../../util/zod';
+import { signupValidation } from '../../util/zod/zod';
+import { emailSignupBodySchema, googleSignupBodySchema } from '../../util/zod/zod';
 import { slugMaker } from '../../util/slug';
 import verifyGoogleToken from '../../util/oauth';
 import tokenGenerator from '../../util/token';

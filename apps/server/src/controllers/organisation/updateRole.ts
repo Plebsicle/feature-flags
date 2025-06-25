@@ -1,5 +1,6 @@
 import { user_role } from '@repo/db/client';
 import express from 'express'
+import { updateRoleBodySchema, validateBody } from '../../util/zod';
 import prisma from '@repo/db';
 
 interface UpdateRoleBody {
@@ -52,6 +53,10 @@ class UpdateRoleController {
 
     updateRole = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedBody = validateBody(updateRoleBodySchema, req, res);
+            if (!validatedBody) return;
+
             if (!this.checkOwnerAuthorization(req, res)) return;
 
             const { role, userId } = req.body as UpdateRoleBody;

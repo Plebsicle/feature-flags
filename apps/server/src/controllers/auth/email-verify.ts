@@ -1,7 +1,7 @@
 import express from 'express'
 import { PrismaClient, user_role } from '@repo/db/client';
-import { verifyEmailValidation } from '../../util/zod';
-import { verifyEmailSignupBodySchema, verifyEmailManualBodySchema, sendVerificationEmailManualBodySchema } from '../../util/zod';
+import { verifyEmailValidation } from '../../util/zod/zod';
+import { verifyEmailSignupBodySchema, verifyEmailManualBodySchema, sendVerificationEmailManualBodySchema } from '../../util/zod/zod';
 import { slugMaker } from '../../util/slug';
 import tokenGenerator from '../../util/token';
 import { sendVerificationEmailManualMailer } from '../../util/mail';
@@ -102,8 +102,8 @@ class EmailVerificationController {
     verifyEmailSignup = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            // const parsedBody = verifyEmailSignupBodySchema.parse(req.body);
-            // req.body = parsedBody;
+            const parsedBody = verifyEmailSignupBodySchema.parse(req.body);
+            req.body = parsedBody;
 
             const { orgName, token } = req.body as verifyEmailBody;
             const result = await verifyEmailValidation(token, orgName);
@@ -139,8 +139,8 @@ class EmailVerificationController {
     verifyEmailManual = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            // const parsedBody = verifyEmailManualBodySchema.parse(req.body);
-            // req.body = parsedBody;
+            const parsedBody = verifyEmailManualBodySchema.parse(req.body);
+            req.body = parsedBody;
 
             const { token } = req.body;
             const result = await this.prisma.emailVerificationToken.findUnique({

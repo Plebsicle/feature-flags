@@ -1,6 +1,11 @@
 import prisma from '@repo/db';
 import express from 'express';
-import { deleteFeatureFlagParamsSchema, deleteEnvironmentParamsSchema, deleteRuleParamsSchema } from '../../util/zod';
+import { 
+    deleteFeatureFlagParamsSchema, 
+    deleteEnvironmentParamsSchema, 
+    deleteRuleParamsSchema,
+    validateParams 
+} from '../../util/zod';
 import { removeAllOrgFlags, deleteRuleRedis, removeFlag } from '../../services/redis/redis-flag';
 
 interface DeleteFlagControllerDependencies {
@@ -32,10 +37,10 @@ class DeleteFlagController {
     deleteFeatureFlag = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            if (!this.checkUserAuthorization(req, res)) return;
+            const validatedParams = validateParams(deleteFeatureFlagParamsSchema, req, res);
+            if (!validatedParams) return;
 
-            const parsedParams = deleteFeatureFlagParamsSchema.parse(req.params);
-            req.params = parsedParams;
+            if (!this.checkUserAuthorization(req, res)) return;
             
             if (!this.checkUserAuthorization(req, res, true)) return;
 

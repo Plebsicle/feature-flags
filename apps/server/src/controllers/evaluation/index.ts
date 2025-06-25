@@ -5,6 +5,7 @@ import { environment_type, PrismaClient } from "@repo/db/client";
 import { RolloutConfig } from "@repo/types/rollout-config";
 import { RedisCacheRules } from "../../services/redis/redis-flag";
 import express from 'express'
+import { evaluationRequestBodySchema, validateBody } from '../../util/zod';
 
 interface UserContext {
   // Base attributes (always expected)
@@ -388,6 +389,10 @@ class FeatureFlagEvaluator {
 class FeatureFlagController{
   evaluateFeatureFlag = async (req : express.Request,res : express.Response)=>{
     try{
+      // Zod validation
+      const validatedBody = validateBody(evaluationRequestBodySchema, req, res);
+      if (!validatedBody) return;
+
       // Some sort of authentication to verify it is the actual ORG
       const {flagKey,environment,userContext,orgSlug} = req.body as EvaluationRequest;
       const evaluationRequest = {

@@ -1,6 +1,6 @@
 import express from 'express'
 import { PrismaClient } from '@repo/db/client';
-import { sendVerificationEmailForgetPasswordBodySchema, checkVerificationEmailForgetPasswordBodySchema } from '../../util/zod';
+import { sendVerificationEmailForgetPasswordBodySchema, checkVerificationEmailForgetPasswordBodySchema } from '../../util/zod/zod';
 import tokenGenerator from '../../util/token';
 import { sendResetPassword } from '../../util/mail';
 import { hashPassword } from '../../util/hashing';

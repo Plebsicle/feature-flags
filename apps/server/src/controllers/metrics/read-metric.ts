@@ -1,6 +1,7 @@
 import prisma from '@repo/db';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
+import { metricIdParamsSchema, validateParams } from '../../util/zod';
 
 interface ReadMetricControllerDependencies {
     prisma: typeof prisma;
@@ -76,6 +77,10 @@ class ReadMetricController {
 
     getMetricbyId = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedParams = validateParams(metricIdParamsSchema, req, res);
+            if (!validatedParams) return;
+
             if (!this.checkUserAuthorizationForSingle(req, res)) return;
             
             const organisationId = req.session.user?.userOrganisationId;

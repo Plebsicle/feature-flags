@@ -1,5 +1,6 @@
 import { getKillSwitch } from '../../services/redis/killSwitchCaching';
 import express from 'express'
+import { killSwitchIdParamsSchema, validateParams } from '../../util/zod';
 import prisma from '@repo/db';
 import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
 import { setKillSwitch } from '../../services/redis/killSwitchCaching';
@@ -89,6 +90,10 @@ class ReadKillSwitchController {
     // Get Specific Kill Switch by ID
     getKillSwitchById = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedParams = validateParams(killSwitchIdParamsSchema, req, res);
+            if (!validatedParams) return;
+
             const killSwitchId = req.params.killSwitchId;
             
             if (!killSwitchId) {

@@ -1,8 +1,15 @@
 import express from 'express'
 import prisma from '@repo/db';
+import { 
+    updateFeatureFlagBodySchema, 
+    updateFlagRuleBodySchema, 
+    updateFlagRolloutBodySchema,
+    updateEnvironmentBodySchema,
+    validateBody 
+} from '../../util/zod';
 import { rollout_type, environment_type } from '@repo/db/node_modules/@prisma/client'
 import { Conditions } from '@repo/types/rule-config';
-import { updateFeatureFlagBodySchema, updateFlagRuleBodySchema, updateFlagRolloutBodySchema } from '../../util/zod';
+
 import { extractCustomAttributes } from '../../util/extract-attributes';
 import { insertCustomAttributes } from '../../util/insert-custom-attribute';
 import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis/redis-flag';
@@ -82,8 +89,8 @@ class UpdateFlagController {
     updateFeatureFlag = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            // const parsedBody = updateFeatureFlagBodySchema.parse(req.body);
-            // req.body = parsedBody;
+            const parsedBody = updateFeatureFlagBodySchema.parse(req.body);
+            req.body = parsedBody;
             if (!this.checkUserAuthorization(req, res)) return;
 
             const {
@@ -196,8 +203,8 @@ class UpdateFlagController {
     updateFlagRule = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            // const parsedBody = updateFlagRuleBodySchema.parse(req.body);
-            // req.body = parsedBody;
+            const parsedBody = updateFlagRuleBodySchema.parse(req.body);
+            req.body = parsedBody;
             
             if (!this.checkUserAuthorization(req, res)) return;
 
@@ -356,8 +363,8 @@ class UpdateFlagController {
     updateFlagRollout = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            // const parsedBody = updateFlagRolloutBodySchema.parse(req.body);
-            // req.body = parsedBody;
+            const parsedBody = updateFlagRolloutBodySchema.parse(req.body);
+            req.body = parsedBody;
             
             if (!this.checkUserAuthorization(req, res)) return;
 
@@ -481,6 +488,10 @@ class UpdateFlagController {
 
     updateEnvironment = async (req: express.Request, res: express.Response) => {
         try{
+            // Zod validation
+            const parsedBody = updateEnvironmentBodySchema.parse(req.body);
+            req.body = parsedBody;
+            
             if (!this.checkUserAuthorization(req, res)) return;
 
             const {is_enabled,environment_id,value,default_value} = req.body;

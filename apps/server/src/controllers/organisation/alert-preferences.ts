@@ -1,6 +1,7 @@
 import prisma from '@repo/db';
 import { FrequencyUnit, user_role } from '@repo/db/client';
 import express from 'express'
+import { alertPreferencesBodySchema, validateBody } from '../../util/zod';
 
 interface AlertPreferencesBody {
     frequency_unit: FrequencyUnit;
@@ -33,6 +34,10 @@ class AlertPreferencesController {
 
     orgAlertPreferences = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedBody = validateBody(alertPreferencesBodySchema, req, res);
+            if (!validatedBody) return;
+
             if (!this.checkOwnerAuthorization(req, res)) return;
 
             const organisationId = req.session.user?.userOrganisationId!;
@@ -84,6 +89,10 @@ class AlertPreferencesController {
 
     updatePreferences = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedBody = validateBody(alertPreferencesBodySchema, req, res);
+            if (!validatedBody) return;
+
             const {
                 frequency_unit,
                 frequency_value,

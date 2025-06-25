@@ -2,6 +2,12 @@ import prisma from '@repo/db';
 import express from 'express';
 import { Redis_Value, RedisCacheRules, setFlag } from '../../services/redis/redis-flag';
 import { RolloutConfig } from '@repo/types/rollout-config';
+import { 
+    createFlagBodySchema, 
+    createEnvironmentBodySchema, 
+    addRulesBodySchema,
+    validateBody 
+} from '../../util/zod';
 
 interface CreateFlagControllerDependencies {
     prisma: typeof prisma;
@@ -42,8 +48,9 @@ class CreateFlagController {
     createFlag = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            // const parsedBody = createFlagBodySchema.parse(req.body);
-            // req.body = parsedBody;
+            const validatedBody = validateBody(createFlagBodySchema, req, res);
+            if (!validatedBody) return;
+
             if (!this.checkUserAuthorization(req, res, true)) return;
 
             const organisationId = req.session.user?.userOrganisationId!;
@@ -225,8 +232,9 @@ class CreateFlagController {
     createEnvironment = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            // const parsedBody = createEnvironmentBodySchema.parse(req.body);
-            // req.body = parsedBody;
+            const validatedBody = validateBody(createEnvironmentBodySchema, req, res);
+            if (!validatedBody) return;
+
             if (!this.checkUserAuthorization(req, res)) return;
 
             const userId = req.session.user?.userId!;
@@ -374,6 +382,10 @@ class CreateFlagController {
 
     addRules = async (req: express.Request, res: express.Response) => {
         try {
+            // Zod validation
+            const validatedBody = validateBody(addRulesBodySchema, req, res);
+            if (!validatedBody) return;
+
             const { ip, userAgent } = this.extractIpAndUserAgent(req);
 
             const {environment_id , ruleDescription , conditions , ruleName , isEnabled} = req.body;
