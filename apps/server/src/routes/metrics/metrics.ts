@@ -15,7 +15,7 @@ router.get('/:metricId',verificationMiddleware,getMetricbyId);
 router.delete('/:metricId',verificationMiddleware,deleteMetric);
 
 
-// Metric COllection
-router.post('/collect',collectMetric.collectOrganisationMetric);
+// Metric Collection
+router.post('/collect',collectMetric);
 
 export default router;

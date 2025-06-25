@@ -3,69 +3,39 @@ import { metric_aggregation_method, metric_type } from '@repo/db/client';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 
-interface myBody {
-    metric_id : string,
-    metric_name : string,
-    metric_type : metric_type,
-    is_active : boolean,
-    unit_measurement : string,
-    aggregation_method : metric_aggregation_method,
-    description : string,
-    tags : string[]
+interface UpdateMetricBody {
+    metric_id: string;
+    metric_name: string;
+    metric_type: metric_type;
+    is_active: boolean;
+    unit_measurement: string;
+    aggregation_method: metric_aggregation_method;
+    description: string;
+    tags: string[];
 }
 
-export const updateMetric = async (req : express.Request , res : express.Response) => {
-    try{
-         const userRole = req.session.user?.userRole;
-        if(userRole === undefined  || ((userRole === "VIEWER") || (userRole === "MEMBER"))){
-            res.status(403).json({success : true,message : "Not Authorised"})
-            return;
+interface UpdateMetricControllerDependencies {
+    prisma: typeof prisma;
+}
+
+class UpdateMetricController {
+    private prisma: typeof prisma;
+
+    constructor(dependencies: UpdateMetricControllerDependencies) {
+        this.prisma = dependencies.prisma;
+    }
+
+    private checkUserAuthorization = (req: express.Request, res: express.Response): boolean => {
+        const userRole = req.session.user?.userRole;
+        if (userRole === undefined || ((userRole === "VIEWER") || (userRole === "MEMBER"))) {
+            res.status(403).json({ success: true, message: "Not Authorised" });
+            return false;
         }
-        const {
-            metric_id,
-            metric_name,metric_type,is_active,unit_measurement,aggregation_method,description,tags
-        } = req.body as myBody
+        return true;
+    };
 
-        // Zod
-        const organisationId = req.session.user?.userOrganisationId!;
-        const userId = req.session.user?.userId;
-        
-        // Get current metric state for audit comparison
-        const currentMetric = await prisma.metrics.findUnique({
-            where: { id: metric_id },
-            select: {
-                metric_name: true,
-                metric_type: true,
-                is_active: true,
-                unit_measurement: true,
-                aggregation_method: true,
-                description: true,
-                tags: true
-            }
-        });
-
-        if (!currentMetric) {
-            res.status(404).json({success: false, message: "Metric not found"});
-            return;
-        }
-
-        const updateMetric = await prisma.metrics.update({
-            where : {
-                id : metric_id
-            },
-            data : {
-                aggregation_method,
-                metric_name,
-                metric_type,
-                description,
-                tags,
-                is_active,
-                unit_measurement
-            }
-        });
-
-        // Extract audit information
-        const { ip, userAgent } = extractAuditInfo(req);
+    private prepareAttributesChanged = (currentMetric: any, newValues: Omit<UpdateMetricBody, 'metric_id'>) => {
+        const { metric_name, metric_type, is_active, unit_measurement, aggregation_method, description, tags } = newValues;
 
         // Prepare attributes changed object showing old vs new values
         const attributesChanged: any = {
@@ -92,25 +62,104 @@ export const updateMetric = async (req : express.Request , res : express.Respons
         if (JSON.stringify(currentMetric.tags) !== JSON.stringify(tags)) changedFields.tags = { old: currentMetric.tags, new: tags };
 
         attributesChanged.changed_fields = changedFields;
+        return attributesChanged;
+    };
 
-        // Create audit log entry
-        await prisma.audit_logs.create({
-            data: {
-                organisation_id: organisationId,
-                user_id: userId,
-                action: 'UPDATE',
-                resource_type: 'METRIC',
-                resource_id: metric_id,
-                attributes_changed: attributesChanged,
-                ip_address: ip,
-                user_agent: userAgent
+    updateMetric = async (req: express.Request, res: express.Response) => {
+        try {
+            if (!this.checkUserAuthorization(req, res)) return;
+
+            const {
+                metric_id,
+                metric_name,
+                metric_type,
+                is_active,
+                unit_measurement,
+                aggregation_method,
+                description,
+                tags
+            } = req.body as UpdateMetricBody;
+
+            // Zod validation could be added here
+            const organisationId = req.session.user?.userOrganisationId!;
+            const userId = req.session.user?.userId;
+            
+            // Get current metric state for audit comparison
+            const currentMetric = await this.prisma.metrics.findUnique({
+                where: { id: metric_id },
+                select: {
+                    metric_name: true,
+                    metric_type: true,
+                    is_active: true,
+                    unit_measurement: true,
+                    aggregation_method: true,
+                    description: true,
+                    tags: true
+                }
+            });
+
+            if (!currentMetric) {
+                res.status(404).json({ success: false, message: "Metric not found" });
+                return;
             }
-        });
 
-        res.status(200).json({success : true , message : "Metric Updated Succesfully"});
-    }
-    catch(e){
-        console.error(e);
-        res.status(500).json({success : false,message : "Internal Server Error"});
+            const updateMetric = await this.prisma.metrics.update({
+                where: {
+                    id: metric_id
+                },
+                data: {
+                    aggregation_method,
+                    metric_name,
+                    metric_type,
+                    description,
+                    tags,
+                    is_active,
+                    unit_measurement
+                }
+            });
+
+            // Extract audit information
+            const { ip, userAgent } = extractAuditInfo(req);
+
+            // Prepare attributes changed
+            const attributesChanged = this.prepareAttributesChanged(currentMetric, {
+                metric_name,
+                metric_type,
+                is_active,
+                unit_measurement,
+                aggregation_method,
+                description,
+                tags
+            });
+
+            // Create audit log entry
+            await this.prisma.audit_logs.create({
+                data: {
+                    organisation_id: organisationId,
+                    user_id: userId,
+                    action: 'UPDATE',
+                    resource_type: 'METRIC',
+                    resource_id: metric_id,
+                    attributes_changed: attributesChanged,
+                    ip_address: ip,
+                    user_agent: userAgent
+                }
+            });
+
+            res.status(200).json({ success: true, message: "Metric Updated Successfully" });
+        }
+        catch (e) {
+            console.error(e);
+            res.status(500).json({ success: false, message: "Internal Server Error" });
+        }
     }
 }
+
+// Instantiate and export the controller
+import dbInstance from '@repo/db';
+
+const updateMetricController = new UpdateMetricController({
+    prisma: dbInstance
+});
+
+export const updateMetric = updateMetricController.updateMetric;

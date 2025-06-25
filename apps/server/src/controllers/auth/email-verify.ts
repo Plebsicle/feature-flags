@@ -6,6 +6,11 @@ import { slugMaker } from '../../util/slug';
 import tokenGenerator from '../../util/token';
 import { sendVerificationEmailManualMailer } from '../../util/mail';
 
+interface verifyEmailBody {
+    orgName : string,
+    token : string
+}
+
 class EmailVerificationController {
     private prisma: PrismaClient;
 
@@ -97,10 +102,10 @@ class EmailVerificationController {
     verifyEmailSignup = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            const parsedBody = verifyEmailSignupBodySchema.parse(req.body);
-            req.body = parsedBody;
+            // const parsedBody = verifyEmailSignupBodySchema.parse(req.body);
+            // req.body = parsedBody;
 
-            const { orgName, token } = req.body;
+            const { orgName, token } = req.body as verifyEmailBody;
             const result = await verifyEmailValidation(token, orgName);
             if (!result) {
                 res.status(401).json("Invalid Body Inputs");
@@ -134,8 +139,8 @@ class EmailVerificationController {
     verifyEmailManual = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            const parsedBody = verifyEmailManualBodySchema.parse(req.body);
-            req.body = parsedBody;
+            // const parsedBody = verifyEmailManualBodySchema.parse(req.body);
+            // req.body = parsedBody;
 
             const { token } = req.body;
             const result = await this.prisma.emailVerificationToken.findUnique({
