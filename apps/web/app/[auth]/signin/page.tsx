@@ -7,13 +7,13 @@ import Link from "next/link"
 import { GoogleLogin } from '@react-oauth/google';
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { ArrowRight, Mail, Lock, Eye, EyeOff } from "lucide-react"
+import { ArrowRight, Mail, Lock, Eye, EyeOff, Flag } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "../../../contexts/auth-context"
 import { Toaster, toast } from "react-hot-toast"
 
@@ -65,7 +65,7 @@ export default function SignInPage() {
   }
 
   const containerVariants = {
-    hidden: { opacity: 0, y: 50 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
@@ -77,178 +77,148 @@ export default function SignInPage() {
   }
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0 },
   }
 
   return (
     <>
-      <Toaster />
-      <TooltipProvider>
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 flex items-center justify-center p-4">
-          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
-            <motion.div
-              variants={itemVariants}
-              className="bg-slate-800/70 dark:bg-neutral-800/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/50 p-6 sm:p-8"
-            >
-              <motion.div variants={itemVariants} className="text-center mb-8">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4"
-                >
-                  <Lock className="w-8 h-8 text-white" />
-                </motion.div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-blue-500 bg-clip-text text-transparent">
-                  Welcome Back
-                </h1>
-                <p className="text-neutral-400 dark:text-neutral-300 mt-2">Sign in to continue your journey</p>
-              </motion.div>
+      <Toaster position="top-right" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <motion.div 
+          variants={containerVariants} 
+          initial="hidden" 
+          animate="visible" 
+          className="w-full max-w-md"
+        >
+          <motion.div variants={itemVariants} className="text-center mb-8">
+            <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <Flag className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+            <p className="text-gray-600 mt-1">Sign in to your account</p>
+          </motion.div>
 
-              <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-6">
-                <motion.div variants={itemVariants} className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-neutral-300 dark:text-neutral-200">
-                    Email
-                  </Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <Input
-                          id="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Enter your email"
-                          className="pl-10 h-12 bg-slate-700/50 dark:bg-neutral-700/50 border-2 border-slate-600 dark:border-neutral-600 focus:border-purple-500 transition-colors text-neutral-100 placeholder:text-neutral-400"
-                          required
-                        />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="bg-slate-700 text-neutral-200 border-slate-600">
-                      <p>Enter your registered email address.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </motion.div>
-
-                <motion.div variants={itemVariants} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="password" className="text-sm font-medium text-neutral-300 dark:text-neutral-200">
-                      Password
-                    </Label>
-                    <Link
-                      href="/auth/forgot-password"
-                      className="text-sm text-purple-500 hover:text-purple-400 transition-colors"
-                    >
-                      Forgot password?
-                    </Link>
-                    
+          <motion.div variants={itemVariants}>
+            <Card className="shadow-lg">
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-xl text-center">Sign in</CardTitle>
+                <CardDescription className="text-center">
+                  Enter your email and password to access your account
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="pl-10"
+                        required
+                      />
+                    </div>
                   </div>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <Input
-                          id="password"
-                          type={showPassword ? "text" : "password"}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Enter your password"
-                          className="pl-10 pr-10 h-12 bg-slate-700/50 dark:bg-neutral-700/50 border-2 border-slate-600 dark:border-neutral-600 focus:border-purple-500 transition-colors text-neutral-100 placeholder:text-neutral-400"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-                          aria-label={showPassword ? "Hide password" : "Show password"}
-                        >
-                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="bg-slate-700 text-neutral-200 border-slate-600">
-                      <p>Enter your account password.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </motion.div>
 
-                <motion.div variants={itemVariants}>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="password">Password</Label>
+                      <Link
+                        href="/auth/forgot-password"
+                        className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        className="pl-10 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105"
+                    className="w-full"
+                    size="lg"
                   >
                     {isLoading ? (
                       <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                       />
                     ) : (
                       <>
-                        Sign In
-                        <ArrowRight className="ml-2 w-5 h-5" />
+                        Sign in
+                        <ArrowRight className="ml-2 w-4 h-4" />
                       </>
                     )}
                   </Button>
-                </motion.div>
-                <motion.div variants={itemVariants} className="text-center text-sm">
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleFailure}
+                      text="signin_with"
+                      shape="rectangular"
+                      theme="outline"
+                      size="large"
+                      width="100%"
+                    />
+                  </div>
+                </form>
+
+                <div className="mt-6 text-center text-sm">
                   <Link
                     href="/auth/request-verification-email"
-                    className="text-purple-400 hover:text-purple-300 transition-colors"
+                    className="text-indigo-600 hover:text-indigo-700 font-medium"
                   >
-                    Resend verification email?
+                    Resend verification email
                   </Link>
-                </motion.div>
-              </motion.form>
-
-              <motion.div variants={itemVariants} className="mt-6">
-                <div className="relative">
-                  <Separator className="my-4" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="bg-slate-800 dark:bg-neutral-800 px-4 text-sm text-neutral-500 dark:text-neutral-400">
-                      Or continue with
-                    </span>
-                  </div>
                 </div>
 
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12 mt-4 border-2 border-slate-600 dark:border-neutral-600 hover:border-slate-500 dark:hover:border-neutral-500 bg-slate-700/30 hover:bg-slate-700/50 text-neutral-200 transition-all duration-300"
-                  >
-                    <div className="flex justify-center items-center">
-                      <GoogleLogin
-                        onSuccess={handleGoogleSuccess}
-                        onError={handleGoogleFailure}
-                        theme="filled_blue" // "filled_blue" or "outline" or "filled_black"
-                        shape="rectangular" // "rectangular", "square", "circle", "pill"
-                        logo_alignment="left" // "left" or "center"
-                        text="signin_with" // "signin_with", "signup_with", "continue_with", "signin"
-                        size="large" // "small", "medium", "large"
-                        width="300px" // Custom width
-                        // containerProps={{ style: { width: '100%' } }} // Example of container props
-                      />
-                    </div>
-                  </Button>
-                </motion.div>
-              </motion.div>
-
-              <motion.div variants={itemVariants} className="text-center mt-6">
-                <p className="text-neutral-400 dark:text-neutral-300">
+                <div className="mt-4 text-center text-sm text-gray-600">
                   Don't have an account?{" "}
-                  <Link href="/auth/signup" className="text-purple-500 hover:text-purple-400 font-semibold transition-colors">
+                  <Link href="/auth/signup" className="text-indigo-600 hover:text-indigo-700 font-medium">
                     Sign up
                   </Link>
-                </p>
-              </motion.div>
-            </motion.div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
-        </div>
-      </TooltipProvider>
+        </motion.div>
+      </div>
     </>
   )
 }

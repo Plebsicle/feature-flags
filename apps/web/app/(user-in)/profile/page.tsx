@@ -48,15 +48,15 @@ const getRoleIcon = (role: string) => {
 const getRoleColor = (role: string) => {
   switch (role) {
     case 'OWNER':
-      return "from-yellow-500 to-orange-600"
+      return { bg: "bg-amber-100", text: "text-amber-800", icon: "text-amber-600" }
     case 'ADMIN':
-      return "from-purple-500 to-violet-600"
+      return { bg: "bg-purple-100", text: "text-purple-800", icon: "text-purple-600" }
     case 'MEMBER':
-      return "from-blue-500 to-indigo-600"
+      return { bg: "bg-indigo-100", text: "text-indigo-800", icon: "text-indigo-600" }
     case 'VIEWER':
-      return "from-green-500 to-teal-600"
+      return { bg: "bg-emerald-100", text: "text-emerald-800", icon: "text-emerald-600" }
     default:
-      return "from-gray-500 to-slate-600"
+      return { bg: "bg-gray-100", text: "text-gray-800", icon: "text-gray-600" }
   }
 }
 
@@ -84,17 +84,13 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {        
-        // If the first endpoint fails, try the auth endpoint
-       
-        const   response = await fetch(`${BACKEND_URL}/auth/me`, {
-            method: "GET",
-            credentials: "include",
-          })
-        
+        const response = await fetch(`${BACKEND_URL}/auth/me`, {
+          method: "GET",
+          credentials: "include",
+        })
         
         if (response.ok) {
           const data = await response.json()
-          // Handle both possible response structures
           const user = data.data
           setUserData(user)
         } else {
@@ -122,24 +118,24 @@ export default function ProfilePage() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.15,
-        duration: 0.7,
-        ease: "easeInOut",
+        staggerChildren: 0.1,
+        duration: 0.6,
+        ease: "easeOut",
       },
     },
   }
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="flex items-center space-x-3 text-white">
-          <LoaderIcon className="w-6 h-6 animate-spin" />
-          <span className="text-lg">Loading profile...</span>
+      <div className="flex items-center justify-center min-h-96">
+        <div className="flex items-center space-x-3 text-gray-900">
+          <LoaderIcon className="w-6 h-6 animate-spin text-indigo-600" />
+          <span className="text-lg font-medium">Loading profile...</span>
         </div>
       </div>
     )
@@ -147,35 +143,36 @@ export default function ProfilePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="text-white text-center">
-          <p className="text-lg mb-4">{error}</p>
-          <p className="text-neutral-400 mb-4">Redirecting to sign in...</p>
-          <Button onClick={() => router.push("/auth/signin")} className="bg-blue-600 hover:bg-blue-700">
+      <div className="flex items-center justify-center min-h-96">
+        <Card className="p-8 text-center max-w-md">
+          <p className="text-lg mb-4 text-gray-900">{error}</p>
+          <p className="text-gray-600 mb-4">Redirecting to sign in...</p>
+          <Button onClick={() => router.push("/auth/signin")}>
             Go to Sign In Now
           </Button>
-        </div>
+        </Card>
       </div>
     )
   }
 
   if (!userData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="text-white text-center">
-          <p className="text-lg mb-4">No user data available</p>
-          <Button onClick={() => router.push("/auth/signin")} className="bg-blue-600 hover:bg-blue-700">
+      <div className="flex items-center justify-center min-h-96">
+        <Card className="p-8 text-center max-w-md">
+          <p className="text-lg mb-4 text-gray-900">No user data available</p>
+          <Button onClick={() => router.push("/auth/signin")}>
             Go to Sign In
           </Button>
-        </div>
+        </Card>
       </div>
     )
   }
 
   const RoleIcon = getRoleIcon(userData.role)
+  const roleColors = getRoleColor(userData.role)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 lg:p-8">
+    <div className="space-y-8">
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -186,7 +183,7 @@ export default function ProfilePage() {
         <motion.div variants={itemVariants} className="mb-8">
           <Button
             variant="ghost"
-            className="text-neutral-300 hover:text-white hover:bg-slate-800/50 mb-6"
+            className="mb-6"
             onClick={() => router.back()}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -194,12 +191,12 @@ export default function ProfilePage() {
           </Button>
           
           <div className="flex items-center space-x-4 mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center">
+            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center">
               <User className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Profile</h1>
-              <p className="text-neutral-400 text-lg">Manage your account information</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>
+              <p className="text-gray-600 text-lg">Manage your account information</p>
             </div>
           </div>
         </motion.div>
@@ -207,34 +204,34 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Personal Information */}
           <motion.div variants={itemVariants}>
-            <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/40 transition-all duration-300">
+            <Card className="hover:shadow-md transition-shadow duration-200">
               <CardHeader>
-                <CardTitle className="text-2xl text-white flex items-center">
-                  <User className="w-6 h-6 mr-3 text-blue-400" />
+                <CardTitle className="text-xl text-gray-900 flex items-center">
+                  <User className="w-5 h-5 mr-3 text-indigo-600" />
                   Personal Information
                 </CardTitle>
-                <CardDescription className="text-neutral-400">
+                <CardDescription>
                   Your account details and contact information
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center space-x-4 p-4 bg-slate-900/50 rounded-xl">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                    <User className="w-6 h-6 text-white" />
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <User className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-neutral-400 mb-1">Full Name</p>
-                    <p className="text-white font-medium text-lg">{userData.name}</p>
+                    <p className="text-sm text-gray-600 mb-1">Full Name</p>
+                    <p className="text-gray-900 font-medium">{userData.name}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4 p-4 bg-slate-900/50 rounded-xl">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-violet-600 rounded-lg flex items-center justify-center">
-                    <Mail className="w-6 h-6 text-white" />
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-purple-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-neutral-400 mb-1">Email Address</p>
-                    <p className="text-white font-medium text-lg">{userData.email}</p>
+                    <p className="text-sm text-gray-600 mb-1">Email Address</p>
+                    <p className="text-gray-900 font-medium">{userData.email}</p>
                   </div>
                 </div>
               </CardContent>
@@ -243,29 +240,29 @@ export default function ProfilePage() {
 
           {/* Role & Permissions */}
           <motion.div variants={itemVariants}>
-            <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/40 transition-all duration-300">
+            <Card className="hover:shadow-md transition-shadow duration-200">
               <CardHeader>
-                <CardTitle className="text-2xl text-white flex items-center">
-                  <Shield className="w-6 h-6 mr-3 text-emerald-400" />
+                <CardTitle className="text-xl text-gray-900 flex items-center">
+                  <Shield className="w-5 h-5 mr-3 text-emerald-600" />
                   Role & Permissions
                 </CardTitle>
-                <CardDescription className="text-neutral-400">
+                <CardDescription>
                   Your access level and capabilities
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center space-x-4 p-6 bg-slate-900/50 rounded-xl">
-                  <div className={`w-16 h-16 bg-gradient-to-r ${getRoleColor(userData.role)} rounded-xl flex items-center justify-center`}>
-                    <RoleIcon className="w-8 h-8 text-white" />
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <div className={`w-12 h-12 ${roleColors.bg} rounded-lg flex items-center justify-center`}>
+                    <RoleIcon className={`w-6 h-6 ${roleColors.icon}`} />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-2xl font-bold text-white">{userData.role}</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getRoleColor(userData.role)} text-white`}>
+                      <span className="text-lg font-semibold text-gray-900">{userData.role}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleColors.bg} ${roleColors.text}`}>
                         Active
                       </span>
                     </div>
-                    <p className="text-neutral-400 text-sm leading-relaxed">
+                    <p className="text-gray-600 text-sm leading-relaxed">
                       {getRoleDescription(userData.role)}
                     </p>
                   </div>
@@ -276,35 +273,35 @@ export default function ProfilePage() {
 
           {/* Organization Details */}
           <motion.div variants={itemVariants} className="lg:col-span-2">
-            <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/40 transition-all duration-300">
+            <Card className="hover:shadow-md transition-shadow duration-200">
               <CardHeader>
-                <CardTitle className="text-2xl text-white flex items-center">
-                  <Building className="w-6 h-6 mr-3 text-orange-400" />
+                <CardTitle className="text-xl text-gray-900 flex items-center">
+                  <Building className="w-5 h-5 mr-3 text-amber-600" />
                   Organization Details
                 </CardTitle>
-                <CardDescription className="text-neutral-400">
+                <CardDescription>
                   Information about your organization and ownership
                 </CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-center space-x-4 p-4 bg-slate-900/50 rounded-xl">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                    <Building className="w-6 h-6 text-white" />
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <Building className="w-5 h-5 text-indigo-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-neutral-400 mb-1">Organization</p>
-                    <p className="text-white font-medium text-lg">{userData.organisationName}</p>
+                    <p className="text-sm text-gray-600 mb-1">Organization</p>
+                    <p className="text-gray-900 font-medium">{userData.organisationName}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4 p-4 bg-slate-900/50 rounded-xl">
-                  <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
-                    <Crown className="w-6 h-6 text-white" />
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <Crown className="w-5 h-5 text-amber-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-neutral-400 mb-1">Organization Owner</p>
-                    <p className="text-white font-medium text-lg">{userData.ownerName}</p>
-                    <p className="text-neutral-400 text-sm">{userData.ownerEmail}</p>
+                    <p className="text-sm text-gray-600 mb-1">Organization Owner</p>
+                    <p className="text-gray-900 font-medium">{userData.ownerName}</p>
+                    <p className="text-gray-600 text-sm">{userData.ownerEmail}</p>
                   </div>
                 </div>
               </CardContent>
@@ -313,28 +310,26 @@ export default function ProfilePage() {
 
           {/* Quick Actions */}
           <motion.div variants={itemVariants} className="lg:col-span-2">
-            <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/20 backdrop-blur-xl">
+            <Card className="border-indigo-200 bg-indigo-50 hover:shadow-md transition-shadow duration-200">
               <CardHeader>
-                <CardTitle className="text-2xl text-white flex items-center">
-                  <Edit3 className="w-6 h-6 mr-3 text-blue-400" />
+                <CardTitle className="text-xl text-gray-900 flex items-center">
+                  <Edit3 className="w-5 h-5 mr-3 text-indigo-600" />
                   Quick Actions
                 </CardTitle>
-                <CardDescription className="text-neutral-400">
+                <CardDescription>
                   Common tasks and settings
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex flex-wrap gap-3">
                   <Button
                     variant="outline"
-                    className="border-slate-700 text-neutral-300 hover:bg-slate-800/50 hover:border-slate-600 hover:text-white"
                     onClick={() => router.push("/flags")}
                   >
                     View Feature Flags
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-slate-700 text-neutral-300 hover:bg-slate-800/50 hover:border-slate-600 hover:text-white"
                     onClick={() => router.push("/metrics")}
                   >
                     View Metrics
@@ -342,7 +337,6 @@ export default function ProfilePage() {
                   {(userData.role === 'OWNER' || userData.role === 'ADMIN' || userData.role === 'MEMBER') && (
                     <Button
                       variant="outline"
-                      className="border-slate-700 text-neutral-300 hover:bg-slate-800/50 hover:border-slate-600 hover:text-white"
                       onClick={() => router.push("/organisationSettings/inviteMembers")}
                     >
                       Organization Settings

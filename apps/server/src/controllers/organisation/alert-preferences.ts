@@ -35,6 +35,7 @@ class AlertPreferencesController {
     orgAlertPreferences = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
+            console.log(req.body);
             const validatedBody = validateBody(alertPreferencesBodySchema, req, res);
             if (!validatedBody) return;
 

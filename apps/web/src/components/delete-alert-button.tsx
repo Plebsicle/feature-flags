@@ -30,7 +30,7 @@ export function DeleteAlertButton({ alertId, metricId }: DeleteAlertButtonProps)
   const handleDelete = async () => {
     setIsDeleting(true)
     
-    const promise = fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/alerts/${metricId}`, {
+    const promise = fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/alerts/${alertId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -47,8 +47,8 @@ export function DeleteAlertButton({ alertId, metricId }: DeleteAlertButtonProps)
         const result = response.json() as Promise<{ success: boolean; message?: string }>;
         result.then(data => {
             if (data.success) {
-                setIsOpen(false)
                 router.refresh()
+                setIsOpen(false)
             } else {
                 throw new Error(data.message || 'Failed to delete alert')
             }
@@ -72,22 +72,21 @@ export function DeleteAlertButton({ alertId, metricId }: DeleteAlertButtonProps)
           <Button 
             variant="outline" 
             size="sm" 
-            className="border-red-700 text-red-300 hover:bg-red-800/20"
+            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
           >
             <Trash2 className="w-4 h-4" />
             Delete
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent className="bg-slate-800 border-slate-700">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Alert</AlertDialogTitle>
-            <AlertDialogDescription className="text-neutral-400">
-              Are you sure you want to delete this alert? This action cannot be undone and you will no longer receive notifications when this metric crosses the threshold.
+            <AlertDialogTitle>Delete Alert</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this alert? This action cannot be undone and you will no longer receive notifications when the metric threshold is reached.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
-              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
               disabled={isDeleting}
             >
               Cancel

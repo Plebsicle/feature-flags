@@ -199,8 +199,7 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
       if (!condition.attribute_name.trim()) {
         newErrors[`condition_${index}_name`] = 'Attribute name is required'
       }
-      // Check if the condition has any values
-      if (!condition.attribute_values || condition.attribute_values.length === 0) {
+      if (condition.attribute_values.length === 0) {
         newErrors[`condition_${index}_values`] = 'At least one value is required'
       }
     })
@@ -215,31 +214,32 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
     }
 
     setLoading(true)
-    const BACKEND_URL =  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
-      
-    const requestBody = {
-      flagRuleId,
-      environment_id: environmentId,
-      ruleDescription: ruleDescription,
-      conditions: conditions,
-      ruleName: ruleName,
-      isEnabled: isEnabled
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+    
+    let url = `/${BACKEND_URL}/flag/rule`
+    let method = 'POST'
+    let body: any = {
+      name: ruleName,
+      description: ruleDescription,
+      flag_environment_id: environmentId,
+      is_enabled: isEnabled,
+      conditions: conditions
     }
 
-    const endpoint = mode === 'create' 
-      ? `/${BACKEND_URL}/flag/addRules`
-      : `/${BACKEND_URL}/flag/updateFlagRule`
-    
-    const method = mode === 'create' ? 'POST' : 'PUT'
+    if (mode === 'edit' && existingRule) {
+      url = `/${BACKEND_URL}/flag/rule`
+      method = 'PUT'
+      body.ruleId = existingRule.id
+    }
 
-    const promise = fetch(endpoint, {
-      method: method,
+    const promise = fetch(url, {
+      method,
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody)
-    });
+      body: JSON.stringify(body)
+    })
 
     toast.promise(promise, {
       loading: mode === 'create' ? 'Creating rule...' : 'Updating rule...',
@@ -249,19 +249,19 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
         }
         const result = response.json() as Promise<{ success: boolean; message?: string }>;
         result.then(data => {
-            if (data.success) {
-                setOpen(false)
-                router.refresh()
-            } else {
-                throw new Error(data.message || `Failed to ${mode} rule`)
-            }
+          if (data.success) {
+            setOpen(false)
+            router.refresh()
+          } else {
+            throw new Error(data.message || 'Failed to save rule')
+          }
         })
-        return `Rule ${mode === 'create' ? 'created' : 'updated'} successfully!`
+        return mode === 'create' ? 'Rule created successfully!' : 'Rule updated successfully!'
       },
       error: (err) => {
-        console.error(`Error ${mode}ing rule:`, err)
-        setErrors({ submit: `Failed to ${mode} rule. Please try again.` })
-        return `Failed to ${mode} rule. Please try again.`
+        console.error('Error saving rule:', err)
+        setErrors({ submit: 'Failed to save rule. Please try again.' })
+        return 'Failed to save rule. Please try again.'
       }
     }).finally(() => {
       setLoading(false)
@@ -270,18 +270,20 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
 
   const getValuePlaceholder = (attributeType: DataType) => {
     switch (attributeType) {
-      case 'ARRAY':
-        return 'Enter values separated by commas (e.g., value1, value2, value3)'
+      case 'STRING':
+        return 'Enter a text value'
       case 'NUMBER':
-        return 'Enter number value and press Enter'
+        return 'Enter a number'
       case 'BOOLEAN':
-        return 'Enter true or false and press Enter'
+        return 'true or false'
       case 'DATE':
-        return 'Enter date value and press Enter'
+        return 'YYYY-MM-DD or ISO string'
       case 'SEMVER':
-        return 'Enter semantic version (e.g., 1.0.0) and press Enter'
+        return '1.0.0 (semantic version)'
+      case 'ARRAY':
+        return 'Enter values separated by commas'
       default:
-        return 'Enter value and press Enter'
+        return 'Enter a value'
     }
   }
 
@@ -291,23 +293,26 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           {mode === 'create' ? (
-            <Button className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white">
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
               <Plus className="w-4 h-4 mr-2" />
-              Create New Rule
+              Add Rule
             </Button>
           ) : (
-            <Button size="sm" variant="outline" className="border-orange-600/50 text-orange-400 hover:bg-orange-900/20">
-              <Edit className="w-4 h-4" />
+            <Button size="sm" variant="outline" className="border-indigo-300 text-indigo-600 hover:bg-indigo-50">
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
             </Button>
           )}
         </DialogTrigger>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-800/95 backdrop-blur-xl border-slate-700/50">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center">
-              <Target className="w-5 h-5 mr-2 text-orange-400" />
+            <DialogTitle className="flex items-center text-gray-900">
+              <div className="bg-amber-100 p-2 rounded-md mr-3">
+                <Target className="w-5 h-5 text-amber-600" />
+              </div>
               {mode === 'create' ? 'Create New Rule' : 'Edit Rule'}
             </DialogTitle>
-            <DialogDescription className="text-neutral-400">
+            <DialogDescription className="text-gray-600">
               {mode === 'create' 
                 ? 'Define conditions that determine when your flag should be evaluated'
                 : 'Update the conditions and settings for this rule'
@@ -318,7 +323,7 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
           <div className="space-y-6">
             {/* Rule Name */}
             <div className="space-y-2">
-              <Label htmlFor="rule-name" className="text-white">Rule Name *</Label>
+              <Label htmlFor="rule-name" className="text-gray-900 font-medium">Rule Name *</Label>
               <Input
                 id="rule-name"
                 value={ruleName}
@@ -331,42 +336,49 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                   }
                 }}
                 placeholder="e.g., Premium Users Rule"
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
               />
-              {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
+              {errors.name && <p className="text-red-600 text-sm">{errors.name}</p>}
             </div>
 
             {/* Rule Description */}
             <div className="space-y-2">
-              <Label htmlFor="rule-description" className="text-white">Description (Optional)</Label>
+              <Label htmlFor="rule-description" className="text-gray-900 font-medium">Description (Optional)</Label>
               <Textarea
                 id="rule-description"
                 value={ruleDescription}
                 onChange={(e) => setRuleDescription(e.target.value)}
                 placeholder="Describe when this rule should apply..."
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 min-h-[80px]"
+                className="min-h-[80px]"
               />
             </div>
 
             {/* Rule Enabled Toggle */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded ${isEnabled ? 'bg-emerald-100' : 'bg-gray-100'}`}>
+                  <Target className={`w-5 h-5 ${isEnabled ? 'text-emerald-600' : 'text-gray-600'}`} />
+                </div>
+                <div>
+                  <Label className="text-gray-900 font-medium">Rule Status</Label>
+                  <p className="text-sm text-gray-600">
+                    {isEnabled ? 'Rule is enabled and will be evaluated' : 'Rule is disabled and will be ignored'}
+                  </p>
+                </div>
+              </div>
               <Switch
                 checked={isEnabled}
                 onCheckedChange={setIsEnabled}
               />
-              <Label className="text-white">
-                {isEnabled ? 'Rule Enabled' : 'Rule Disabled'}
-              </Label>
             </div>
 
             {/* Conditions */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-white">Conditions</Label>
+                <Label className="text-gray-900 font-medium">Conditions</Label>
                 <Button
                   onClick={addCondition}
                   size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Condition
@@ -374,23 +386,23 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
               </div>
 
               {conditions.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
-                  <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No conditions added yet.</p>
-                  <p className="text-sm">Click "Add Condition" to define targeting rules.</p>
+                <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                  <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-600 mb-2">No conditions added yet.</p>
+                  <p className="text-sm text-gray-500">Click "Add Condition" to define targeting rules.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {conditions.map((condition, index) => (
-                    <Card key={index} className="bg-slate-700/30 border-slate-600/50">
+                    <Card key={index}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-4">
-                          <h4 className="text-white font-medium">Condition {index + 1}</h4>
+                          <h4 className="text-gray-900 font-medium">Condition {index + 1}</h4>
                           <Button
                             onClick={() => removeCondition(index)}
                             size="sm"
                             variant="ghost"
-                            className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -399,34 +411,32 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                         <div className="grid md:grid-cols-2 gap-4">
                           {/* Attribute Name */}
                           <div className="space-y-2">
-                            <Label className="text-white">Attribute Name</Label>
+                            <Label className="text-gray-900 font-medium">Attribute Name</Label>
                             <Input
                               value={condition.attribute_name}
                               onChange={(e) => handleAttributeNameChange(index, e.target.value)}
                               placeholder="e.g., userId, email, country"
-                              className="bg-slate-600/50 border-slate-500 text-white placeholder:text-slate-400"
                             />
                             {errors[`condition_${index}_name`] && (
-                              <p className="text-red-400 text-sm">{errors[`condition_${index}_name`]}</p>
+                              <p className="text-red-600 text-sm">{errors[`condition_${index}_name`]}</p>
                             )}
                           </div>
 
                           {/* Attribute Type */}
                           <div className="space-y-2">
-                            <Label className="text-white">Data Type</Label>
+                            <Label className="text-gray-900 font-medium">Data Type</Label>
                             <Select
                               value={condition.attribute_type}
                               onValueChange={(value) => handleAttributeTypeChange(index, value as DataType)}
                             >
-                              <SelectTrigger className="bg-slate-600/50 border-slate-500 text-white">
+                              <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-slate-800 border-slate-700">
+                              <SelectContent>
                                 {dataTypeOptions.map((option) => (
                                   <SelectItem
                                     key={option.value}
                                     value={option.value}
-                                    className="text-white hover:bg-slate-700 focus:bg-slate-700"
                                   >
                                     {option.label}
                                   </SelectItem>
@@ -437,20 +447,19 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
 
                           {/* Operator */}
                           <div className="space-y-2">
-                            <Label className="text-white">Operator</Label>
+                            <Label className="text-gray-900 font-medium">Operator</Label>
                             <Select
                               value={condition.operator_selected}
                               onValueChange={(value) => handleOperatorChange(index, value)}
                             >
-                              <SelectTrigger className="bg-slate-600/50 border-slate-500 text-white">
+                              <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-slate-800 border-slate-700">
+                              <SelectContent>
                                 {OPERATORS_BY_TYPE[condition.attribute_type].map((operator) => (
                                   <SelectItem
                                     key={operator}
                                     value={operator}
-                                    className="text-white hover:bg-slate-700 focus:bg-slate-700"
                                   >
                                     {operator.replace(/_/g, ' ')}
                                   </SelectItem>
@@ -461,11 +470,10 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
 
                           {/* Values */}
                           <div className="space-y-2">
-                            <Label className="text-white">Values</Label>
+                            <Label className="text-gray-900 font-medium">Values</Label>
                             <div className="space-y-2">
                               <Input
                                 placeholder={getValuePlaceholder(condition.attribute_type)}
-                                className="bg-slate-600/50 border-slate-500 text-white placeholder:text-slate-400"
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     e.preventDefault()
@@ -486,7 +494,7 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                                 }}
                               />
                               {condition.attribute_type === 'ARRAY' && (
-                                <div className="flex items-center space-x-2 text-sm text-blue-400">
+                                <div className="flex items-center space-x-2 text-sm text-indigo-600 bg-indigo-50 p-2 rounded">
                                   <Info className="w-4 h-4" />
                                   <span>For arrays, enter multiple values separated by commas</span>
                                 </div>
@@ -497,12 +505,12 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                                     <Badge
                                       key={valueIndex}
                                       variant="secondary"
-                                      className="bg-blue-900/50 text-blue-200 hover:bg-blue-900/70"
+                                      className="bg-indigo-100 text-indigo-800 hover:bg-indigo-200"
                                     >
                                       {value}
                                       <button
                                         onClick={() => removeValue(index, valueIndex)}
-                                        className="ml-2 hover:bg-red-500/20 rounded-full p-0.5"
+                                        className="ml-2 hover:bg-red-100 rounded-full p-0.5"
                                       >
                                         <X className="w-3 h-3" />
                                       </button>
@@ -511,7 +519,7 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                                 </div>
                               )}
                               {errors[`condition_${index}_values`] && (
-                                <p className="text-red-400 text-sm">{errors[`condition_${index}_values`]}</p>
+                                <p className="text-red-600 text-sm">{errors[`condition_${index}_values`]}</p>
                               )}
                             </div>
                           </div>
@@ -525,17 +533,36 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
 
             {/* Submit Error */}
             {errors.submit && (
-              <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded-md">
-                {errors.submit}
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-red-600 text-sm">{errors.submit}</p>
               </div>
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={() => setOpen(false)} className="bg-slate-700 hover:bg-slate-600 border-slate-600">Cancel</Button>
-              <Button onClick={handleSubmit} disabled={loading} className="bg-emerald-600 hover:bg-emerald-700">
-                {loading ? <Loader2 className="animate-spin" /> : <Save className="mr-2" />}
-                {loading ? 'Saving...' : (mode === 'create' ? 'Create Rule' : 'Save Changes')}
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <Button 
+                variant="outline" 
+                onClick={() => setOpen(false)}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={loading}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    {mode === 'create' ? 'Create Rule' : 'Save Changes'}
+                  </>
+                )}
               </Button>
             </div>
           </div>

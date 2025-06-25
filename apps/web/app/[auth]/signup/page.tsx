@@ -7,18 +7,18 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { GoogleLogin } from '@react-oauth/google';
 import { motion } from "framer-motion"
-import { ArrowRight, Mail, Lock, User, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react"
+import { ArrowRight, Mail, Lock, User, Eye, EyeOff, CheckCircle, XCircle, Flag } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "../../../contexts/auth-context"
 import { Toaster, toast } from "react-hot-toast"
 
 const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
-  <li className={`flex items-center text-xs ${met ? "text-green-400" : "text-neutral-400"}`}>
+  <li className={`flex items-center text-xs ${met ? "text-emerald-600" : "text-gray-500"}`}>
     {met ? <CheckCircle className="w-3 h-3 mr-1.5" /> : <XCircle className="w-3 h-3 mr-1.5" />}
     {text}
   </li>
@@ -85,7 +85,7 @@ export default function SignUpPage() {
   }
 
   const containerVariants = {
-    hidden: { opacity: 0, y: 50 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
@@ -97,197 +97,157 @@ export default function SignUpPage() {
   }
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0 },
   }
 
   return (
     <>
-      <Toaster />
-      <TooltipProvider>
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-teal-900 flex items-center justify-center p-4">
-          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
-            <motion.div
-              variants={itemVariants}
-              className="bg-slate-800/70 dark:bg-neutral-800/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/50 p-6 sm:p-8"
-            >
-              <motion.div variants={itemVariants} className="text-center mb-8">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4"
-                >
-                  <User className="w-8 h-8 text-white" />
-                </motion.div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
-                  Create Account
-                </h1>
-                <p className="text-neutral-400 dark:text-neutral-300 mt-2">Join us and start your journey today</p>
-              </motion.div>
+      <Toaster position="top-right" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <motion.div 
+          variants={containerVariants} 
+          initial="hidden" 
+          animate="visible" 
+          className="w-full max-w-md"
+        >
+          <motion.div variants={itemVariants} className="text-center mb-8">
+            <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <Flag className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
+            <p className="text-gray-600 mt-1">Get started with your free account</p>
+          </motion.div>
 
-              <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-6">
-                <motion.div variants={itemVariants} className="space-y-2">
-                  <Label htmlFor="name" className="text-sm font-medium text-neutral-300 dark:text-neutral-200">
-                    Full Name
-                  </Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <Input
-                          id="name"
-                          type="text"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="Enter your full name"
-                          className="pl-10 h-12 bg-slate-700/50 dark:bg-neutral-700/50 border-2 border-slate-600 dark:border-neutral-600 focus:border-emerald-500 transition-colors text-neutral-100 placeholder:text-neutral-400"
-                          required
-                        />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="bg-slate-700 text-neutral-200 border-slate-600">
-                      <p>Please enter your full name.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </motion.div>
-
-                <motion.div variants={itemVariants} className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-neutral-300 dark:text-neutral-200">
-                    Email
-                  </Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <Input
-                          id="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Enter your email"
-                          className="pl-10 h-12 bg-slate-700/50 dark:bg-neutral-700/50 border-2 border-slate-600 dark:border-neutral-600 focus:border-emerald-500 transition-colors text-neutral-100 placeholder:text-neutral-400"
-                          required
-                        />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="bg-slate-700 text-neutral-200 border-slate-600">
-                      <p>We'll use this for login and communication.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </motion.div>
-
-                <motion.div variants={itemVariants} className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium text-neutral-300 dark:text-neutral-200">
-                    Password
-                  </Label>
-                  <div className="mt-1 mb-2 p-3 bg-slate-700/30 dark:bg-neutral-700/30 rounded-md border border-slate-600/50 dark:border-neutral-600/50">
-                    <ul className="space-y-1">
-                      <PasswordRequirement met={passwordRequirements.minLength} text="At least 8 characters long" />
-                      <PasswordRequirement met={passwordRequirements.uppercase} text="1 uppercase letter (A-Z)" />
-                      <PasswordRequirement met={passwordRequirements.lowercase} text="1 lowercase letter (a-z)" />
-                      <PasswordRequirement met={passwordRequirements.number} text="1 number (0-9)" />
-                      <PasswordRequirement met={passwordRequirements.specialChar} text="1 special character (!@#$...)" />
-                    </ul>
+          <motion.div variants={itemVariants}>
+            <Card className="shadow-lg">
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-xl text-center">Sign up</CardTitle>
+                <CardDescription className="text-center">
+                  Enter your details to create your account
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full name</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter your full name"
+                        className="pl-10"
+                        required
+                      />
+                    </div>
                   </div>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <Input
-                          id="password"
-                          type={showPassword ? "text" : "password"}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Create a password"
-                          className="pl-10 pr-10 h-12 bg-slate-700/50 dark:bg-neutral-700/50 border-2 border-slate-600 dark:border-neutral-600 focus:border-emerald-500 transition-colors text-neutral-100 placeholder:text-neutral-400"
-                          required
-                          aria-describedby="password-requirements"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
-                          aria-label={showPassword ? "Hide password" : "Show password"}
-                        >
-                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                        </button>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="bg-slate-700 text-neutral-200 border-slate-600">
-                      <p>Choose a strong and secure password.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </motion.div>
 
-                <motion.div variants={itemVariants}>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="mt-1 mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-xs font-medium text-gray-700 mb-2">Password requirements:</p>
+                      <ul className="space-y-1">
+                        <PasswordRequirement met={passwordRequirements.minLength} text="At least 8 characters long" />
+                        <PasswordRequirement met={passwordRequirements.uppercase} text="1 uppercase letter (A-Z)" />
+                        <PasswordRequirement met={passwordRequirements.lowercase} text="1 lowercase letter (a-z)" />
+                        <PasswordRequirement met={passwordRequirements.number} text="1 number (0-9)" />
+                        <PasswordRequirement met={passwordRequirements.specialChar} text="1 special character (!@#$...)" />
+                      </ul>
+                    </div>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Create a password"
+                        className="pl-10 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
                   <Button
                     type="submit"
                     disabled={isLoading || !allRequirementsMet}
-                    className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full"
+                    size="lg"
                   >
                     {isLoading ? (
                       <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                       />
                     ) : (
                       <>
-                        Create Account
-                        <ArrowRight className="ml-2 w-5 h-5" />
+                        Create account
+                        <ArrowRight className="ml-2 w-4 h-4" />
                       </>
                     )}
                   </Button>
-                </motion.div>
-              </motion.form>
 
-              <motion.div variants={itemVariants} className="mt-6">
-                <div className="relative">
-                  <Separator className="my-4" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="bg-slate-800 dark:bg-neutral-800 px-4 text-sm text-neutral-500 dark:text-neutral-400">
-                      Or continue with
-                    </span>
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator className="w-full" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                    </div>
                   </div>
-                </div>
 
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12 mt-4 border-2 border-slate-600 dark:border-neutral-600 hover:border-slate-500 dark:hover:border-neutral-500 bg-slate-700/30 hover:bg-slate-700/50 text-neutral-200 transition-all duration-300"
-                  >
-                     <GoogleLogin
+                  <div className="flex justify-center">
+                    <GoogleLogin
                       onSuccess={handleGoogleSuccess}
                       onError={handleGoogleFailure}
-                      theme="filled_blue" // "filled_blue" or "outline" or "filled_black"
-                      shape="rectangular" // "rectangular", "square", "circle", "pill"
-                      logo_alignment="left" // "left" or "center"
-                      text="signin_with" // "signin_with", "signup_with", "continue_with", "signin"
-                      size="large" // "small", "medium", "large"
-                      width="300px" // Custom width
-                      // containerProps={{ style: { width: '100%' } }} // Example of container props
+                      text="signup_with"
+                      shape="rectangular"
+                      theme="outline"
+                      size="large"
+                      width="100%"
                     />
-                  </Button>
-                </motion.div>
-              </motion.div>
+                  </div>
+                </form>
 
-              <motion.div variants={itemVariants} className="text-center mt-6">
-                <p className="text-neutral-400 dark:text-neutral-300">
+                <div className="mt-6 text-center text-sm text-gray-600">
                   Already have an account?{" "}
-                  <Link
-                    href="/auth/signin"
-                    className="text-emerald-500 hover:text-emerald-400 font-semibold transition-colors"
-                  >
+                  <Link href="/auth/signin" className="text-indigo-600 hover:text-indigo-700 font-medium">
                     Sign in
                   </Link>
-                </p>
-              </motion.div>
-            </motion.div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
-        </div>
-      </TooltipProvider>
+        </motion.div>
+      </div>
     </>
   )
 }

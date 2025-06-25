@@ -61,24 +61,24 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
   return (
     <>
       <Toaster />
-      <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/40 transition-all duration-300">
+      <Card className="hover:shadow-md transition-shadow duration-200">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-4">
                 {/* Avatar */}
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <span className="text-white font-semibold text-lg">
+                <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span className="font-semibold text-lg">
                     {member.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 
                 {/* Member Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-white truncate">
+                  <h3 className="text-lg font-semibold text-gray-900 truncate">
                     {member.name}
                   </h3>
-                  <p className="text-neutral-400 text-sm truncate">
+                  <p className="text-gray-600 text-sm truncate">
                     {member.email}
                   </p>
                   <div className="mt-2 flex items-center gap-3">
@@ -102,21 +102,21 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
                           variant="outline"
                           onClick={handleCancel}
                           disabled={isLoading}
-                          className="border-slate-600 text-slate-300 hover:bg-slate-800 h-8 px-3"
+                          className="h-8 px-3"
                         >
                           <X className="w-4 h-4" />
                         </Button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border-0 ${
                           member.role === "OWNER" 
-                            ? "bg-purple-500/20 text-purple-300 border border-purple-500/30" 
+                            ? "bg-purple-100 text-purple-700" 
                             : member.role === "ADMIN"
-                            ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                            ? "bg-indigo-100 text-indigo-700"
                             : member.role === "MEMBER"
-                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                            : "bg-slate-500/20 text-slate-300 border border-slate-500/30"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-gray-100 text-gray-700"
                         }`}>
                           {member.role}
                         </span>
@@ -136,7 +136,7 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
                     variant="outline"
                     onClick={() => setIsEditing(true)}
                     disabled={isUpdating}
-                    className="border-slate-600 text-slate-300 hover:bg-slate-800 h-8 w-8 p-0"
+                    className="h-8 w-8 p-0"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -145,7 +145,7 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
                     variant="outline"
                     onClick={() => onDelete(member.id)}
                     disabled={isUpdating}
-                    className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 h-8 w-8 p-0"
+                    className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 h-8 w-8 p-0"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

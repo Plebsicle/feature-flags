@@ -7,6 +7,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
+  TrendingUp,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -125,27 +126,29 @@ function StatCard({
   value,
   description,
   icon: Icon,
-  gradient,
+  iconColor,
+  iconBg,
 }: {
   title: string
   value: string
   description: string
   icon: any
-  gradient: string
+  iconColor: string
+  iconBg: string
 }) {
   return (
-    <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/40 transition-all duration-300">
+    <Card className="hover:shadow-md transition-shadow duration-200">
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-xs sm:text-sm font-medium text-neutral-400">{title}</CardTitle>
-        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-r ${gradient} flex items-center justify-center`}>
-          <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+        <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
+        <div className={`w-10 h-10 rounded-lg ${iconBg} flex items-center justify-center`}>
+          <Icon className={`w-5 h-5 ${iconColor}`} />
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+        <div className="text-2xl font-bold text-gray-900 mb-1">
           {value}
         </div>
-        <CardDescription className="text-neutral-400 text-xs sm:text-sm">
+        <CardDescription className="text-gray-600 text-sm">
           {description}
         </CardDescription>
       </CardContent>
@@ -166,22 +169,22 @@ function ActivityItem({
   status: "success" | "warning" | "pending"
 }) {
   const statusConfig = {
-    success: { icon: CheckCircle, color: "text-emerald-400" },
-    warning: { icon: AlertCircle, color: "text-amber-400" },
-    pending: { icon: Clock, color: "text-blue-400" },
+    success: { icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
+    warning: { icon: AlertCircle, color: "text-amber-600", bg: "bg-amber-50" },
+    pending: { icon: Clock, color: "text-indigo-600", bg: "bg-indigo-50" },
   }
 
   const StatusIcon = statusConfig[status].icon
 
   return (
-    <div className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg hover:bg-slate-800/40 transition-colors duration-200">
-      <div className="flex-shrink-0 mt-0.5">
-        <StatusIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${statusConfig[status].color}`} />
+    <div className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+      <div className={`flex-shrink-0 w-8 h-8 rounded-full ${statusConfig[status].bg} flex items-center justify-center`}>
+        <StatusIcon className={`w-4 h-4 ${statusConfig[status].color}`} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm sm:text-base text-white font-medium">{type}</p>
-        <p className="text-xs sm:text-sm text-neutral-400 mt-1 leading-relaxed">{message}</p>
-        <p className="text-xs text-neutral-500 mt-2">{time}</p>
+        <p className="text-sm font-medium text-gray-900">{type}</p>
+        <p className="text-sm text-gray-600 mt-1 leading-relaxed">{message}</p>
+        <p className="text-xs text-gray-500 mt-2">{time}</p>
       </div>
     </div>
   )
@@ -225,143 +228,152 @@ async function getDashboardDataUsingHeaders(): Promise<DashboardData | null> {
 
     return data.data;
   } catch (err) {
-    console.error('Error fetching dashboard data using headers:', err);
+    console.error('Error fetching dashboard data:', err);
     return null;
   }
 }
 
 function getActivityStatus(title: string): "success" | "warning" | "pending" {
-  if (title.toLowerCase().includes('alert') || title.toLowerCase().includes('error') || title.toLowerCase().includes('rollback')) {
-    return 'warning'
+  if (title.toLowerCase().includes('success') || title.toLowerCase().includes('enabled')) {
+    return 'success';
+  } else if (title.toLowerCase().includes('warning') || title.toLowerCase().includes('disabled')) {
+    return 'warning';
+  } else {
+    return 'pending';
   }
-  if (title.toLowerCase().includes('test') || title.toLowerCase().includes('pending')) {
-    return 'pending'
-  }
-  return 'success'
 }
 
-// MAIN SERVER COMPONENT - All content rendered on server for SEO
 export default async function DashboardPage() {
-  // Try different approaches to get the data
-  let dashboardData = await getDashboardDataUsingHeaders()
-  
-  // Fallback to cookies approach if headers don't work
-  if (!dashboardData) {
-    dashboardData = await getDashboardDataWithSpecificCookies()
-  }
-  
-  // Last fallback to general cookies approach
-  if (!dashboardData) {
-    dashboardData = await getDashboardData()
-  }
+  const dashboardData = await getDashboardData();
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="space-y-6 sm:space-y-8">
-        {/* Header - Server rendered, great for SEO */}
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Dashboard</h1>
-          <p className="text-neutral-400 text-base sm:text-lg">
-            Monitor your feature flags and track performance metrics
-          </p>
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600 mt-1">Welcome back! Here's what's happening with your feature flags.</p>
+      </div>
 
-        {/* Error State - Server rendered */}
-        {!dashboardData && (
-          <Card className="bg-red-900/20 border-red-500/30">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="w-5 h-5 text-red-400" />
-                <p className="text-red-400">Error loading dashboard data. Please check if you're logged in.</p>
+      {dashboardData ? (
+        <>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              title="Active Flags"
+              value={dashboardData.activeFlags?.toString() || "0"}
+              description="Currently deployed"
+              icon={Flag}
+              iconColor="text-indigo-600"
+              iconBg="bg-indigo-100"
+            />
+            <StatCard
+              title="Total Users"
+              value={dashboardData.totalUsers?.toLocaleString() || "0"}
+              description="Registered users"
+              icon={Users}
+              iconColor="text-emerald-600"
+              iconBg="bg-emerald-100"
+            />
+            <StatCard
+              title="Flag Evaluations"
+              value={dashboardData.flagEvaluations || "0"}
+              description="In the last 24h"
+              icon={Activity}
+              iconColor="text-amber-600"
+              iconBg="bg-amber-100"
+            />
+            <StatCard
+              title="Conversion Rate"
+              value={dashboardData.conversionRate || "0%"}
+              description="This month"
+              icon={TrendingUp}
+              iconColor="text-purple-600"
+              iconBg="bg-purple-100"
+            />
+          </div>
+
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900">Recent Activity</CardTitle>
+              <CardDescription>Latest changes and updates to your feature flags</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              {Array.isArray(dashboardData.recentActivity) && dashboardData.recentActivity.length > 0 ? (
+                <div className="divide-y divide-gray-100">
+                  {dashboardData.recentActivity.map((activity: any, index: number) => (
+                    <ActivityItem
+                      key={index}
+                      type={activity.title || activity.type || "Update"}
+                      message={activity.description || activity.message || "No description available"}
+                      time={activity.timestamp || activity.time || "Just now"}
+                      status={getActivityStatus(activity.title || activity.type || "")}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center">
+                  <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No recent activity</h3>
+                  <p className="text-gray-600">When you start using feature flags, you'll see recent activity here.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        <div className="space-y-6">
+          {/* Loading/Error State with placeholder stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              title="Active Flags"
+              value="0"
+              description="Currently deployed"
+              icon={Flag}
+              iconColor="text-indigo-600"
+              iconBg="bg-indigo-100"
+            />
+            <StatCard
+              title="Total Users"
+              value="0"
+              description="Registered users"
+              icon={Users}
+              iconColor="text-emerald-600"
+              iconBg="bg-emerald-100"
+            />
+            <StatCard
+              title="Flag Evaluations"
+              value="0"
+              description="In the last 24h"
+              icon={Activity}
+              iconColor="text-amber-600"
+              iconBg="bg-amber-100"
+            />
+            <StatCard
+              title="Conversion Rate"
+              value="0%"
+              description="This month"
+              icon={TrendingUp}
+              iconColor="text-purple-600"
+              iconBg="bg-purple-100"
+            />
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900">Recent Activity</CardTitle>
+              <CardDescription>Latest changes and updates to your feature flags</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load dashboard data</h3>
+                <p className="text-gray-600">Please check your connection and try refreshing the page.</p>
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {dashboardData && (
-          <>
-            {/* Stats Grid - Server rendered, search engines can see this! */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <StatCard
-                title="Active Flags"
-                value={dashboardData.activeFlags.toString()}
-                description="Feature flags currently active"
-                icon={Flag}
-                gradient="from-blue-500 to-indigo-600"
-              />
-              <StatCard
-                title="Organisation Members"
-                value={dashboardData.totalUsers.toString()}
-                description="Total team members"
-                icon={Users}
-                gradient="from-emerald-500 to-teal-600"
-              />
-              <StatCard
-                title="Flag Evaluations"
-                value={dashboardData.flagEvaluations}
-                description="Total evaluations this month"
-                icon={Activity}
-                gradient="from-purple-500 to-violet-600"
-              />
-              <StatCard
-                title="Conversion Rate"
-                value={dashboardData.conversionRate}
-                description="Average conversion rate"
-                icon={BarChart3}
-                gradient="from-orange-500 to-amber-600"
-              />
-            </div>
-
-            {/* Main Content Grid - Server rendered */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-              {/* Recent Activity - Server rendered for SEO */}
-              <div className="lg:col-span-3">
-                <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                  <CardHeader>
-                    <CardTitle className="text-lg sm:text-xl text-white">Recent Activity</CardTitle>
-                    <CardDescription className="text-neutral-400 text-sm sm:text-base">
-                      Latest flag changes and system events
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-1">
-                    {typeof dashboardData.recentActivity === 'string' ? (
-                      <div className="text-center py-8 text-neutral-400">
-                        {dashboardData.recentActivity}
-                      </div>
-                    ) : (
-                      dashboardData.recentActivity?.map((activity, index) => (
-                        <ActivityItem
-                          key={index}
-                          type={activity.title}
-                          message={activity.description}
-                          time={activity.timestamp}
-                          status={getActivityStatus(activity.title)}
-                        />
-                      ))
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Quick Actions - Only interactive parts are client components */}
-              {/* <div>
-                <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                  <CardHeader>
-                    <CardTitle className="text-lg sm:text-xl text-white">Quick Actions</CardTitle>
-                    <CardDescription className="text-neutral-400 text-sm sm:text-base">
-                      Common tasks and shortcuts
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3 sm:space-y-4">
-                    {/* Basic structure server-rendered, interactivity added by client component */}
-                    {/* <InteractiveElements />
-                  </CardContent>
-                </Card>
-              // </div> */} 
-            </div>
-          </>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

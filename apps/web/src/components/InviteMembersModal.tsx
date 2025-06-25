@@ -118,13 +118,15 @@ export function InviteMembersModal({ isOpen, onClose, onInvite }: InviteMembersM
     <>
       <Toaster />
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-md">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <UserPlus className="w-5 h-5" />
+            <DialogTitle className="flex items-center gap-2">
+              <div className="bg-indigo-100 p-2 rounded-md">
+                <UserPlus className="w-5 h-5 text-indigo-600" />
+              </div>
               Invite Members
             </DialogTitle>
-            <DialogDescription className="text-slate-400">
+            <DialogDescription>
               Invite new members to your organization by entering their email addresses.
             </DialogDescription>
           </DialogHeader>
@@ -132,14 +134,14 @@ export function InviteMembersModal({ isOpen, onClose, onInvite }: InviteMembersM
           <div className="space-y-4">
             {/* Email Input */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200">
+              <label className="text-sm font-medium text-gray-900">
                 Email Addresses
               </label>
               <textarea
                 value={emailInput}
                 onChange={(e) => handleEmailInputChange(e.target.value)}
                 placeholder="Enter email addresses separated by commas or new lines&#10;example@domain.com, another@domain.com"
-                className="w-full h-24 px-3 py-2 bg-slate-800 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+                className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
                 disabled={isLoading}
               />
               
@@ -147,12 +149,12 @@ export function InviteMembersModal({ isOpen, onClose, onInvite }: InviteMembersM
               {emailList.length > 0 && (
                 <div className="space-y-1">
                   {validEmails.length > 0 && (
-                    <div className="text-sm text-emerald-400">
+                    <div className="text-sm text-emerald-600 bg-emerald-50 p-2 rounded">
                       ✓ Valid emails ({validEmails.length}): {validEmails.join(", ")}
                     </div>
                   )}
                   {invalidEmails.length > 0 && (
-                    <div className="text-sm text-red-400">
+                    <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
                       ✗ Invalid emails ({invalidEmails.length}): {invalidEmails.join(", ")}
                     </div>
                   )}
@@ -162,7 +164,7 @@ export function InviteMembersModal({ isOpen, onClose, onInvite }: InviteMembersM
 
             {/* Role Selection */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-200">
+              <label className="text-sm font-medium text-gray-900">
                 Role
               </label>
               <Select
@@ -170,19 +172,18 @@ export function InviteMembersModal({ isOpen, onClose, onInvite }: InviteMembersM
                 onValueChange={(role) => setSelectedRole(role as UserRole)}
                 disabled={isLoading}
               >
-                <SelectTrigger className="bg-slate-800 border-slate-600 text-slate-200">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectContent>
                   {availableRoles.map((role) => (
                     <SelectItem 
                       key={role} 
                       value={role}
-                      className="text-slate-200 focus:bg-slate-700 focus:text-white"
                     >
                       <div className="flex flex-col">
                         <span className="font-medium">{roleLabels[role]}</span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-gray-500">
                           {roleDescriptions[role]}
                         </span>
                       </div>
@@ -198,20 +199,15 @@ export function InviteMembersModal({ isOpen, onClose, onInvite }: InviteMembersM
               variant="outline" 
               onClick={handleClose}
               disabled={isLoading}
-              className="border-slate-600 text-slate-300 hover:bg-slate-800"
             >
               Cancel
             </Button>
             <Button 
               onClick={handleSubmit}
               disabled={isLoading || validEmails.length === 0}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
             >
-              {isLoading ? (
-                "Sending..."
-              ) : (
-                `Send ${validEmails.length} Invitation${validEmails.length === 1 ? "" : "s"}`
-              )}
+              {isLoading ? "Sending..." : `Invite ${validEmails.length} Member${validEmails.length !== 1 ? 's' : ''}`}
             </Button>
           </DialogFooter>
         </DialogContent>

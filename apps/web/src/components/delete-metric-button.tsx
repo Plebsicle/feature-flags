@@ -72,23 +72,22 @@ export function DeleteMetricButton({ metricId, metricName }: DeleteMetricButtonP
           <Button 
             variant="outline" 
             size="sm" 
-            className="border-red-700 text-red-300 hover:bg-red-800/20"
+            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
           >
             <Trash2 className="w-4 h-4" />
             Delete
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent className="bg-slate-800 border-slate-700">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Metric</AlertDialogTitle>
-            <AlertDialogDescription className="text-neutral-400">
-              Are you sure you want to delete the <span className="font-medium text-white">"{metricName}"</span> metric? 
+            <AlertDialogTitle>Delete Metric</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the <span className="font-medium text-gray-900">"{metricName}"</span> metric? 
               This action cannot be undone and will permanently remove all data and analytics for this metric.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
-              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
               disabled={isDeleting}
             >
               Cancel

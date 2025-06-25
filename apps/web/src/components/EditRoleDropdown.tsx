@@ -39,19 +39,18 @@ export function EditRoleDropdown({ value, onChange, disabled = false }: EditRole
       onValueChange={(newValue) => onChange(newValue as UserRole)}
       disabled={disabled}
     >
-      <SelectTrigger className="w-32 bg-slate-800/50 border-slate-600 text-slate-200">
+      <SelectTrigger className="w-32">
         <SelectValue placeholder="Select role" />
       </SelectTrigger>
-      <SelectContent className="bg-slate-800 border-slate-700">
+      <SelectContent>
         {availableRoles.map((role) => (
           <SelectItem 
             key={role} 
             value={role}
-            className="text-slate-200 focus:bg-slate-700 focus:text-white"
           >
             <div className="flex flex-col">
               <span className="font-medium">{roleLabels[role]}</span>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-gray-500">
                 {roleDescriptions[role]}
               </span>
             </div>

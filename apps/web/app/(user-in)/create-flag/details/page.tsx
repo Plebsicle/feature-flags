@@ -87,95 +87,93 @@ export default function DetailsPage() {
   return (
     <>
     <Toaster />
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 lg:p-8">
+    <div className="space-y-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-              <Flag className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+              <Flag className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">Create Feature Flag</h1>
-              <p className="text-neutral-400">Step 1 of 4</p>
+              <h1 className="text-3xl font-bold text-gray-900">Create Feature Flag</h1>
+              <p className="text-gray-600">Step 1 of 4</p>
             </div>
           </div>
           
           {/* Progress indicator */}
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">1</div>
-            <div className="h-1 w-16 bg-slate-700"></div>
-            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-sm font-medium">2</div>
-            <div className="h-1 w-16 bg-slate-700"></div>
-            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-sm font-medium">3</div>
-            <div className="h-1 w-16 bg-slate-700"></div>
-            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-sm font-medium">4</div>
+            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">1</div>
+            <div className="h-1 w-16 bg-gray-200"></div>
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">2</div>
+            <div className="h-1 w-16 bg-gray-200"></div>
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">3</div>
+            <div className="h-1 w-16 bg-gray-200"></div>
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">4</div>
           </div>
         </div>
 
         {/* Form */}
-        <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardHeader>
-            <CardTitle className="text-white">Flag Details</CardTitle>
-            <CardDescription className="text-neutral-400">
+            <CardTitle className="text-gray-900">Flag Details</CardTitle>
+            <CardDescription>
               Define the basic information for your feature flag
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Name */}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-white">Name *</Label>
+              <Label htmlFor="name">Name *</Label>
               <Input
                 id="name"
                 value={state.name}
                 onChange={handleNameChange}
                 placeholder="e.g., Dark Mode Toggle"
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
               />
             </div>
 
             {/* Key (auto-generated) */}
             <div className="space-y-2">
-              <Label htmlFor="key" className="text-white">Key (auto-generated)</Label>
+              <Label htmlFor="key">Key (auto-generated)</Label>
               <Input
                 id="key"
                 value={state.key}
                 readOnly
                 placeholder="auto-generated-from-name"
-                className="bg-slate-700/30 border-slate-600 text-slate-300 placeholder:text-slate-500 cursor-not-allowed"
+                className="bg-gray-50 cursor-not-allowed"
               />
-              <p className="text-xs text-slate-400">This key is automatically generated from the name and will be used in your code</p>
+              <p className="text-xs text-gray-600">This key is automatically generated from the name and will be used in your code</p>
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-white">Description</Label>
+              <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 value={state.description}
                 onChange={handleDescriptionChange}
                 placeholder="Describe what this feature flag controls..."
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 min-h-[100px]"
+                className="min-h-[100px]"
               />
             </div>
 
             {/* Flag Type */}
             <div className="space-y-2">
-              <Label htmlFor="flag-type" className="text-white">Flag Type *</Label>
+              <Label htmlFor="flag-type">Flag Type *</Label>
               <Select value={state.flag_type} onValueChange={handleFlagTypeChange}>
-                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                <SelectTrigger>
                   <SelectValue placeholder="Select flag type" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectContent>
                   {flagTypeOptions.map((option) => (
                     <SelectItem 
                       key={option.value} 
                       value={option.value}
-                      className="text-white hover:bg-slate-700 focus:bg-slate-700"
                     >
                       <div className="flex flex-col">
                         <span className="font-medium">{option.label}</span>
-                        <span className="text-xs text-slate-400">{option.description}</span>
+                        <span className="text-xs text-gray-500">{option.description}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -185,29 +183,25 @@ export default function DetailsPage() {
 
             {/* Tags */}
             <div className="space-y-2">
-              <Label htmlFor="tags" className="text-white">Tags</Label>
+              <Label htmlFor="tags">Tags</Label>
               <MultipleSelector
                 value={state.tags}
                 onValueChange={handleTagsChange}
                 placeholder="Add tags to organize your flag..."
                 emptyIndicator={
-                  <p className="text-center text-lg leading-10 text-slate-400">
+                  <p className="text-center text-lg leading-10 text-gray-400">
                     No tags found. Type to create new ones.
                   </p>
                 }
-                className="bg-slate-700/50 border-slate-600"
               />
-              <p className="text-xs text-slate-400">Press Enter to create a new tag</p>
+              <p className="text-xs text-gray-600">Press Enter to create a new tag</p>
             </div>
 
-            {/* Next Button */}
+            {/* Actions */}
             <div className="flex justify-end pt-6">
-              <Button 
-                onClick={handleNext}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8"
-              >
-                Next Step
-                <ArrowRight className="w-4 h-4 ml-2" />
+              <Button onClick={handleNext} className="flex items-center space-x-2">
+                <span>Next: Environments</span>
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </CardContent>

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { MailOpenIcon as MailLock, ArrowLeft } from "lucide-react"
+import { Mail, ArrowLeft, Flag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -20,35 +20,44 @@ export default function CheckEmailPasswordResetPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-amber-900 to-yellow-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
-        <Card className="bg-slate-800/70 dark:bg-neutral-800/70 backdrop-blur-xl border-slate-700/50 shadow-2xl">
+        <Card className="shadow-lg border border-gray-200">
           <CardHeader className="text-center pb-6 pt-8">
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ delay: 0.1, type: "spring", stiffness: 180 }}
-              className="w-20 h-20 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6"
+              className="w-20 h-20 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-6"
             >
-              <MailLock className="w-10 h-10 text-white" />
+              <Mail className="w-10 h-10 text-indigo-600" />
             </motion.div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
+            <div className="flex items-center justify-center mb-4">
+              <Flag className="w-6 h-6 text-indigo-600 mr-2" />
+              <span className="text-lg font-semibold text-gray-900">FeatureFlag</span>
+            </div>
+            <CardTitle className="text-2xl font-bold text-gray-900">
               Check Your Email
             </CardTitle>
-            <CardDescription className="text-neutral-400 dark:text-neutral-300 mt-3 text-lg">
+            <CardDescription className="text-gray-600 mt-3 text-base">
               We've sent a password reset link to your email address.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-neutral-300 dark:text-neutral-200 mb-8">
-              If an account exists for this email, you'll receive instructions to reset your password shortly.
+          <CardContent className="text-center space-y-6">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <p className="text-gray-700 text-sm">
+                If an account exists for this email, you'll receive instructions to reset your password shortly.
+              </p>
+            </div>
+            <p className="text-gray-600 text-sm">
+              Didn't receive an email? Check your spam folder or contact support if the issue persists.
             </p>
             <Link href="/auth/signin">
               <Button
                 variant="outline"
-                className="w-full h-12 border-amber-500 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 transition-colors duration-300 group"
+                className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 group"
               >
-                <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform duration-300" />
+                <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
                 Back to Sign In
               </Button>
             </Link>

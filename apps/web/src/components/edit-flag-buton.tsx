@@ -125,36 +125,37 @@ export function EditFeatureFlagModal({
         <DialogTrigger asChild>
           <Button 
             variant="outline" 
-            size="sm" 
-            className="border-slate-700 text-neutral-300 hover:bg-slate-800/50"
+            size="sm"
           >
             <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>
         </DialogTrigger>
-        <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center">
-              <Edit className="w-5 h-5 mr-2 text-emerald-400" />
+            <DialogTitle className="flex items-center">
+              <div className="bg-indigo-100 p-2 rounded-md mr-3">
+                <Edit className="w-5 h-5 text-indigo-600" />
+              </div>
               Edit Feature Flag: {flagName}
             </DialogTitle>
-            <DialogDescription className="text-neutral-400">
+            <DialogDescription>
               Modify the configuration for this feature flag. Changes will take effect immediately.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6 py-4">
             {/* Flag Status Toggle */}
-            <div className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex items-center space-x-3">
                 {isActive ? (
-                  <ToggleRight className="w-6 h-6 text-emerald-400" />
+                  <ToggleRight className="w-6 h-6 text-emerald-600" />
                 ) : (
                   <ToggleLeft className="w-6 h-6 text-gray-400" />
                 )}
                 <div>
-                  <Label className="text-white font-medium">Flag Status</Label>
-                  <p className="text-sm text-neutral-400">
+                  <Label className="text-gray-900 font-medium">Flag Status</Label>
+                  <p className="text-sm text-gray-600">
                     {isActive ? 'This flag is currently active' : 'This flag is currently inactive'}
                   </p>
                 </div>
@@ -162,13 +163,12 @@ export function EditFeatureFlagModal({
               <Switch
                 checked={isActive}
                 onCheckedChange={setIsActive}
-                className="data-[state=checked]:bg-emerald-600"
               />
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-white font-medium">
+              <Label htmlFor="description" className="text-gray-900 font-medium">
                 Description
               </Label>
               <Textarea
@@ -176,17 +176,17 @@ export function EditFeatureFlagModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter a description for this feature flag..."
-                className="bg-slate-900/50 border-slate-700/50 text-white min-h-[100px]"
+                className="min-h-[100px]"
                 disabled={isLoading}
               />
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-gray-500">
                 Provide a clear description of what this feature flag controls
               </p>
             </div>
 
             {/* Tags */}
             <div className="space-y-2">
-              <Label htmlFor="tags" className="text-white font-medium flex items-center">
+              <Label htmlFor="tags" className="text-gray-900 font-medium flex items-center">
                 <Tag className="w-4 h-4 mr-2" />
                 Tags
               </Label>
@@ -198,29 +198,27 @@ export function EditFeatureFlagModal({
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleTagInputKeyDown}
                   placeholder="Add a tag..."
-                  className="bg-slate-900/50 border-slate-700/50 text-white flex-1"
                   disabled={isLoading}
                 />
                 <Button
                   type="button"
+                  size="sm"
                   onClick={handleAddTag}
                   disabled={!tagInput.trim() || isLoading}
-                  variant="outline"
-                  size="sm"
-                  className="border-slate-700 text-neutral-300 hover:bg-slate-800/50"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-
-              {/* Existing Tags */}
+              
+              {/* Tags Display */}
               {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-3 bg-slate-900/30 rounded-lg border border-slate-700/30">
+                <div className="flex flex-wrap gap-2 p-2 bg-gray-50 rounded-md border">
                   {tags.map((tag, index) => (
                     <Badge
                       key={index}
-                      variant="outline"
-                      className="border-slate-600 text-neutral-300 hover:border-red-500 hover:text-red-400 cursor-pointer"
+                      variant="secondary"
+                      className="cursor-pointer hover:bg-gray-200"
                       onClick={() => handleRemoveTag(tag)}
                     >
                       {tag}
@@ -230,8 +228,8 @@ export function EditFeatureFlagModal({
                 </div>
               )}
               
-              <p className="text-xs text-neutral-400">
-                Press Enter or click the + button to add tags. Click tags to remove them.
+              <p className="text-xs text-gray-500">
+                Use tags to categorize and organize your feature flags. Click on a tag to remove it.
               </p>
             </div>
           </div>
@@ -241,7 +239,6 @@ export function EditFeatureFlagModal({
               variant="outline"
               onClick={handleCancel}
               disabled={isLoading}
-              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
             >
               <X className="w-4 h-4 mr-2" />
               Cancel
@@ -249,7 +246,7 @@ export function EditFeatureFlagModal({
             <Button
               onClick={handleSave}
               disabled={isLoading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
             >
               {isLoading ? (
                 <>

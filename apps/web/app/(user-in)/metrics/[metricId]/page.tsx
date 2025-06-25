@@ -152,41 +152,41 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
     }
   }
 
-  const getMetricGradient = (type: string) => {
+  const getMetricIconBackground = (type: string) => {
     switch (type) {
       case "CONVERSION":
-        return "from-purple-500 to-violet-600"
+        return "bg-purple-100 text-purple-600"
       case "COUNT":
-        return "from-blue-500 to-indigo-600"
+        return "bg-blue-100 text-blue-600"
       case "NUMERIC":
-        return "from-emerald-500 to-teal-600"
+        return "bg-emerald-100 text-emerald-600"
       default:
-        return "from-slate-500 to-slate-600"
+        return "bg-gray-100 text-gray-600"
     }
   }
 
   const Icon = metric ? getMetricIcon(metric.metric_type) : BarChart3
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto space-y-8">
         {/* Header with back navigation */}
-        <div className="mb-8">
-          <Link href="/metrics" className="inline-flex items-center gap-2 text-neutral-400 hover:text-white transition-colors duration-300 mb-6">
+        <div>
+          <Link href="/metrics" className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 mb-6">
             <ArrowLeft className="w-4 h-4" />
             Back to Metrics
           </Link>
 
           {/* Error State */}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-6 mb-8">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
-                  <Activity className="w-4 h-4 text-red-400" />
+                <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                  <Activity className="w-4 h-4 text-red-600" />
                 </div>
                 <div>
-                  <h3 className="text-red-400 font-medium">Error Loading Metric</h3>
-                  <p className="text-red-400/70 text-sm">{error}</p>
+                  <h3 className="text-red-800 font-medium">Error Loading Metric</h3>
+                  <p className="text-red-600 text-sm">{error}</p>
                 </div>
               </div>
             </div>
@@ -195,25 +195,25 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
           {metric && (
             <>
               {/* Metric Header */}
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex items-start justify-between mb-8">
                 <div className="flex items-center gap-4">
-                  <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${getMetricGradient(metric.metric_type)} flex items-center justify-center`}>
-                    <Icon className="w-8 h-8 text-white" />
+                  <div className={`w-16 h-16 rounded-xl ${getMetricIconBackground(metric.metric_type)} flex items-center justify-center`}>
+                    <Icon className="w-8 h-8" />
                   </div>
                   <div>
-                    <h1 className="text-4xl font-bold text-white mb-2">{metric.metric_name}</h1>
-                    <p className="text-lg text-slate-400 font-mono">{metric.metric_key}</p>
-                    <div className="flex items-center gap-3 mt-2">
+                    <h1 className="text-3xl font-semibold text-gray-900 mb-2">{metric.metric_name}</h1>
+                    <p className="text-lg text-gray-600 font-mono">{metric.metric_key}</p>
+                    <div className="flex items-center gap-3 mt-3">
                       <Badge 
                         variant={metric.is_active ? "default" : "secondary"} 
-                        className={metric.is_active ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-slate-500/20 text-slate-400 border-slate-500/30"}
+                        className={metric.is_active ? "bg-emerald-100 text-emerald-700 border-0" : "bg-gray-100 text-gray-600 border-0"}
                       >
                         {metric.is_active ? "Active" : "Inactive"}
                       </Badge>
-                      <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                      <Badge className="bg-indigo-100 text-indigo-700 border-0">
                         {metric.metric_type}
                       </Badge>
-                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                      <Badge className="bg-amber-100 text-amber-700 border-0">
                         {metric.aggregation_method}
                       </Badge>
                     </div>
@@ -228,34 +228,34 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
               </div>
 
               {/* Metric Details Grid */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Basic Information */}
-                  <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
+                  <Card className="hover:shadow-md transition-shadow duration-200">
                     <CardHeader>
-                      <CardTitle className="text-xl text-neutral-100 flex items-center gap-2">
-                        <Settings className="w-5 h-5" />
+                      <CardTitle className="text-xl text-gray-900 flex items-center gap-2">
+                        <Settings className="w-5 h-5 text-indigo-600" />
                         Basic Information
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {metric.description && (
                         <div>
-                          <h4 className="text-sm font-medium text-neutral-300 mb-2">Description</h4>
-                          <p className="text-neutral-400 leading-relaxed">{metric.description}</p>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Description</h4>
+                          <p className="text-gray-600 leading-relaxed">{metric.description}</p>
                         </div>
                       )}
                       
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <h4 className="text-sm font-medium text-neutral-300 mb-2">Metric Type</h4>
-                          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Metric Type</h4>
+                          <Badge className="bg-indigo-100 text-indigo-700 border-0">
                             {metric.metric_type}
                           </Badge>
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium text-neutral-300 mb-2">Aggregation Method</h4>
-                          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Aggregation Method</h4>
+                          <Badge className="bg-amber-100 text-amber-700 border-0">
                             {metric.aggregation_method}
                           </Badge>
                         </div>
@@ -263,16 +263,16 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
 
                       {metric.unit_measurement && (
                         <div>
-                          <h4 className="text-sm font-medium text-neutral-300 mb-2">Unit of Measurement</h4>
-                          <Badge className="bg-teal-500/20 text-teal-400 border-teal-500/30">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Unit of Measurement</h4>
+                          <Badge className="bg-teal-100 text-teal-700 border-0">
                             {metric.unit_measurement}
                           </Badge>
                         </div>
                       )}
 
                       <div>
-                        <h4 className="text-sm font-medium text-neutral-300 mb-2">Aggregation Window</h4>
-                        <div className="flex items-center gap-2 text-neutral-400">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Aggregation Window</h4>
+                        <div className="flex items-center gap-2 text-gray-600">
                           <Clock className="w-4 h-4" />
                           {metric.aggregation_window} seconds
                         </div>
@@ -281,22 +281,22 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                   </Card>
 
                   {/* Tags and Metadata */}
-                  <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
+                  <Card className="hover:shadow-md transition-shadow duration-200">
                     <CardHeader>
-                      <CardTitle className="text-xl text-neutral-100 flex items-center gap-2">
-                        <Tag className="w-5 h-5" />
+                      <CardTitle className="text-xl text-gray-900 flex items-center gap-2">
+                        <Tag className="w-5 h-5 text-indigo-600" />
                         Tags & Metadata
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {metric.tags && metric.tags.length > 0 ? (
                         <div>
-                          <h4 className="text-sm font-medium text-neutral-300 mb-3">Tags</h4>
+                          <h4 className="text-sm font-medium text-gray-700 mb-3">Tags</h4>
                           <div className="flex flex-wrap gap-2">
                             {metric.tags.map((tag, index) => (
                               <span 
                                 key={index}
-                                className="inline-flex items-center px-3 py-1 rounded-md bg-slate-700/50 text-slate-300 text-sm"
+                                className="inline-flex items-center px-3 py-1 rounded-md bg-gray-100 text-gray-700 text-sm"
                               >
                                 <Tag className="w-3 h-3 mr-2" />
                                 {tag}
@@ -306,33 +306,33 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                         </div>
                       ) : (
                         <div>
-                          <h4 className="text-sm font-medium text-neutral-300 mb-2">Tags</h4>
-                          <p className="text-neutral-500 text-sm">No tags assigned</p>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Tags</h4>
+                          <p className="text-gray-500 text-sm">No tags assigned</p>
                         </div>
                       )}
 
-                      <div className="space-y-3 pt-4 border-t border-slate-700/50">
+                      <div className="space-y-3 pt-4 border-t border-gray-200">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-neutral-400">Created</span>
-                          <div className="flex items-center gap-2 text-neutral-300">
+                          <span className="text-sm text-gray-600">Created</span>
+                          <div className="flex items-center gap-2 text-gray-700">
                             <CalendarDays className="w-4 h-4" />
                             {new Date(metric.created_at).toLocaleDateString()}
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-neutral-400">Last Updated</span>
-                          <div className="flex items-center gap-2 text-neutral-300">
+                          <span className="text-sm text-gray-600">Last Updated</span>
+                          <div className="flex items-center gap-2 text-gray-700">
                             <Activity className="w-4 h-4" />
                             {new Date(metric.updated_at).toLocaleDateString()}
                           </div>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-neutral-400">Metric ID</span>
-                          <span className="text-neutral-300 font-mono text-sm">{metric.id}</span>
+                          <span className="text-sm text-gray-600">Metric ID</span>
+                          <span className="text-gray-700 font-mono text-sm">{metric.id}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-neutral-400">Environment ID</span>
-                          <span className="text-neutral-300 font-mono text-sm">{metric.flag_environment_id}</span>
+                          <span className="text-sm text-gray-600">Environment ID</span>
+                          <span className="text-gray-700 font-mono text-sm">{metric.flag_environment_id}</span>
                         </div>
                       </div>
                     </CardContent>
@@ -340,11 +340,11 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                 </div>
 
                 {/* Alert Configuration */}
-                <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
+                <Card className="hover:shadow-md transition-shadow duration-200">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-xl text-neutral-100 flex items-center gap-2">
-                        <Bell className="w-5 h-5" />
+                      <CardTitle className="text-xl text-gray-900 flex items-center gap-2">
+                        <Bell className="w-5 h-5 text-indigo-600" />
                         Alert Configuration
                       </CardTitle>
                       <div className="flex items-center gap-2">
@@ -355,7 +355,7 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                             variant="outline" 
                             size="sm" 
                             disabled
-                            className="border-slate-600 text-slate-500 cursor-not-allowed"
+                            className="text-gray-500 cursor-not-allowed"
                           >
                             <Bell className="w-4 h-4 mr-2" />
                             Create Alert
@@ -367,26 +367,26 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                   <CardContent>
                     {alert ? (
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                           <div className="space-y-2">
                             <div className="flex items-center gap-3">
                               <Badge 
                                 variant={alert.is_enabled ? "default" : "secondary"} 
-                                className={alert.is_enabled ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-slate-500/20 text-slate-400 border-slate-500/30"}
+                                className={alert.is_enabled ? "bg-emerald-100 text-emerald-700 border-0" : "bg-gray-100 text-gray-600 border-0"}
                               >
                                 {alert.is_enabled ? "Enabled" : "Disabled"}
                               </Badge>
-                              <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                              <Badge className="bg-orange-100 text-orange-700 border-0">
                                 {alert.operator.replace('_', ' ').toLowerCase()}
                               </Badge>
                             </div>
-                            <p className="text-neutral-300">
+                            <p className="text-gray-700">
                               Alert when metric value is{' '}
-                              <span className="font-medium text-white">
+                              <span className="font-medium text-gray-900">
                                 {alert.operator.toLowerCase().replace('_', ' ')} {alert.threshold}
                               </span>
                               {metric.unit_measurement && (
-                                <span className="text-neutral-400"> {metric.unit_measurement}</span>
+                                <span className="text-gray-600"> {metric.unit_measurement}</span>
                               )}
                             </p>
                           </div>
@@ -398,11 +398,11 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                       </div>
                     ) : (
                       <div className="text-center py-8">
-                        <div className="w-16 h-16 bg-slate-700/50 rounded-xl flex items-center justify-center mx-auto mb-4">
-                          <Bell className="w-8 h-8 text-slate-400" />
+                        <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                          <Bell className="w-8 h-8 text-gray-600" />
                         </div>
-                        <h3 className="text-lg font-medium text-neutral-300 mb-2">No alert setup</h3>
-                        <p className="text-neutral-500 mb-4">
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No alert setup</h3>
+                        <p className="text-gray-600 mb-4">
                           Set up an alert to be notified when this metric crosses a threshold.
                         </p>
                       </div>

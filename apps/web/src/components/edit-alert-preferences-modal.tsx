@@ -128,16 +128,20 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
           <Button 
             variant="outline" 
             size="sm"
-            className="border-blue-700 text-blue-300 hover:bg-blue-800/20"
           >
             <Edit className="w-4 h-4 mr-2" />
             Edit Preferences
           </Button>
         </DialogTrigger>
-        <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white text-xl">Edit Alert Preferences</DialogTitle>
-            <DialogDescription className="text-neutral-400">
+            <DialogTitle className="flex items-center">
+              <div className="bg-indigo-100 p-2 rounded-md mr-3">
+                <Edit className="w-5 h-5 text-indigo-600" />
+              </div>
+              Edit Alert Preferences
+            </DialogTitle>
+            <DialogDescription>
               Update your organisation's alert notification settings.
             </DialogDescription>
           </DialogHeader>
@@ -145,14 +149,16 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Frequency Configuration */}
             <div className="space-y-4">
-              <Label className="text-neutral-300 text-base font-medium flex items-center gap-2">
-                <Clock className="w-4 h-4" />
+              <Label className="text-gray-900 text-base font-medium flex items-center gap-2">
+                <div className="bg-indigo-100 p-1 rounded">
+                  <Clock className="w-4 h-4 text-indigo-600" />
+                </div>
                 Notification Frequency *
               </Label>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="frequency_value" className="text-neutral-300">
+                  <Label htmlFor="frequency_value" className="text-gray-900">
                     Frequency Value *
                   </Label>
                   <Input
@@ -161,40 +167,41 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
                     min="1"
                     value={formData.frequency_value}
                     onChange={(e) => handleInputChange('frequency_value', parseInt(e.target.value) || 1)}
-                    className="bg-slate-700/50 border-slate-600 text-white"
                     required
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="frequency_unit" className="text-neutral-300">
+                  <Label htmlFor="frequency_unit" className="text-gray-900">
                     Frequency Unit *
                   </Label>
                   <Select
                     value={formData.frequency_unit}
                     onValueChange={(value) => handleInputChange('frequency_unit', value as FrequencyUnit)}
                   >
-                    <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                    <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
-                      <SelectItem value="MINUTES" className="text-white hover:bg-slate-700">Minutes</SelectItem>
-                      <SelectItem value="HOURS" className="text-white hover:bg-slate-700">Hours</SelectItem>
-                      <SelectItem value="DAYS" className="text-white hover:bg-slate-700">Days</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="MINUTES">Minutes</SelectItem>
+                      <SelectItem value="HOURS">Hours</SelectItem>
+                      <SelectItem value="DAYS">Days</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-gray-500">
                 How often to check for alerts (every {formData.frequency_value} {getFrequencyUnitDisplay(formData.frequency_unit).toLowerCase()})
               </p>
             </div>
 
             {/* Number of Times */}
             <div className="space-y-2">
-              <Label htmlFor="number_of_times" className="text-neutral-300 flex items-center gap-2">
-                <Repeat className="w-4 h-4" />
+              <Label htmlFor="number_of_times" className="text-gray-900 flex items-center gap-2">
+                <div className="bg-indigo-100 p-1 rounded">
+                  <Repeat className="w-4 h-4 text-indigo-600" />
+                </div>
                 Number of Times *
               </Label>
               <Input
@@ -203,118 +210,107 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
                 min="1"
                 value={formData.number_of_times}
                 onChange={(e) => handleInputChange('number_of_times', parseInt(e.target.value) || 1)}
-                className="bg-slate-700/50 border-slate-600 text-white"
                 required
               />
-              <p className="text-xs text-neutral-500">
-                How many times an alert condition must be met before triggering a notification
+              <p className="text-xs text-gray-500">
+                Number of consecutive failures before triggering an alert
               </p>
             </div>
 
-            {/* Notification Methods */}
-            <div className="space-y-4">
-              <Label className="text-neutral-300 text-base font-medium">
-                Notification Methods
-              </Label>
-              
-              {/* Email Notifications */}
-              <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-blue-400" />
+            {/* Email Notifications */}
+            <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="bg-blue-100 p-1 rounded">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                  </div>
                   <div>
-                    <Label className="text-neutral-300 font-medium">
-                      Email Notifications
-                    </Label>
-                    <p className="text-sm text-neutral-400">
-                      Send alert notifications via email
-                    </p>
+                    <Label className="text-gray-900 font-medium">Email Notifications</Label>
+                    <p className="text-sm text-gray-600">Send alerts via email</p>
                   </div>
                 </div>
                 <Switch
                   checked={formData.email_enabled}
-                  onCheckedChange={(checked) => handleInputChange('email_enabled', checked)}
-                  className="data-[state=checked]:bg-blue-600"
+                  onCheckedChange={(value) => handleInputChange('email_enabled', value)}
                 />
               </div>
 
-              {/* Slack Notifications */}
-              <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <MessageSquare className="w-5 h-5 text-green-400" />
+              {formData.email_enabled && (
+                <div className="space-y-3 mt-4">
+                  <Label className="text-gray-900 flex items-center gap-2">
+                    <div className="bg-indigo-100 p-1 rounded">
+                      <Users className="w-4 h-4 text-indigo-600" />
+                    </div>
+                    Notify User Roles *
+                  </Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {Object.values(user_role).map((role) => (
+                      <label
+                        key={role}
+                        className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                          formData.email_roles_notification.includes(role)
+                            ? 'bg-indigo-50 border-indigo-300'
+                            : 'bg-white border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.email_roles_notification.includes(role)}
+                          onChange={() => handleRoleToggle(role)}
+                          className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span className={`text-sm font-medium ${getRoleColor(role)}`}>
+                          {role}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Slack Notifications */}
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="bg-purple-100 p-1 rounded">
+                    <MessageSquare className="w-4 h-4 text-purple-600" />
+                  </div>
                   <div>
-                    <Label className="text-neutral-300 font-medium">
-                      Slack Notifications
-                    </Label>
-                    <p className="text-sm text-neutral-400">
-                      Send alert notifications to Slack channels
-                    </p>
+                    <Label className="text-gray-900 font-medium">Slack Notifications</Label>
+                    <p className="text-sm text-gray-600">Send alerts to configured Slack channels</p>
                   </div>
                 </div>
                 <Switch
                   checked={formData.slack_enabled}
-                  onCheckedChange={(checked) => handleInputChange('slack_enabled', checked)}
-                  className="data-[state=checked]:bg-green-600"
+                  onCheckedChange={(value) => handleInputChange('slack_enabled', value)}
                 />
               </div>
             </div>
 
-            {/* Email Recipients */}
-            {formData.email_enabled && (
-              <div className="space-y-3">
-                <Label className="text-neutral-300 flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Email Recipients *
-                </Label>
-                <p className="text-sm text-neutral-400">
-                  Select which user roles should receive email notifications
-                </p>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  {(["OWNER", "ADMIN", "MEMBER", "VIEWER"] as user_role[]).map((role) => {
-                    const isSelected = formData.email_roles_notification.includes(role)
-                    return (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => handleRoleToggle(role)}
-                        className={`p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${getRoleColor(role, isSelected)}`}
-                      >
-                        <div className="text-sm font-medium">{role}</div>
-                      </button>
-                    )
-                  })}
-                </div>
-                
-                {formData.email_roles_notification.length === 0 && (
-                  <p className="text-red-400 text-sm">Please select at least one role</p>
-                )}
-              </div>
-            )}
-
-            <DialogFooter className="gap-2">
+            <DialogFooter className="flex gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsOpen(false)}
                 disabled={isSubmitting}
-                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Updating...
+                    Saving...
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4 mr-2" />
-                    Update Preferences
+                    Save Preferences
                   </>
                 )}
               </Button>

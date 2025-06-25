@@ -163,15 +163,15 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
   const getEnvironmentColor = (env: $Enums.environment_type) => {
     switch (env) {
       case 'DEV':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+        return 'bg-blue-100 text-blue-700 border-blue-200'
       case 'STAGING':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+        return 'bg-amber-100 text-amber-700 border-amber-200'
       case 'PROD':
-        return 'bg-red-500/20 text-red-400 border-red-500/30'
+        return 'bg-red-100 text-red-700 border-red-200'
       case 'TEST':
-        return 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+        return 'bg-purple-100 text-purple-700 border-purple-200'
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+        return 'bg-gray-100 text-gray-700 border-gray-200'
     }
   }
 
@@ -198,97 +198,95 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
   const validate = (): boolean => {
     if (!editForm.name.trim()) return false;
     if (!editForm.description.trim()) return false;
-    if (!Array.isArray(editForm.flags) || editForm.flags.length === 0) return false;
-    for (const flag of editForm.flags) {
-      if (!flag.flagKey.trim()) return false;
-      if (!Array.isArray(flag.environments) || flag.environments.length === 0) return false;
-    }
     return true;
-  };
+  }
 
   const handleSave = async () => {
     if (!validate()) {
-      toast.error("Please fill all fields and add at least one flag with environments.");
-      return;
+      toast.error('Please fill in all required fields')
+      return
     }
+
     setIsSaving(true)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-    const promise = fetch(`/${backendUrl}/killSwitch`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            killSwitchId,
-            name: editForm.name,
-            description: editForm.description,
-            is_active: editForm.is_active,
-            flags: editForm.flags
-        }),
-    });
+    
+    const promise = fetch(`/${backendUrl}/killSwitch/${killSwitchId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: editForm.name,
+        description: editForm.description,
+        is_active: editForm.is_active,
+        flags: editForm.flags
+      }),
+    })
 
     toast.promise(promise, {
-        loading: 'Updating kill switch...',
-        success: (response) => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-            const result = response.json() as Promise<{ success: boolean; message?: string }>;
-            result.then(data => {
-                if (data.success) {
-                    setIsEditing(false)
-                    window.location.reload()
-                } else {
-                    throw new Error(data.message || 'Failed to update kill switch')
-                }
-            })
-            return 'Kill switch updated successfully'
-        },
-        error: (err) => {
-            console.error('Error updating kill switch:', err)
-            return 'Failed to update kill switch. Please try again.'
+      loading: 'Updating kill switch...',
+      success: (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
+        const result = response.json() as Promise<{ success: boolean; message?: string }>;
+        result.then(data => {
+          if (data.success) {
+            setIsEditing(false)
+            // Refresh the data
+            window.location.reload()
+          } else {
+            throw new Error(data.message || 'Failed to update kill switch')
+          }
+        })
+        return 'Kill switch updated successfully!'
+      },
+      error: (err) => {
+        console.error('Error updating kill switch:', err)
+        return 'Failed to update kill switch. Please try again.'
+      }
     }).finally(() => {
-        setIsSaving(false)
-    });
+      setIsSaving(false)
+    })
   }
 
   const handleDelete = async () => {
     setIsDeleting(true)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    
     const promise = fetch(`/${backendUrl}/killSwitch`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ killSwitchId }),
-    });
+      method: 'DELETE',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ killSwitchId }),
+    })
 
     toast.promise(promise, {
-        loading: 'Deleting kill switch...',
-        success: (response) => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`)
-            }
-            const result = response.json() as Promise<{ success: boolean; message?: string }>;
-            result.then(data => {
-                if (data.success) {
-                    router.push("/killSwitch")
-                } else {
-                    throw new Error(data.message || 'Failed to delete kill switch')
-                }
-            })
-            return 'Kill switch deleted successfully'
-        },
-        error: (err) => {
-            console.error('Error deleting kill switch:', err)
-            return 'Failed to delete kill switch. Please try again.'
+      loading: 'Deleting kill switch...',
+      success: (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
+        const result = response.json() as Promise<{ success: boolean; message?: string }>;
+        result.then(data => {
+          if (data.success) {
+            router.push('/killSwitch')
+          } else {
+            throw new Error(data.message || 'Failed to delete kill switch')
+          }
+        })
+        return 'Kill switch deleted successfully!'
+      },
+      error: (err) => {
+        console.error('Error deleting kill switch:', err)
+        return 'Failed to delete kill switch. Please try again.'
+      }
     }).finally(() => {
-        setIsDeleting(false)
-    });
+      setIsDeleting(false)
+    })
   }
 
   const addFlag = () => {
@@ -308,7 +306,9 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
   const updateFlagKey = (idx: number, value: string) => {
     setEditForm(prev => ({
       ...prev,
-      flags: prev.flags.map((flag, i) => (i === idx ? { ...flag, flagKey: value } : flag)),
+      flags: prev.flags.map((flag, i) => 
+        i === idx ? { ...flag, flagKey: value } : flag
+      )
     }))
   }
 
@@ -330,407 +330,423 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        <div className="p-4 sm:p-6 lg:p-8">
-          <div className="flex items-center justify-center min-h-96">
-            <Loader2 className="w-8 h-8 animate-spin text-red-400" />
+      <div className="space-y-8">
+        <div className="flex items-center space-x-3">
+          <div className="bg-red-100 p-2 rounded-lg">
+            <Skull className="w-6 h-6 text-red-600" />
           </div>
+          <div>
+            <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+            <div className="h-4 bg-gray-100 rounded w-32 mt-2 animate-pulse"></div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-100 rounded w-1/2"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-100 rounded"></div>
+                  <div className="h-4 bg-gray-100 rounded w-2/3"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     )
   }
 
-  if (error || !killSwitch) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        <div className="p-4 sm:p-6 lg:p-8">
-          <div className="text-center py-12">
-            <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">Error loading kill switch</h3>
-            <p className="text-neutral-400">{error}</p>
-            <Button 
-              onClick={() => router.push('/killSwitch')} 
-              className="mt-4 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white"
-            >
-              Back to Kill Switches
-            </Button>
-          </div>
+      <div className="text-center py-12">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Kill Switch</h3>
+          <p className="text-red-700 mb-4">{error}</p>
+          <Button 
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="border-red-300 text-red-600 hover:bg-red-50"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!killSwitch) {
+    return (
+      <div className="text-center py-12">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
+          <Skull className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Kill Switch Not Found</h3>
+          <p className="text-gray-600 mb-4">The kill switch you're looking for doesn't exist or has been deleted.</p>
+          <Button 
+            onClick={() => router.push('/killSwitch')}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            Back to Kill Switches
+          </Button>
         </div>
       </div>
     )
   }
 
   return (
-    <>
+    <div className="space-y-8">
       <Toaster />
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        <div className="p-4 sm:p-6 lg:p-8">
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-              <div>
-                <div className="flex items-center space-x-3 mb-2">
-                  <Skull className="w-8 h-8 text-red-400" />
-                  {isEditing ? (
-                    <Input
-                      value={editForm.name}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                      className="text-3xl sm:text-4xl font-bold text-white bg-slate-800/40 border-slate-700/30"
-                    />
-                  ) : (
-                    <h1 className="text-3xl sm:text-4xl font-bold text-white">{killSwitch.name}</h1>
-                  )}
-                  <Badge className={`text-sm ${killSwitch.is_active ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
-                    {killSwitch.is_active ? 'ACTIVE' : 'INACTIVE'}
-                  </Badge>
-                </div>
-                <p className="text-neutral-400 text-base sm:text-lg">
-                  Emergency kill switch configuration and management
-                </p>
-              </div>
-              <div className="flex space-x-2">
-                {isEditing ? (
-                  <>
-                    <Button
-                      onClick={handleCancelEdit}
-                      variant="outline"
-                      className="border-slate-700 text-neutral-300 hover:bg-slate-800/50"
-                      disabled={isSaving}
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleSave}
-                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-                      disabled={isSaving}
-                    >
-                      {isSaving ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4 mr-2" />
-                          Save
-                        </>
-                      )}
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      onClick={handleEdit}
-                      variant="outline"
-                      className="border-blue-700 text-blue-300 hover:bg-blue-800/20"
-                    >
-                      <Edit3 className="w-4 h-4 mr-2" />
-                      Edit
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="border-red-700 text-red-300 hover:bg-red-800/20"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-slate-800 border-slate-700">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-white">Delete Kill Switch</AlertDialogTitle>
-                          <AlertDialogDescription className="text-neutral-400">
-                            Are you sure you want to delete the <span className="font-medium text-white">"{killSwitch.name}"</span> kill switch? 
-                            This action cannot be undone and will permanently remove all configuration data.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel 
-                            className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-                            disabled={isDeleting}
-                          >
-                            Cancel
-                          </AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="bg-red-600 hover:bg-red-700 text-white"
-                          >
-                            {isDeleting ? (
-                              <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Deleting...
-                              </>
-                            ) : (
-                              <>
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete Kill Switch
-                              </>
-                            )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column - Details */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Basic Information */}
-                <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                  <CardHeader>
-                    <CardTitle className="text-white">Basic Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label className="text-neutral-300">Name</Label>
-                      {isEditing ? (
-                        <Input
-                          value={editForm.name}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                          className="mt-1 bg-slate-800/40 border-slate-700/30 text-white"
-                        />
-                      ) : (
-                        <p className="text-white mt-1">{killSwitch.name}</p>
-                      )}
-                    </div>
-                    {killSwitch.killSwitchKey && (
-                      <div>
-                        <Label className="text-neutral-300">Kill Switch Key</Label>
-                        <div className="mt-1 p-2 bg-slate-700/50 rounded border border-slate-600/30">
-                          <code className="text-sm text-blue-300 font-mono">{killSwitch.killSwitchKey}</code>
-                        </div>
-                        <p className="text-xs text-neutral-400 mt-1">
-                          Unique identifier for this kill switch
-                        </p>
-                      </div>
-                    )}
-                    <div>
-                      <Label className="text-neutral-300">Description</Label>
-                      {isEditing ? (
-                        <Textarea
-                          value={editForm.description}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                          className="mt-1 bg-slate-800/40 border-slate-700/30 text-white"
-                          rows={3}
-                        />
-                      ) : (
-                        <p className="text-neutral-400 mt-1">{killSwitch.description || 'No description provided'}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Label className="text-neutral-300">Active Status</Label>
-                      {isEditing ? (
-                        <Switch
-                          checked={editForm.is_active}
-                          onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, is_active: checked }))}
-                        />
-                      ) : (
-                        <Badge className={`${killSwitch.is_active ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-gray-500/20 text-gray-400 border-gray-500/30'}`}>
-                          {killSwitch.is_active ? 'ACTIVE' : 'INACTIVE'}
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Flag Mappings */}
-                <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-white">Flag Mappings</CardTitle>
-                      {isEditing && (
-                        <Button
-                          onClick={addFlag}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add Flag
-                        </Button>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {isEditing ? (
-                      <div className="space-y-4">
-                        {editForm.flags.map((flag, index) => (
-                          <div key={index} className="p-4 border border-slate-700/30 rounded-lg space-y-3">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-neutral-300">Flag {index + 1}</Label>
-                              <Button
-                                onClick={() => removeFlag(index)}
-                                size="sm"
-                                variant="outline"
-                                className="border-red-700 text-red-300 hover:bg-red-800/20"
-                              >
-                                <Minus className="w-4 h-4" />
-                              </Button>
-                            </div>
-                            <div>
-                              <Label className="text-neutral-300 text-sm">Flag Key</Label>
-                              <Input
-                                value={flag.flagKey}
-                                onChange={e => updateFlagKey(index, e.target.value)}
-                                className="mt-1 bg-slate-800/40 border-slate-700/30 text-white"
-                                placeholder="Enter flag key"
-                                required
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-neutral-300 text-sm">Environments</Label>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                {ENV_OPTIONS.map(env => (
-                                  <Button
-                                    key={env}
-                                    type="button"
-                                    size="sm"
-                                    variant={flag.environments.includes(env) ? "default" : "outline"}
-                                    onClick={() => toggleEnvironment(index, env)}
-                                    className={flag.environments.includes(env)
-                                      ? "bg-blue-600 text-white border-0"
-                                      : "border-slate-700 text-neutral-300 hover:bg-slate-800/50"
-                                    }
-                                  >
-                                    {env}
-                                  </Button>
-                                ))}
-                              </div>
-                              {flag.environments.length === 0 && (
-                                <p className="text-xs text-red-400 mt-1">Select at least one environment.</p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                        {editForm.flags.length === 0 && (
-                          <p className="text-neutral-400 text-center py-4">No flags configured. Click "Add Flag" to get started.</p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {killSwitch.flag_mappings.map((mapping, index) => (
-                          <div key={mapping.id} className="p-4 border border-slate-700/30 rounded-lg">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-2">
-                                <Flag className="w-4 h-4 text-blue-400" />
-                                <span className="text-white font-medium">Flag {index + 1}</span>
-                              </div>
-                              <code className="text-xs text-neutral-400 bg-slate-700/50 px-2 py-1 rounded">
-                                {mapping.flag_id}
-                              </code>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {mapping.environments.map((env) => (
-                                <Badge key={env} className={`text-xs ${getEnvironmentColor(env)}`}>
-                                  {env}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                        {killSwitch.flag_mappings.length === 0 && (
-                          <p className="text-neutral-400 text-center py-4">No flag mappings configured.</p>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Right Column - Metadata */}
-              <div className="space-y-6">
-                {/* Status Information */}
-                <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                  <CardHeader>
-                    <CardTitle className="text-white">Status Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      {killSwitch.is_active ? (
-                        <AlertTriangle className="w-5 h-5 text-red-400" />
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-gray-400" />
-                      )}
-                      <div>
-                        <p className="text-white font-medium">
-                          {killSwitch.is_active ? 'Active' : 'Inactive'}
-                        </p>
-                        <p className="text-xs text-neutral-400">
-                          {killSwitch.is_active ? 'Kill switch is currently active' : 'Kill switch is not active'}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Metadata */}
-                <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                  <CardHeader>
-                    <CardTitle className="text-white">Metadata</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-4 h-4 text-neutral-400" />
-                      <div>
-                        <p className="text-sm text-neutral-400">Created</p>
-                        <p className="text-sm text-white">{formatDate(killSwitch.created_at)}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Activity className="w-4 h-4 text-neutral-400" />
-                      <div>
-                        <p className="text-sm text-neutral-400">Last Updated</p>
-                        <p className="text-sm text-white">{formatDate(killSwitch.updated_at)}</p>
-                      </div>
-                    </div>
-                    {killSwitch.activated_at && (
-                      <div className="flex items-center space-x-2">
-                        <AlertTriangle className="w-4 h-4 text-red-400" />
-                        <div>
-                          <p className="text-sm text-neutral-400">Activated</p>
-                          <p className="text-sm text-white">{formatDate(killSwitch.activated_at)}</p>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-center space-x-2">
-                      <User className="w-4 h-4 text-neutral-400" />
-                      <div>
-                        <p className="text-sm text-neutral-400">Created By</p>
-                        <p className="text-sm text-white">{killSwitch.created_by}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Statistics */}
-                <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                  <CardHeader>
-                    <CardTitle className="text-white">Statistics</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-neutral-400">Total Flags</span>
-                      <span className="text-white font-medium">{killSwitch.flag_mappings.length}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-neutral-400">Environments</span>
-                      <span className="text-white font-medium">
-                        {Array.from(new Set(killSwitch.flag_mappings.flatMap(fm => fm.environments))).length}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+      
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className={`p-2 rounded-lg ${killSwitch.is_active ? 'bg-red-100' : 'bg-gray-100'}`}>
+            <Skull className={`w-6 h-6 ${killSwitch.is_active ? 'text-red-600' : 'text-gray-600'}`} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{killSwitch.name}</h1>
+            <div className="flex items-center space-x-2 mt-1">
+              <Badge variant={killSwitch.is_active ? "destructive" : "secondary"}>
+                {killSwitch.is_active ? 'ACTIVE' : 'INACTIVE'}
+              </Badge>
+              {killSwitch.killSwitchKey && (
+                <Badge variant="outline" className="font-mono text-xs">
+                  {killSwitch.killSwitchKey}
+                </Badge>
+              )}
             </div>
           </div>
         </div>
+        
+        <div className="flex items-center space-x-3">
+          {!isEditing && (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={handleEdit}
+              >
+                <Edit3 className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="outline"
+                    className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Kill Switch</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this kill switch? This action cannot be undone and will permanently remove all associated flag mappings.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        'Delete Kill Switch'
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          )}
+          
+          {isEditing && (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={handleCancelEdit}
+                disabled={isSaving}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
-    </>
+
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <div className="bg-indigo-100 p-2 rounded-md mr-3">
+                <Activity className="w-5 h-5 text-indigo-600" />
+              </div>
+              Basic Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {isEditing ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-gray-900 font-medium">Name *</Label>
+                  <Input
+                    id="name"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Kill switch name"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-gray-900 font-medium">Description *</Label>
+                  <Textarea
+                    id="description"
+                    value={editForm.description}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe what this kill switch controls"
+                    className="min-h-[100px]"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded ${editForm.is_active ? 'bg-red-100' : 'bg-gray-100'}`}>
+                      {editForm.is_active ? (
+                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                      ) : (
+                        <Activity className="w-5 h-5 text-gray-600" />
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-gray-900 font-medium">Active Status</Label>
+                      <p className="text-sm text-gray-600">
+                        {editForm.is_active ? 'Kill switch is currently active' : 'Kill switch is currently inactive'}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={editForm.is_active}
+                    onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, is_active: checked }))}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <Label className="text-gray-500 text-sm">Name</Label>
+                  <p className="text-gray-900 font-medium">{killSwitch.name}</p>
+                </div>
+                
+                <div>
+                  <Label className="text-gray-500 text-sm">Description</Label>
+                  <p className="text-gray-900">{killSwitch.description || 'No description provided'}</p>
+                </div>
+                
+                <div>
+                  <Label className="text-gray-500 text-sm">Status</Label>
+                  <div className="flex items-center space-x-2 mt-1">
+                    {killSwitch.is_active ? (
+                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                    ) : (
+                      <Activity className="w-5 h-5 text-gray-400" />
+                    )}
+                    <span className={`font-medium ${killSwitch.is_active ? 'text-red-600' : 'text-gray-600'}`}>
+                      {killSwitch.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Metadata */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <div className="bg-purple-100 p-2 rounded-md mr-3">
+                <Calendar className="w-5 h-5 text-purple-600" />
+              </div>
+              Metadata
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="text-gray-500 text-sm">Created</Label>
+              <p className="text-gray-900">{formatDate(killSwitch.created_at)}</p>
+            </div>
+            
+            <div>
+              <Label className="text-gray-500 text-sm">Last Updated</Label>
+              <p className="text-gray-900">{formatDate(killSwitch.updated_at)}</p>
+            </div>
+            
+            <div>
+              <Label className="text-gray-500 text-sm">Last Activated</Label>
+              <p className="text-gray-900">{formatDate(killSwitch.activated_at)}</p>
+            </div>
+            
+            <div>
+              <Label className="text-gray-500 text-sm">Organization ID</Label>
+              <p className="text-gray-900 font-mono text-sm">{killSwitch.organization_id}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Flag Mappings */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="bg-emerald-100 p-2 rounded-md mr-3">
+                  <Flag className="w-5 h-5 text-emerald-600" />
+                </div>
+                Flag Mappings
+              </div>
+              {isEditing && (
+                <Button
+                  size="sm"
+                  onClick={addFlag}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Flag
+                </Button>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Feature flags controlled by this kill switch
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isEditing ? (
+              <div className="space-y-4">
+                {editForm.flags.map((flag, index) => (
+                  <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-gray-900 font-medium">Flag {index + 1}</Label>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => removeFlag(index)}
+                        className="border-red-300 text-red-600 hover:bg-red-50"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor={`flag-key-${index}`} className="text-gray-900">Flag Key *</Label>
+                      <Input
+                        id={`flag-key-${index}`}
+                        value={flag.flagKey}
+                        onChange={(e) => updateFlagKey(index, e.target.value)}
+                        placeholder="Enter flag key"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-gray-900">Environments *</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {ENV_OPTIONS.map((env) => (
+                          <button
+                            key={env}
+                            type="button"
+                            onClick={() => toggleEnvironment(index, env)}
+                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                              flag.environments.includes(env)
+                                ? getEnvironmentColor(env)
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            {env}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {editForm.flags.length === 0 && (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                    <Flag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">No flags configured yet</p>
+                    <Button
+                      onClick={addFlag}
+                      variant="outline"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add First Flag
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {killSwitch.flag_mappings && killSwitch.flag_mappings.length > 0 ? (
+                  killSwitch.flag_mappings.map((mapping, index) => (
+                    <div key={mapping.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium text-gray-900">Flag {index + 1}</h4>
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {mapping.flag_id}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-gray-500 text-sm">Environments</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {mapping.environments.map((env) => (
+                            <Badge key={env} className={getEnvironmentColor(env)}>
+                              {env}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+                    <Flag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No flags mapped to this kill switch</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   )
 } 

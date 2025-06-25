@@ -70,12 +70,12 @@ function PageHeader() {
   return (
     <div className="mb-8">
       <div className="flex items-center space-x-4 mb-4">
-        <div className="w-14 h-14 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center">
-          <MessageSquare className="w-7 h-7 text-white" />
+        <div className="w-14 h-14 rounded-xl bg-emerald-100 flex items-center justify-center">
+          <MessageSquare className="w-7 h-7 text-emerald-600" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-neutral-100">Slack Integration</h1>
-          <p className="text-neutral-400 text-lg">
+          <h1 className="text-3xl font-bold text-gray-900">Slack Integration</h1>
+          <p className="text-gray-600 text-lg">
             Connect your workspace to receive real-time notifications
           </p>
         </div>
@@ -83,43 +83,43 @@ function PageHeader() {
       
       {/* Feature Benefits */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-        <Card className="bg-slate-800/30 backdrop-blur-xl border-slate-700/30">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
-                <AlertCircle className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <AlertCircle className="w-4 h-4 text-indigo-600" />
               </div>
               <div>
-                <h3 className="text-sm font-medium text-neutral-200">Flag Alerts</h3>
-                <p className="text-xs text-neutral-400">Get notified when flags change</p>
+                <h3 className="text-sm font-medium text-gray-900">Flag Alerts</h3>
+                <p className="text-xs text-gray-600">Get notified when flags change</p>
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-800/30 backdrop-blur-xl border-slate-700/30">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 flex items-center justify-center">
-                <CheckCircle className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
               </div>
               <div>
-                <h3 className="text-sm font-medium text-neutral-200">Success Metrics</h3>
-                <p className="text-xs text-neutral-400">Track performance updates</p>
+                <h3 className="text-sm font-medium text-gray-900">Success Metrics</h3>
+                <p className="text-xs text-gray-600">Track performance updates</p>
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-slate-800/30 backdrop-blur-xl border-slate-700/30">
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-orange-500 to-amber-600 flex items-center justify-center">
-                <MessageSquare className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                <MessageSquare className="w-4 h-4 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-sm font-medium text-neutral-200">Team Updates</h3>
-                <p className="text-xs text-neutral-400">Keep everyone informed</p>
+                <h3 className="text-sm font-medium text-gray-900">Team Updates</h3>
+                <p className="text-xs text-gray-600">Keep everyone informed</p>
               </div>
             </div>
           </CardContent>
@@ -134,82 +134,86 @@ export default async function SlackIntegrationPage() {
 
   if (!integrationData) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-6xl">
-        <PageHeader />
-        
-        <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-          <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="w-8 h-8 text-red-400" />
-            </div>
-            <h3 className="text-lg font-medium text-neutral-100 mb-2">
-              Unable to Load Integration Data
-            </h3>
-            <p className="text-neutral-400">
-              Please refresh the page or contact support if the issue persists.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="space-y-8">
+        <div className="max-w-6xl mx-auto">
+          <PageHeader />
+          
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-lg font-medium text-red-900 mb-2">
+                Unable to Load Integration Data
+              </h3>
+              <p className="text-red-700">
+                Please refresh the page or contact support if the issue persists.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-6xl">
-      <PageHeader />
-      
-      {/* Client Component for Interactive Functionality */}
-      <SlackIntegrationClient initialIntegration={integrationData} />
-      
-      {/* Additional Information Section */}
-      <div className="mt-8">
-        <Card className="bg-slate-800/30 backdrop-blur-xl border-slate-700/30">
-          <CardHeader>
-            <CardTitle className="text-lg text-neutral-100">Integration Benefits</CardTitle>
-            <CardDescription className="text-neutral-400">
-              Maximize your team's productivity with Slack notifications
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium text-neutral-200">Real-time Notifications</h4>
-                <ul className="space-y-2 text-sm text-neutral-400">
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-3 h-3 text-emerald-400" />
-                    <span>Feature flag status changes</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-3 h-3 text-emerald-400" />
-                    <span>Kill switch activations</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-3 h-3 text-emerald-400" />
-                    <span>Metric threshold alerts</span>
-                  </li>
-                </ul>
+    <div className="space-y-8">
+      <div className="max-w-6xl mx-auto">
+        <PageHeader />
+        
+        {/* Client Component for Interactive Functionality */}
+        <SlackIntegrationClient initialIntegration={integrationData} />
+        
+        {/* Additional Information Section */}
+        <div className="mt-8">
+          <Card className="hover:shadow-md transition-shadow duration-200">
+            <CardHeader>
+              <CardTitle className="text-lg text-gray-900">Integration Benefits</CardTitle>
+              <CardDescription>
+                Maximize your team's productivity with Slack notifications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-gray-900">Real-time Notifications</h4>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-3 h-3 text-emerald-600" />
+                      <span>Feature flag status changes</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-3 h-3 text-emerald-600" />
+                      <span>Kill switch activations</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-3 h-3 text-emerald-600" />
+                      <span>Metric threshold alerts</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-gray-900">Team Collaboration</h4>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-3 h-3 text-emerald-600" />
+                      <span>Automated rollout updates</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-3 h-3 text-emerald-600" />
+                      <span>Performance insights</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <CheckCircle className="w-3 h-3 text-emerald-600" />
+                      <span>Issue notifications</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
-              
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium text-neutral-200">Team Collaboration</h4>
-                <ul className="space-y-2 text-sm text-neutral-400">
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-3 h-3 text-emerald-400" />
-                    <span>Automated rollout updates</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-3 h-3 text-emerald-400" />
-                    <span>Performance insights</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-3 h-3 text-emerald-400" />
-                    <span>Issue notifications</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

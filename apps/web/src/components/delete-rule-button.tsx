@@ -70,21 +70,21 @@ export default function DeleteRuleButton({ ruleId, ruleName }: DeleteRuleButtonP
           <Button
             size="sm"
             variant="outline"
-            className="border-red-600/50 text-red-400 hover:bg-red-900/20"
+            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
             disabled={isDeleting}
           >
             <Trash2 className="w-4 h-4" />
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent className="bg-slate-900 border-slate-700">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Rule</AlertDialogTitle>
-            <AlertDialogDescription className="text-neutral-400">
+            <AlertDialogTitle>Delete Rule</AlertDialogTitle>
+            <AlertDialogDescription>
               Are you sure you want to delete the rule "{ruleName}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 text-white border-slate-700 hover:bg-slate-700">
+            <AlertDialogCancel>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

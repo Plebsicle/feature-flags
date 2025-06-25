@@ -24,29 +24,29 @@ const FeatureCard = ({
   icon: Icon,
   title,
   description,
-  gradient,
+  color,
 }: {
   icon: any
   title: string
   description: string
-  gradient: string
+  color: string
 }) => (
   <motion.div
-    whileHover={{ scale: 1.03, transition: { duration: 0.3 } }}
-    whileTap={{ scale: 0.97, transition: { duration: 0.2 } }}
+    whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+    whileTap={{ scale: 0.98, transition: { duration: 0.2 } }}
     className="h-full"
   >
-    <Card className="h-full bg-slate-800/40 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/40 transition-all duration-300 group">
+    <Card className="h-full bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-200 group">
       <CardHeader className="pb-4">
         <div
-          className={`w-14 h-14 rounded-xl bg-gradient-to-r ${gradient} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-400 ease-in-out`}
+          className={`w-14 h-14 rounded-lg ${color} flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-200`}
         >
           <Icon className="w-7 h-7 text-white" />
         </div>
-        <CardTitle className="text-xl text-neutral-100 font-semibold">{title}</CardTitle>
+        <CardTitle className="text-xl text-gray-900 font-semibold">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <CardDescription className="text-neutral-400 leading-relaxed">{description}</CardDescription>
+        <CardDescription className="text-gray-600 leading-relaxed">{description}</CardDescription>
       </CardContent>
     </Card>
   </motion.div>
@@ -54,14 +54,32 @@ const FeatureCard = ({
 
 const BenefitItem = ({ text }: { text: string }) => (
   <motion.li
-    initial={{ opacity: 0, x: -30 }}
-    whileInView={{ opacity: 1, x: 0, transition: { duration: 0.7, ease: "easeInOut" } }}
+    initial={{ opacity: 0, x: -20 }}
+    whileInView={{ opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } }}
     viewport={{ once: true }}
-    className="flex items-center space-x-3 text-neutral-300"
+    className="flex items-center space-x-3 text-gray-700"
   >
-    <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+      <CheckCircle className="w-3 h-3 text-white" />
+    </div>
     <span className="text-base">{text}</span>
   </motion.li>
+)
+
+const StepCard = ({ number, title, description }: { number: string; title: string; description: string }) => (
+  <motion.div
+    variants={{
+      hidden: { opacity: 0, y: 20 },
+      visible: { opacity: 1, y: 0 }
+    }}
+    className="text-center group"
+  >
+    <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-indigo-700 transition-colors duration-200">
+      <span className="text-2xl font-semibold text-white">{number}</span>
+    </div>
+    <h3 className="text-xl font-semibold text-gray-900 mb-3">{title}</h3>
+    <p className="text-gray-600 leading-relaxed">{description}</p>
+  </motion.div>
 )
 
 export default function LandingPage() {
@@ -70,16 +88,16 @@ export default function LandingPage() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.15, // Slightly increased stagger
-        duration: 0.7,
-        ease: "easeInOut",
+        staggerChildren: 0.1,
+        duration: 0.6,
+        ease: "easeOut",
       },
     },
   }
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 }, // Increased initial y offset for more noticeable animation
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }, // Slower duration, smoother ease
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
   }
 
   const features = [
@@ -88,69 +106,73 @@ export default function LandingPage() {
       title: "Feature Flags",
       description:
         "Control feature rollouts with precision. Enable or disable features instantly across your entire application without code deployments.",
-      gradient: "from-blue-500 to-indigo-600",
+      color: "bg-indigo-600",
     },
     {
       icon: TestTube,
       title: "A/B Testing",
       description:
         "Run sophisticated experiments to optimize user experience. Compare variations and make data-driven decisions with statistical confidence.",
-      gradient: "from-emerald-500 to-teal-600",
+      color: "bg-emerald-600",
     },
     {
       icon: Bell,
       title: "Smart Alerts",
       description:
         "Stay informed with intelligent notifications about feature performance, user engagement, and system health in real-time.",
-      gradient: "from-orange-500 to-amber-600",
+      color: "bg-amber-600",
     },
     {
       icon: Target,
       title: "User Targeting",
       description:
         "Deliver personalized experiences with advanced user segmentation based on attributes, behavior, and custom criteria.",
-      gradient: "from-purple-500 to-violet-600",
+      color: "bg-purple-600",
     },
     {
       icon: BarChart3,
       title: "Analytics",
       description:
         "Comprehensive insights into feature adoption, performance metrics, and user engagement with beautiful, actionable dashboards.",
-      gradient: "from-pink-500 to-rose-600",
+      color: "bg-pink-600",
     },
     {
       icon: Shield,
       title: "Safe Deployments",
       description:
         "Deploy with confidence using gradual rollouts, automatic rollbacks, and kill switches to protect your users and business.",
-      gradient: "from-red-500 to-pink-600",
+      color: "bg-red-600",
     },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
       <motion.nav
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }}
-        className="fixed top-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }}
+        className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 backdrop-blur-sm"
       >
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <Flag className="w-6 h-6 text-white" />
+              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                <Flag className="w-5 h-5 text-white" />
               </div>
-              <span className="text-2xl font-bold text-white">Flagship Feat</span>
+              <span className="text-xl font-bold text-gray-900">Flagship Feat</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/auth/signin">
-                <Button variant="ghost" className="text-neutral-300 hover:text-white hover:bg-slate-800/50 px-6">
+                <Button 
+                  className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 font-medium rounded-lg"
+                >
                   Sign In
                 </Button>
               </Link>
               <Link href="/auth/signup">
-                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6">
+                <Button 
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 font-medium rounded-lg"
+                >
                   Get Started
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
@@ -161,41 +183,44 @@ export default function LandingPage() {
       </motion.nav>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-24 px-6 lg:px-8">
+      <section className="pt-32 pb-20 px-6">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="max-w-6xl mx-auto text-center"
+          className="max-w-4xl mx-auto text-center"
         >
-          <motion.div variants={itemVariants} className="mb-8">
-            <span className="inline-flex items-center px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium">
+          <motion.div variants={itemVariants} className="mb-6">
+            <span className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-sm font-medium">
               <Zap className="w-4 h-4 mr-2" />
               Modern Feature Management
             </span>
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="text-6xl sm:text-7xl lg:text-8xl font-bold mb-8 leading-tight">
-            <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-              Ship Features
-            </span>
+          <motion.h1 
+            variants={itemVariants} 
+            className="text-5xl md:text-6xl font-bold mb-6 leading-tight text-gray-900"
+          >
+            Ship Features
             <br />
-            <span className="text-white">With Confidence</span>
+            <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
+              With Confidence
+            </span>
           </motion.h1>
 
           <motion.p
             variants={itemVariants}
-            className="text-xl text-neutral-400 max-w-3xl mx-auto mb-12 leading-relaxed"
+            className="text-xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed"
           >
             Take control of your feature releases with powerful flags, sophisticated A/B testing, and real-time
             insights. Deploy safely, experiment boldly, and deliver exceptional user experiences.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-6 justify-center">
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-10 py-6 text-lg font-semibold rounded-xl"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg font-medium rounded-lg"
               >
                 Get Started
                 <Rocket className="ml-3 w-5 h-5" />
@@ -204,7 +229,7 @@ export default function LandingPage() {
             <Button
               size="lg"
               variant="outline"
-              className="border-slate-700 text-neutral-300 hover:bg-slate-800/50 hover:border-slate-600 px-10 py-6 text-lg font-semibold rounded-xl"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 px-8 py-3 text-lg font-medium rounded-lg"
             >
               <Code2 className="mr-3 w-5 h-5" />
               Documentation
@@ -214,17 +239,17 @@ export default function LandingPage() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-24 px-6 lg:px-8">
+      <section className="py-20 px-6 bg-white">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }} // Trigger when 20% of section is visible
-          className="max-w-7xl mx-auto"
+          viewport={{ once: true, amount: 0.2 }}
+          className="max-w-6xl mx-auto"
         >
-          <motion.div variants={itemVariants} className="text-center mb-20">
-            <h2 className="text-5xl font-bold text-white mb-6">Everything You Need</h2>
-            <p className="text-xl text-neutral-400 max-w-3xl mx-auto leading-relaxed">
+          <motion.div variants={itemVariants} className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Everything You Need</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Comprehensive tools designed for modern development teams who demand reliability, flexibility, and
               performance.
             </p>
@@ -232,7 +257,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <motion.div key={index} variants={itemVariants} custom={index}>
+              <motion.div key={index} variants={itemVariants}>
                 <FeatureCard {...feature} />
               </motion.div>
             ))}
@@ -241,57 +266,43 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-24 px-6 lg:px-8 bg-slate-900/50">
+      <section className="py-20 px-6 bg-gray-50">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.2 }}
-          className="max-w-6xl mx-auto"
+          className="max-w-5xl mx-auto"
         >
-          <motion.div variants={itemVariants} className="text-center mb-20">
-            <h2 className="text-5xl font-bold text-white mb-6">Simple Integration</h2>
-            <p className="text-xl text-neutral-400 max-w-2xl mx-auto">
+          <motion.div variants={itemVariants} className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Simple Integration</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Get up and running in minutes with our developer-friendly approach
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <motion.div variants={itemVariants} className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-400 ease-in-out">
-                <span className="text-3xl font-bold text-white">1</span>
-              </div>
-              <h3 className="text-2xl font-semibold text-white mb-4">Install SDK</h3>
-              <p className="text-neutral-400 leading-relaxed">
-                Add our lightweight SDK to your application with a single command. Works with all major frameworks.
-              </p>
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-400 ease-in-out">
-                <span className="text-3xl font-bold text-white">2</span>
-              </div>
-              <h3 className="text-2xl font-semibold text-white mb-4">Configure Flags</h3>
-              <p className="text-neutral-400 leading-relaxed">
-                Create feature flags and define targeting rules through our intuitive dashboard interface.
-              </p>
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-400 ease-in-out">
-                <span className="text-3xl font-bold text-white">3</span>
-              </div>
-              <h3 className="text-2xl font-semibold text-white mb-4">Deploy & Monitor</h3>
-              <p className="text-neutral-400 leading-relaxed">
-                Release features with confidence and monitor performance with real-time analytics and alerts.
-              </p>
-            </motion.div>
+            <StepCard
+              number="1"
+              title="Install SDK"
+              description="Add our lightweight SDK to your application with a single command. Works with all major frameworks."
+            />
+            <StepCard
+              number="2"
+              title="Configure Flags"
+              description="Create feature flags and define targeting rules through our intuitive dashboard interface."
+            />
+            <StepCard
+              number="3"
+              title="Deploy & Monitor"
+              description="Release features with confidence and monitor performance with real-time analytics and alerts."
+            />
           </div>
         </motion.div>
       </section>
 
       {/* Benefits */}
-      <section className="py-24 px-6 lg:px-8">
+      <section className="py-20 px-6 bg-white">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -301,8 +312,8 @@ export default function LandingPage() {
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div variants={itemVariants}>
-              <h2 className="text-5xl font-bold text-white mb-8">Why Choose Flagship Feat</h2>
-              <ul className="space-y-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">Why Choose Flagship Feat</h2>
+              <ul className="space-y-4">
                 <BenefitItem text="Deploy features without fear of breaking production environments" />
                 <BenefitItem text="Test new ideas with real users before committing to full rollout" />
                 <BenefitItem text="Instant rollbacks and kill switches for immediate issue resolution" />
@@ -312,35 +323,40 @@ export default function LandingPage() {
               </ul>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 blur-3xl" />
-              <Card className="relative bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
+            <motion.div variants={itemVariants}>
+              <Card className="bg-white border border-gray-200 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-3xl text-white font-bold">Built for Scale</CardTitle>
-                  <CardDescription className="text-neutral-400 text-lg">
+                  <CardTitle className="text-2xl text-gray-900 font-bold">Built for Scale</CardTitle>
+                  <CardDescription className="text-gray-600 text-lg">
                     Enterprise-grade infrastructure that grows with your business
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex items-start space-x-4">
-                    <Activity className="w-6 h-6 text-blue-400 mt-1 flex-shrink-0" />
+                    <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Activity className="w-5 h-5 text-indigo-600" />
+                    </div>
                     <div>
-                      <h4 className="font-semibold text-white text-lg">High Performance</h4>
-                      <p className="text-neutral-400">Lightning-fast flag evaluation with global edge network</p>
+                      <h4 className="font-semibold text-gray-900 text-lg">High Performance</h4>
+                      <p className="text-gray-600">Lightning-fast flag evaluation with global edge network</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4">
-                    <Shield className="w-6 h-6 text-emerald-400 mt-1 flex-shrink-0" />
+                    <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Shield className="w-5 h-5 text-emerald-600" />
+                    </div>
                     <div>
-                      <h4 className="font-semibold text-white text-lg">Secure & Reliable</h4>
-                      <p className="text-neutral-400">Bank-grade security with 99.9% uptime guarantee</p>
+                      <h4 className="font-semibold text-gray-900 text-lg">Secure & Reliable</h4>
+                      <p className="text-gray-600">Bank-grade security with 99.9% uptime guarantee</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4">
-                    <Settings className="w-6 h-6 text-purple-400 mt-1 flex-shrink-0" />
+                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Settings className="w-5 h-5 text-purple-600" />
+                    </div>
                     <div>
-                      <h4 className="font-semibold text-white text-lg">Developer Friendly</h4>
-                      <p className="text-neutral-400">Intuitive APIs and comprehensive documentation</p>
+                      <h4 className="font-semibold text-gray-900 text-lg">Developer Friendly</h4>
+                      <p className="text-gray-600">Intuitive APIs and comprehensive documentation</p>
                     </div>
                   </div>
                 </CardContent>
@@ -351,9 +367,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="pt-16 pb-24 px-6 lg:px-8">
-        {" "}
-        {/* Reduced top padding here */}
+      <section className="py-20 px-6 bg-gray-50">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -363,16 +377,16 @@ export default function LandingPage() {
         >
           <motion.div
             variants={itemVariants}
-            className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-3xl border border-blue-500/20 p-16"
+            className="bg-white rounded-2xl border border-gray-200 shadow-lg p-12"
           >
-            <h2 className="text-5xl font-bold text-white mb-6">Ready to Transform Your Deployments?</h2>
-            <p className="text-xl text-neutral-400 mb-10 leading-relaxed">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ready to Transform Your Deployments?</h2>
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
               Join development teams who trust Flagship Feat to deliver better software, faster and safer.
             </p>
             <Link href="/signup">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-12 py-6 text-xl font-semibold rounded-xl"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 text-xl font-medium rounded-lg"
               >
                 Get Started Today
                 <ArrowRight className="ml-3 w-6 h-6" />
@@ -383,9 +397,9 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/50 py-12 px-6 lg:px-8">
+      <footer className="border-t border-gray-200 py-8 px-6 bg-white">
         <div className="max-w-7xl mx-auto text-center">
-          <p className="text-neutral-500">© 2024 Flagship Feat. All rights reserved.</p>
+          <p className="text-gray-500">© 2024 Flagship Feat. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { CheckCircle2, ShieldCheck, AlertTriangle, Loader2 } from "lucide-react"
+import { CheckCircle2, ShieldCheck, AlertTriangle, Loader2, Flag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import axios from "axios"
@@ -35,6 +35,8 @@ export default function CheckEmailVerifyFinalPage() {
                     token
                 });
                 if(results.status === 200){
+                    setStatus("success")
+                    setMessage("Email verified successfully!")
                     toast.success("Email verified successfully! Redirecting to sign in...");
                     setTimeout(() => router.push(`/auth/signin`), 2000);
                 }
@@ -42,6 +44,7 @@ export default function CheckEmailVerifyFinalPage() {
                     throw new Error("Verification failed");
                 }
             } catch(e) {
+                setStatus("error")
                 setMessage("Verification of Email Failed");
                 toast.error("Verification failed. Request a new link.");
                 setTimeout(()=> {
@@ -59,6 +62,8 @@ export default function CheckEmailVerifyFinalPage() {
                     orgName,token
                 });
                 if(results.status === 200){
+                    setStatus("success")
+                    setMessage("Email verified successfully!")
                     toast.success("Email verified successfully! Redirecting to dashboard...");
                     setTimeout(() => router.push('/dashboard'), 2000);
                 }
@@ -66,6 +71,7 @@ export default function CheckEmailVerifyFinalPage() {
                     throw new Error("Verification failed");
                 }
             } catch(e) {
+                setStatus("error")
                 setMessage("Verification of Email Failed");
                 toast.error("Verification failed. Please try signing up again.");
             }
@@ -87,78 +93,84 @@ export default function CheckEmailVerifyFinalPage() {
   }
 
   let IconComponent = Loader2
-  let iconColorClass = "text-blue-400 animate-spin"
-  let gradientFrom = "from-slate-900"
-  let gradientVia = "via-blue-900"
-  let gradientTo = "to-sky-900"
-  let titleGradientFrom = "from-blue-400"
-  let titleGradientTo = "to-sky-400"
+  let iconColorClass = "text-indigo-600 animate-spin"
+  let bgColorClass = "bg-indigo-100"
+  let statusColor = "text-indigo-600"
 
   if (status === "success") {
     IconComponent = ShieldCheck
-    iconColorClass = "text-white"
-    gradientFrom = "from-slate-900"
-    gradientVia = "via-green-900"
-    gradientTo = "to-emerald-900"
-    titleGradientFrom = "from-green-400"
-    titleGradientTo = "to-emerald-400"
+    iconColorClass = "text-emerald-600"
+    bgColorClass = "bg-emerald-100"
+    statusColor = "text-emerald-600"
   } else if (status === "error") {
     IconComponent = AlertTriangle
-    iconColorClass = "text-white"
-    gradientFrom = "from-slate-900"
-    gradientVia = "via-red-900"
-    gradientTo = "to-pink-900"
-    titleGradientFrom = "from-red-400"
-    titleGradientTo = "to-pink-400"
+    iconColorClass = "text-red-600"
+    bgColorClass = "bg-red-100"
+    statusColor = "text-red-600"
   }
 
   return (
     <>
       <Toaster />
-      <div
-        className={`min-h-screen bg-gradient-to-br ${gradientFrom} ${gradientVia} ${gradientTo} flex items-center justify-center p-4 transition-colors duration-500`}
-      >
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
-          <Card className="bg-slate-800/70 dark:bg-neutral-800/70 backdrop-blur-xl border-slate-700/50 shadow-2xl">
+          <Card className="shadow-lg border border-gray-200">
             <CardHeader className="text-center pb-6 pt-8">
               <motion.div
                 key={status} // Re-trigger animation on status change
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ delay: 0.1, type: "spring", stiffness: 180 }}
-                className={`w-20 h-20 bg-gradient-to-r ${titleGradientFrom} ${titleGradientTo} rounded-full flex items-center justify-center mx-auto mb-6`}
+                className={`w-20 h-20 ${bgColorClass} rounded-lg flex items-center justify-center mx-auto mb-6`}
               >
                 <IconComponent className={`w-10 h-10 ${iconColorClass}`} />
               </motion.div>
-              <CardTitle
-                className={`text-3xl font-bold bg-gradient-to-r ${titleGradientFrom} ${titleGradientTo} bg-clip-text text-transparent`}
-              >
+              <div className="flex items-center justify-center mb-4">
+                <Flag className="w-6 h-6 text-indigo-600 mr-2" />
+                <span className="text-lg font-semibold text-gray-900">FeatureFlag</span>
+              </div>
+              <CardTitle className={`text-2xl font-bold text-gray-900`}>
                 {status === "verifying" && "Verifying Email"}
                 {status === "success" && "Email Verified!"}
                 {status === "error" && "Verification Failed"}
               </CardTitle>
-              <CardDescription className="text-neutral-400 dark:text-neutral-300 mt-3 text-lg">{message}</CardDescription>
+              <CardDescription className="text-gray-600 mt-3 text-base">{message}</CardDescription>
             </CardHeader>
-            <CardContent className="text-center">
+            <CardContent className="text-center space-y-6">
               {status === "success" && (
-                <Link href="/signin">
-                  <Button
-                    className={`w-full h-12 bg-gradient-to-r ${titleGradientFrom} ${titleGradientTo} hover:opacity-90 text-white font-semibold rounded-xl transition-all duration-300`}
-                  >
-                    Proceed to Sign In
-                    <CheckCircle2 className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                  <p className="text-emerald-700 text-sm mb-4">
+                    Your email has been successfully verified. You can now access all features of your account.
+                  </p>
+                  <Link href="/auth/signin">
+                    <Button className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white">
+                      Proceed to Sign In
+                      <CheckCircle2 className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               )}
               {status === "error" && (
-                <Link href="/auth/request-verification-email">
-                  <Button
-                    variant="outline"
-                    className={`w-full h-12 border-pink-500 text-pink-400 hover:bg-pink-500/10 hover:text-pink-300 transition-colors duration-300 group`}
-                  >
-                    Request New Verification Link
-                  </Button>
-                </Link>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-700 text-sm mb-4">
+                    We couldn't verify your email. This could be due to an expired or invalid verification link.
+                  </p>
+                  <Link href="/auth/request-verification-email">
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 border-red-300 text-red-600 hover:bg-red-50"
+                    >
+                      Request New Verification Link
+                    </Button>
+                  </Link>
+                </div>
+              )}
+              {status === "verifying" && (
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                  <p className="text-indigo-700 text-sm">
+                    Please wait while we verify your email address...
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>

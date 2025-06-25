@@ -16,8 +16,8 @@ class ReadMetricController {
 
     private checkUserAuthorizationForAll = (req: express.Request, res: express.Response): boolean => {
         const userRole = req.session.user?.userRole;
-        if (userRole === undefined || ((userRole === "ADMIN") || (userRole === "OWNER"))) {
-            res.status(403).json({ success: true, message: "Not Authorised" });
+        if (userRole === undefined || ((userRole === "VIEWER") || (userRole === "MEMBER"))) {
+            res.status(403).json({ success: false, message: "Not Authorised" });
             return false;
         }
         return true;

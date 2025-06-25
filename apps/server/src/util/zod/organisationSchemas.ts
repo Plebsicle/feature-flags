@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 // Enums for organisation
 export const userRoleSchema = z.enum(['OWNER', 'ADMIN', 'MEMBER', 'VIEWER']);
-export const frequencyUnitSchema = z.enum(['MINUTE', 'HOUR', 'DAY', 'WEEK', 'MONTH']);
+export const frequencyUnitSchema = z.enum(['MINUTE', 'HOUR', 'DAY']);
 
 // Alert preferences schemas
 export const alertPreferencesBodySchema = z.object({

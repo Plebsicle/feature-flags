@@ -161,16 +161,16 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
     });
   }
 
-  const getMetricTypeColor = (type: metric_type) => {
+  const getMetricTypeIconBackground = (type: metric_type) => {
     switch (type) {
       case "CONVERSION":
-        return 'from-purple-500 to-violet-600'
+        return 'bg-purple-100 text-purple-600'
       case "COUNT":
-        return 'from-blue-500 to-indigo-600'
+        return 'bg-blue-100 text-blue-600'
       case "NUMERIC":
-        return 'from-emerald-500 to-teal-600'
+        return 'bg-emerald-100 text-emerald-600'
       default:
-        return 'from-gray-500 to-slate-600'
+        return 'bg-gray-100 text-gray-600'
     }
   }
 
@@ -195,17 +195,24 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
           <Button 
             variant="outline" 
             size="sm"
-            className="border-blue-700 text-blue-300 hover:bg-blue-800/20"
+            className="border-indigo-300 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-400"
           >
             <Edit className="w-4 h-4" />
-            Edit
           </Button>
         </DialogTrigger>
-        <DialogContent className="bg-slate-800 border-slate-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white text-xl">Edit Metric</DialogTitle>
-            <DialogDescription className="text-neutral-400">
-              Update the configuration for <span className="font-medium text-white">{metric.metric_name}</span>
+            <DialogTitle className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-lg ${getMetricTypeIconBackground(formData.metric_type)} flex items-center justify-center`}>
+                {(() => {
+                  const Icon = getMetricTypeIcon(formData.metric_type)
+                  return <Icon className="w-5 h-5" />
+                })()}
+              </div>
+              Edit Metric
+            </DialogTitle>
+            <DialogDescription>
+              Update metric details and configuration. Changes will be applied immediately.
             </DialogDescription>
           </DialogHeader>
 

@@ -17,8 +17,10 @@ import {
   Skull,
   User,
   LoaderIcon,
+  ChevronDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
@@ -46,18 +48,13 @@ export default function DashboardLayout({
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        
-        
-        
-        const  response = await fetch(`${BACKEND_URL}/auth/me`, {
-            method: "GET",
-            credentials: "include",
-          })
-        
+        const response = await fetch(`${BACKEND_URL}/auth/me`, {
+          method: "GET",
+          credentials: "include",
+        })
         
         if (response.ok) {
           const data = await response.json()
-          // Handle both possible response structures
           const user = data.data || data
           setUserData(user)
         } else {
@@ -97,57 +94,57 @@ export default function DashboardLayout({
         name: "Flags",
         href: "/flags",
         icon: Flag,
-        gradient: "from-blue-500 to-indigo-600",
+        color: "text-indigo-600",
+        bgColor: "bg-indigo-50",
         allowedRoles: ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'],
       },
       {
         name: "Metrics",
         href: "/metrics",
         icon: BarChart3,
-        gradient: "from-emerald-500 to-teal-600",
+        color: "text-emerald-600",
+        bgColor: "bg-emerald-50",
         allowedRoles: ['OWNER', 'ADMIN'],
       },
       {
         name: "Alerts",
         href: "/alerts",
         icon: Bell,
-        gradient: "from-orange-500 to-amber-600",
+        color: "text-amber-600",
+        bgColor: "bg-amber-50",
         allowedRoles: ['OWNER', 'ADMIN'],
       },
       {
         name: "Kill Switches",
         href: "/killSwitch",
         icon: Skull,
-        gradient: "from-red-500 to-rose-600",
+        color: "text-red-600",
+        bgColor: "bg-red-50",
         allowedRoles: ['OWNER', 'ADMIN'],
       },
       {
         name: "Audit Logs",
         href: "/auditLogs",
         icon: FileText,
-        gradient: "from-purple-500 to-violet-600",
+        color: "text-purple-600",
+        bgColor: "bg-purple-50",
         allowedRoles: ['OWNER', 'ADMIN'],
       },
       {
         name: "Integrate Slack",
         href: "/slack",
         icon: MessageSquare,
-        gradient: "from-green-500 to-emerald-600",
+        color: "text-green-600",
+        bgColor: "bg-green-50",
         allowedRoles: ['OWNER'],
       },
       {
         name: "Organisation Settings",
         href: "/organisationSettings/inviteMembers",
         icon: Settings,
-        gradient: "from-gray-500 to-slate-600",
+        color: "text-gray-600",
+        bgColor: "bg-gray-50",
         allowedRoles: ['OWNER', 'ADMIN'],
-      },
-      {
-        name: "Logout",
-        icon: LogOut,
-        onClick: handleLogout,
-        gradient: "from-red-500 to-rose-600",
-        allowedRoles: ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'],
       },
     ]
 
@@ -156,10 +153,10 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="flex items-center space-x-3 text-white">
-          <LoaderIcon className="w-6 h-6 animate-spin" />
-          <span className="text-lg">Loading...</span>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex items-center space-x-3 text-gray-900">
+          <LoaderIcon className="w-6 h-6 animate-spin text-indigo-600" />
+          <span className="text-lg font-medium">Loading...</span>
         </div>
       </div>
     )
@@ -167,13 +164,13 @@ export default function DashboardLayout({
 
   if (!userData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="text-white text-center">
-          <p className="text-lg mb-4">Unable to load user data</p>
-          <Button onClick={() => router.push("/auth/signin")} className="bg-blue-600 hover:bg-blue-700">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="p-8 text-center max-w-md">
+          <p className="text-lg mb-4 text-gray-900">Unable to load user data</p>
+          <Button onClick={() => router.push("/auth/signin")}>
             Go to Sign In
           </Button>
-        </div>
+        </Card>
       </div>
     )
   }
@@ -181,156 +178,127 @@ export default function DashboardLayout({
   const sidebarItems = getFilteredSidebarItems(userData.role)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <motion.nav
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }}
-        className="fixed top-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/50"
-      >
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
-                className="lg:hidden text-neutral-300 hover:text-white hover:bg-slate-800/50 p-2"
+                className="lg:hidden"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
               >
                 {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
-              <Link href="/dashboard" className="flex items-center space-x-2 sm:space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <Flag className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              
+              <Link href="/dashboard" className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                  <Flag className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-lg sm:text-xl font-bold text-white">Launch Flagly</span>
+                <span className="text-xl font-bold text-gray-900 hidden sm:block">
+                  Flagship Feat
+                </span>
               </Link>
             </div>
+
             <div className="flex items-center space-x-4">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-sm font-medium text-white">{userData.name}</span>
-                <span className="text-xs text-neutral-400">{userData.role}</span>
+              <div className="hidden md:block text-right">
+                <p className="text-sm font-medium text-gray-900">{userData.name}</p>
+                <p className="text-xs text-gray-500">{userData.organisationName}</p>
               </div>
+              
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleProfileClick}
+                  className="flex items-center space-x-2"
+                >
+                  <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-gray-600" />
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-gray-500 hidden sm:block" />
+                </Button>
+              </div>
+              
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center hover:scale-105 transition-transform duration-200 cursor-pointer"
-                onClick={handleProfileClick}
+                onClick={handleLogout}
+                className="text-gray-600 hover:text-red-600"
               >
-                <User className="w-4 h-4 text-white" />
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:ml-2 sm:block">Logout</span>
               </Button>
             </div>
           </div>
         </div>
-      </motion.nav>
+      </header>
 
-      <div className="flex pt-16">
-        <motion.aside
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut", delay: 0.2 } }}
-          className={cn(
-            "fixed left-0 top-16 bottom-0 z-40 w-64 sm:w-72 bg-slate-900/95 backdrop-blur-xl border-r border-slate-800/50 transform transition-transform duration-300 ease-in-out",
-            "lg:translate-x-0",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          )}
-        >
-          <div className="p-4 sm:p-6 h-full overflow-y-auto">
-            <div className="mb-6 p-4 bg-slate-800/40 rounded-xl border border-slate-700/30">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    {userData.organisationName.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-white font-medium text-sm">{userData.organisationName}</h3>
-                  <p className="text-neutral-400 text-xs">{userData.role}</p>
-                </div>
-              </div>
-            </div>
-
-            <nav className="space-y-2">
-              {sidebarItems.map((item, index) => {
-                const isActive = pathname === item.href
-                const Icon = item.icon
-
-                const itemContent = (
-                  <div
-                    className={cn(
-                      "group flex items-center px-3 sm:px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 relative overflow-hidden cursor-pointer",
-                      isActive
-                        ? "bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 text-white"
-                        : "text-neutral-400 hover:text-white hover:bg-slate-800/40"
-                    )}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeTab"
-                        className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-xl"
-                        transition={{ type: "spring", duration: 0.6 }}
-                      />
-                    )}
-                    <div
-                      className={cn(
-                        "w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mr-3 transition-all duration-300 relative z-10",
-                        isActive
-                          ? `bg-gradient-to-r ${item.gradient}`
-                          : "bg-slate-800/60 group-hover:bg-slate-700/60"
-                      )}
-                    >
-                      <Icon
-                        className={cn(
-                          "w-4 h-4 sm:w-5 sm:h-5 transition-colors duration-300",
-                          isActive ? "text-white" : "text-neutral-400 group-hover:text-neutral-300"
-                        )}
-                      />
-                    </div>
-                    <span className="relative z-10 font-medium text-sm sm:text-base">
-                      {item.name}
-                    </span>
-                    {!isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-700/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
-                    )}
-                  </div>
-                )
-
+      {/* Sidebar */}
+      <aside className={cn(
+        "fixed top-16 left-0 z-40 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="flex flex-col h-full">
+          <nav className="flex-1 p-4 space-y-2">
+            {sidebarItems.map((item) => {
+              const isActive = pathname.startsWith(item.href || '')
+              const Icon = item.icon
+              
+              if (item.href) {
                 return (
-                  <motion.div
+                  <Link
                     key={item.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{
-                      opacity: 1,
-                      x: 0,
-                      transition: { duration: 0.6, delay: index * 0.1 },
-                    }}
-                  >
-                    {item.href ? (
-                      <Link href={item.href} onClick={() => setSidebarOpen(false)}>
-                        {itemContent}
-                      </Link>
-                    ) : (
-                      <div onClick={item.onClick}>{itemContent}</div>
+                    href={item.href}
+                    className={cn(
+                      "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? `${item.bgColor} ${item.color}`
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     )}
-                  </motion.div>
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{item.name}</span>
+                  </Link>
                 )
-              })}
-            </nav>
+              }
+              
+              return null
+            })}
+          </nav>
+          
+          <div className="p-4 border-t border-gray-200">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <LogOut className="w-4 h-4 mr-3" />
+              Logout
+            </Button>
           </div>
-        </motion.aside>
+        </div>
+      </aside>
 
-        {sidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-gray-600 bg-opacity-75 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-        <main className="flex-1 lg:ml-72">
-          <div className="min-h-screen">{children}</div>
-        </main>
-      </div>
+      {/* Main content */}
+      <main className="lg:pl-64 pt-16">
+        <div className="p-6">
+          {children}
+        </div>
+      </main>
     </div>
   )
 }

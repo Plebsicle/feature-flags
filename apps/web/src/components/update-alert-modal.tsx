@@ -150,16 +150,16 @@ export function UpdateAlertModal({ alert, metricId }: UpdateAlertModalProps) {
           <Button 
             variant="outline" 
             size="sm"
-            className="border-blue-700 text-blue-300 hover:bg-blue-800/20"
+            className="border-indigo-300 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-400"
           >
             <Edit className="w-4 h-4" />
             Update
           </Button>
         </DialogTrigger>
-        <DialogContent className="bg-slate-800 border-slate-700 max-w-lg">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white text-xl">Update Alert</DialogTitle>
-            <DialogDescription className="text-neutral-400">
+            <DialogTitle>Update Alert</DialogTitle>
+            <DialogDescription>
               Modify the alert configuration for this metric.
             </DialogDescription>
           </DialogHeader>
@@ -167,22 +167,22 @@ export function UpdateAlertModal({ alert, metricId }: UpdateAlertModalProps) {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Operator */}
             <div className="space-y-2">
-              <Label className="text-neutral-300">
+              <Label>
                 Condition *
               </Label>
               <Select 
                 value={formData.operator} 
                 onValueChange={(value: alert_operator) => handleInputChange('operator', value)}
               >
-                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectContent>
                   {(["GREATER_THAN", "LESS_THAN", "EQUALS_TO"] as alert_operator[]).map((operator) => (
-                    <SelectItem key={operator} value={operator} className="text-white hover:bg-slate-700">
+                    <SelectItem key={operator} value={operator}>
                       <div className="flex flex-col items-start">
                         <span className="font-medium">{getOperatorLabel(operator)}</span>
-                        <span className="text-xs text-neutral-400">{getOperatorDescription(operator)}</span>
+                        <span className="text-xs text-gray-500">{getOperatorDescription(operator)}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -192,7 +192,7 @@ export function UpdateAlertModal({ alert, metricId }: UpdateAlertModalProps) {
 
             {/* Threshold */}
             <div className="space-y-2">
-              <Label htmlFor="threshold" className="text-neutral-300">
+              <Label htmlFor="threshold">
                 Threshold Value *
               </Label>
               <Input
@@ -201,47 +201,40 @@ export function UpdateAlertModal({ alert, metricId }: UpdateAlertModalProps) {
                 step="any"
                 value={formData.threshold}
                 onChange={(e) => handleInputChange('threshold', parseFloat(e.target.value) || 0)}
-                className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
                 placeholder="Enter threshold value"
                 required
               />
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-gray-500">
                 Alert will trigger when metric value is {getOperatorLabel(formData.operator).toLowerCase()} this value
               </p>
             </div>
 
-            {/* Enabled Status */}
-            <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
-              <div>
-                <Label className="text-neutral-300 font-medium">
+            {/* Enable/Disable Alert */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-0.5">
+                <Label>
                   Enable Alert
                 </Label>
-                <p className="text-sm text-neutral-400">
-                  Toggle alert active status
+                <p className="text-sm text-gray-600">
+                  Alert will be active and send notifications when triggered
                 </p>
               </div>
               <Switch
                 checked={formData.is_enabled}
                 onCheckedChange={(checked) => handleInputChange('is_enabled', checked)}
-                className="data-[state=checked]:bg-emerald-600"
               />
             </div>
 
-            <DialogFooter className="gap-2">
-              <Button
-                type="button"
-                variant="outline"
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
                 onClick={() => setIsOpen(false)}
                 disabled={isSubmitting}
-                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />

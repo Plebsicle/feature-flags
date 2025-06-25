@@ -197,7 +197,7 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-white">Percentage (0-100%)</Label>
+              <Label className="text-gray-900 font-medium">Percentage (0-100%)</Label>
               <div className="px-3">
                 <Slider
                   value={[rolloutConfig.percentage || 0]}
@@ -206,9 +206,9 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
                   step={1}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-slate-400 mt-1">
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
                   <span>0%</span>
-                  <span className="text-white font-medium">{rolloutConfig.percentage || 0}%</span>
+                  <span className="text-gray-900 font-medium">{rolloutConfig.percentage || 0}%</span>
                   <span>100%</span>
                 </div>
               </div>
@@ -216,22 +216,20 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white">Start Date</Label>
+                <Label className="text-gray-900 font-medium">Start Date</Label>
                 <Input
                   type="datetime-local"
                   value={rolloutConfig.startDate ? new Date(rolloutConfig.startDate).toISOString().slice(0, 16) : ''}
                   onChange={(e) => updateConfig({ startDate: new Date(e.target.value) })}
-                  className="bg-slate-700/50 border-slate-600 text-white"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label className="text-white">End Date</Label>
+                <Label className="text-gray-900 font-medium">End Date</Label>
                 <Input
                   type="datetime-local"
                   value={rolloutConfig.endDate ? new Date(rolloutConfig.endDate).toISOString().slice(0, 16) : ''}
                   onChange={(e) => updateConfig({ endDate: new Date(e.target.value) })}
-                  className="bg-slate-700/50 border-slate-600 text-white"
                 />
               </div>
             </div>
@@ -243,57 +241,53 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
           <div className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white">Start Percentage</Label>
+                <Label className="text-gray-900 font-medium">Start Percentage</Label>
                 <Input
                   type="number"
                   min="0"
                   max="100"
                   value={rolloutConfig.startPercentage || 5}
                   onChange={(e) => updateConfig({ startPercentage: parseInt(e.target.value) || 5 })}
-                  className="bg-slate-700/50 border-slate-600 text-white"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label className="text-white">Increment Percentage</Label>
+                <Label className="text-gray-900 font-medium">Increment Percentage</Label>
                 <Input
                   type="number"
                   min="1"
                   max="50"
                   value={rolloutConfig.incrementPercentage || 10}
                   onChange={(e) => updateConfig({ incrementPercentage: parseInt(e.target.value) || 10 })}
-                  className="bg-slate-700/50 border-slate-600 text-white"
                 />
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white">Max Percentage</Label>
+                <Label className="text-gray-900 font-medium">Max Percentage</Label>
                 <Input
                   type="number"
                   min="1"
                   max="100"
                   value={rolloutConfig.maxPercentage || 100}
                   onChange={(e) => updateConfig({ maxPercentage: parseInt(e.target.value) || 100 })}
-                  className="bg-slate-700/50 border-slate-600 text-white"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label className="text-white">Start Date</Label>
+                <Label className="text-gray-900 font-medium">Start Date</Label>
                 <Input
                   type="datetime-local"
                   value={rolloutConfig.startDate ? new Date(rolloutConfig.startDate).toISOString().slice(0, 16) : ''}
                   onChange={(e) => updateConfig({ startDate: new Date(e.target.value) })}
-                  className="bg-slate-700/50 border-slate-600 text-white"
                 />
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white">Frequency Value</Label>
+                <Label className="text-gray-900 font-medium">Frequency Value</Label>
                 <Input
                   type="number"
                   min="1"
@@ -304,12 +298,11 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
                       value: parseInt(e.target.value) || 1 
                     } 
                   })}
-                  className="bg-slate-700/50 border-slate-600 text-white"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label className="text-white">Frequency Unit</Label>
+                <Label className="text-gray-900 font-medium">Frequency Unit</Label>
                 <Select
                   value={rolloutConfig.frequency?.unit || 'days'}
                   onValueChange={(value) => updateConfig({ 
@@ -319,13 +312,13 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
                     } 
                   })}
                 >
-                  <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="minutes" className="text-white hover:bg-slate-700">Minutes</SelectItem>
-                    <SelectItem value="hours" className="text-white hover:bg-slate-700">Hours</SelectItem>
-                    <SelectItem value="days" className="text-white hover:bg-slate-700">Days</SelectItem>
+                  <SelectContent>
+                    <SelectItem value="minutes">Minutes</SelectItem>
+                    <SelectItem value="hours">Hours</SelectItem>
+                    <SelectItem value="days">Days</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -337,11 +330,11 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-white">Custom Stages</Label>
+              <Label className="text-gray-900 font-medium">Custom Stages</Label>
               <Button
                 onClick={addCustomStage}
                 size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Stage
@@ -350,15 +343,15 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
 
             <div className="space-y-3">
               {rolloutConfig.stages?.map((stage: any, index: number) => (
-                <div key={index} className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50">
+                <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-white font-medium">Stage {index + 1}</h4>
+                    <h4 className="text-gray-900 font-medium">Stage {index + 1}</h4>
                     {rolloutConfig.stages.length > 1 && (
                       <Button
                         onClick={() => removeCustomStage(index)}
                         size="sm"
                         variant="ghost"
-                        className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -367,7 +360,7 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
                   
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-white">Percentage</Label>
+                      <Label className="text-gray-900 font-medium">Percentage</Label>
                       <Input
                         type="number"
                         min="0"
@@ -381,12 +374,11 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
                           }
                           updateConfig({ stages: newStages })
                         }}
-                        className="bg-slate-600/50 border-slate-500 text-white"
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label className="text-white">Stage Date</Label>
+                      <Label className="text-gray-900 font-medium">Stage Date</Label>
                       <Input
                         type="datetime-local"
                         value={stage.stageDate ? new Date(stage.stageDate).toISOString().slice(0, 16) : ''}
@@ -398,18 +390,17 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
                           }
                           updateConfig({ stages: newStages })
                         }}
-                        className="bg-slate-600/50 border-slate-500 text-white"
                       />
                     </div>
                   </div>
                 </div>
-              )) || []}
+              ))}
             </div>
           </div>
         )
 
       default:
-        return <div className="text-slate-400">Select a rollout type to configure settings</div>
+        return null
     }
   }
 
@@ -418,81 +409,82 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
       <Toaster />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button size="sm" variant="outline" className="border-blue-600/50 text-blue-400 hover:bg-blue-900/20">
-            <Edit className="w-4 h-4" />
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-indigo-300 text-indigo-600 hover:bg-indigo-50"
+          >
+            <Edit className="w-4 h-4 mr-2" />
+            Edit Rollout
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-800/95 backdrop-blur-xl border-slate-700/50">
+        
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center">
-              <Rocket className="w-5 h-5 mr-2 text-blue-400" />
+            <DialogTitle className="flex items-center text-gray-900">
+              <div className="bg-indigo-100 p-2 rounded-md mr-3">
+                <Rocket className="w-5 h-5 text-indigo-600" />
+              </div>
               Edit Rollout Configuration
             </DialogTitle>
-            <DialogDescription className="text-neutral-400">
-              Update the rollout strategy and configuration for this environment
+            <DialogDescription className="text-gray-600">
+              Update the rollout strategy for this feature flag environment.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
             {/* Rollout Type Selection */}
-            <div className="space-y-2">
-              <Label className="text-white">Rollout Type *</Label>
+            <div className="space-y-3">
+              <Label className="text-gray-900 font-medium">Rollout Type</Label>
               <Select value={rolloutType} onValueChange={handleRolloutTypeChange}>
-                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                <SelectTrigger>
                   <SelectValue placeholder="Select rollout type" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectContent>
                   {rolloutTypeOptions.map((option) => (
-                    <SelectItem 
-                      key={option.value} 
-                      value={option.value}
-                      className="text-white hover:bg-slate-700 focus:bg-slate-700"
-                    >
+                    <SelectItem key={option.value} value={option.value}>
                       <div className="flex flex-col">
                         <span className="font-medium">{option.label}</span>
-                        <span className="text-xs text-slate-400">{option.description}</span>
+                        <span className="text-sm text-gray-500">{option.description}</span>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.type && <p className="text-red-400 text-sm">{errors.type}</p>}
+              {errors.type && <p className="text-sm text-red-600">{errors.type}</p>}
             </div>
 
-            {/* Rollout Configuration */}
-            <Card className="bg-slate-700/30 border-slate-600/50">
+            {/* Configuration */}
+            <Card>
               <CardHeader>
-                <CardTitle className="text-white">Configuration</CardTitle>
-                <CardDescription className="text-neutral-400">
-                  Configure the settings for your selected rollout type
+                <CardTitle className="text-gray-900">Configuration</CardTitle>
+                <CardDescription className="text-gray-600">
+                  Configure the parameters for your selected rollout type.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {renderRolloutConfig()}
+                {errors.submit && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{errors.submit}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Submit Error */}
-            {errors.submit && (
-              <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded-md">
-                {errors.submit}
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-slate-700/50">
-              <Button
+            {/* Actions */}
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <Button 
                 variant="outline"
                 onClick={() => setOpen(false)}
                 disabled={loading}
-                className="border-slate-600 text-slate-300 hover:bg-slate-700"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
                 {loading ? (
                   <>
