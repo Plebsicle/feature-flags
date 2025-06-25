@@ -1,26 +1,20 @@
-import prisma from '@repo/db';
+import { PrismaClient } from '@repo/db/client';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 
-export const deleteAlert = async (req : express.Request,res : express.Response) => {
-    try{    
-       const userRole = req.session.user?.userRole;
-        if(userRole === undefined  || ((userRole === "VIEWER") || (userRole === "MEMBER"))){
-            res.status(403).json({success : true,message : "Not Authorised"})
-            return;
-        }
-        
-        const organisationId = req.session.user?.userOrganisationId!;
-        const userId = req.session.user?.userId;
-        const metricId = req.params.metricId;
-        
-        if(!metricId){
-            res.status(400).json({success : false,message : "Metric Id Needed"});
-            return;
-        }
+class AlertDeleteController {
+    private prisma: PrismaClient;
 
-        // Get alert details before deletion for audit logging
-        const alertToDelete = await prisma.alert_metric.findUnique({
+    constructor(prisma: PrismaClient) {
+        this.prisma = prisma;
+    }
+
+    private validateUserPermissions(userRole: string | undefined): boolean {
+        return !(userRole === undefined || userRole === "VIEWER" || userRole === "MEMBER");
+    }
+
+    private async getAlertWithMetric(metricId: string) {
+        return await this.prisma.alert_metric.findUnique({
             where: { metric_id: metricId },
             include: {
                 metric_setup: {
@@ -32,43 +26,43 @@ export const deleteAlert = async (req : express.Request,res : express.Response) 
                 }
             }
         });
+    }
 
-        if (!alertToDelete) {
-            res.status(404).json({success: false, message: "Alert not found"});
-            return;
-        }
+    private validateOrganizationAccess(alertData: any, organisationId: string): boolean {
+        return alertData.metric_setup.organization_id === organisationId;
+    }
 
-        // Verify the alert belongs to the user's organization
-        if (alertToDelete.metric_setup.organization_id !== organisationId) {
-            res.status(403).json({success: false, message: "Not authorized to delete this alert"});
-            return;
-        }
-
-        await prisma.alert_metric.delete({
-            where : {
-                metric_id : metricId
+    private async deleteAlertRecord(metricId: string) {
+        return await this.prisma.alert_metric.delete({
+            where: {
+                metric_id: metricId
             }
         });
+    }
 
-        // Extract audit information
-        const { ip, userAgent } = extractAuditInfo(req);
-
-        // Create audit log entry
-        await prisma.audit_logs.create({
+    private async createDeleteAuditLog(
+        organisationId: string,
+        userId: string | undefined,
+        alertData: any,
+        userRole: string,
+        ip: string,
+        userAgent: string | null
+    ) {
+        await this.prisma.audit_logs.create({
             data: {
                 organisation_id: organisationId,
                 user_id: userId,
                 action: 'DELETE',
                 resource_type: 'ALERT',
-                resource_id: alertToDelete.id,
+                resource_id: alertData.id,
                 attributes_changed: {
                     deleted_alert: {
-                        metric_id: alertToDelete.metric_id,
-                        operator: alertToDelete.operator,
-                        threshold: alertToDelete.threshold,
-                        is_enabled: alertToDelete.is_enabled,
-                        metric_name: alertToDelete.metric_setup.metric_name,
-                        metric_key: alertToDelete.metric_setup.metric_key
+                        metric_id: alertData.metric_id,
+                        operator: alertData.operator,
+                        threshold: alertData.threshold,
+                        is_enabled: alertData.is_enabled,
+                        metric_name: alertData.metric_setup.metric_name,
+                        metric_key: alertData.metric_setup.metric_key
                     },
                     user_role: userRole
                 },
@@ -76,11 +70,65 @@ export const deleteAlert = async (req : express.Request,res : express.Response) 
                 user_agent: userAgent
             }
         });
-
-        res.status(200).json({success : true,message : "Alert removed succesfully"});
     }
-    catch(e){
-        console.error(e);
-        res.status(500).json({success : false,message : "Internal Server Error"});
+
+    deleteAlert = async (req: express.Request, res: express.Response) => {
+        try {
+            const userRole = req.session.user?.userRole;
+            if (!this.validateUserPermissions(userRole)) {
+                res.status(403).json({ success: false, message: "Not Authorised" });
+                return;
+            }
+
+            const organisationId = req.session.user?.userOrganisationId!;
+            const userId = req.session.user?.userId;
+            const metricId = req.params.metricId;
+
+            if (!metricId) {
+                res.status(400).json({ success: false, message: "Metric Id Needed" });
+                return;
+            }
+
+            // Get alert details before deletion for audit logging
+            const alertToDelete = await this.getAlertWithMetric(metricId);
+
+            if (!alertToDelete) {
+                res.status(404).json({ success: false, message: "Alert not found" });
+                return;
+            }
+
+            // Verify the alert belongs to the user's organization
+            if (!this.validateOrganizationAccess(alertToDelete, organisationId)) {
+                res.status(403).json({ success: false, message: "Not authorized to delete this alert" });
+                return;
+            }
+
+            await this.deleteAlertRecord(metricId);
+
+            // Extract audit information
+            const { ip, userAgent } = extractAuditInfo(req);
+
+            // Create audit log entry
+            await this.createDeleteAuditLog(
+                organisationId,
+                userId,
+                alertToDelete,
+                userRole!,
+                ip,
+                userAgent
+            );
+
+            res.status(200).json({ success: true, message: "Alert removed succesfully" });
+        }
+        catch (e) {
+            console.error(e);
+            res.status(500).json({ success: false, message: "Internal Server Error" });
+        }
     }
 }
+
+// Import the actual prisma instance
+import prisma from '@repo/db';
+
+// Export the instantiated controller
+export default new AlertDeleteController(prisma);

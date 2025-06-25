@@ -1,15 +1,15 @@
 import express from 'express'
-import { getAlerts } from '../../controllers/alerts/read-alert';
-import { createAlert } from '../../controllers/alerts/create-alert';
-import { updateAlert } from '../../controllers/alerts/update-alert';
+import alertReadController from '../../controllers/alerts/read-alert';
+import alertCreateController from '../../controllers/alerts/create-alert';
+import alertUpdateController from '../../controllers/alerts/update-alert';
 import { verificationMiddleware } from '../../middlewares/verification';
-import { deleteAlert } from '../../controllers/alerts/delete-alert';
+import alertDeleteController from '../../controllers/alerts/delete-alert';
 
 const router = express.Router();
 
-router.get('/:metricId', verificationMiddleware,getAlerts);
-router.post('/',verificationMiddleware,createAlert);
-router.put('/',verificationMiddleware,updateAlert);
-router.delete('/:metricId',verificationMiddleware,deleteAlert);
+router.get('/:metricId', verificationMiddleware, alertReadController.getAlerts);
+router.post('/', verificationMiddleware, alertCreateController.createAlert);
+router.put('/', verificationMiddleware, alertUpdateController.updateAlert);
+router.delete('/:metricId', verificationMiddleware, alertDeleteController.deleteAlert);
 
 export default router;

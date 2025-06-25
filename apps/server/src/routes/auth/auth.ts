@@ -1,41 +1,40 @@
 import express from 'express'
-import { emailSignin,googleSignin } from '../../controllers/auth/signin';
-import { emailSignup,googleSignup } from '../../controllers/auth/signup';
-import { sendVerificationEmailManual, verifyEmailManual, verifyEmailSignup } from '../../controllers/auth/email-verify';
-import { checkVerificationEmailForgetPassword, sendVerificationEmailForgetPassword } from '../../controllers/auth/forgotPassword';
-import { memberSignupSendInvitation, memberSignupVerification } from '../../controllers/auth/member';
+import signinController from '../../controllers/auth/signin';
+import signupController from '../../controllers/auth/signup';
+import emailVerificationController from '../../controllers/auth/email-verify';
+import forgotPasswordController from '../../controllers/auth/forgotPassword';
+import memberController from '../../controllers/auth/member';
 import { verificationMiddleware } from '../../middlewares/verification';
-import { logout } from '../../controllers/auth/logout';
-import { getUserData } from '../../controllers/auth/me';
+import logoutController from '../../controllers/auth/logout';
+import userController from '../../controllers/auth/me';
 
 const router = express.Router();
 
 // Signin Routes
-router.post('/emailSignin',emailSignin);
-router.post('/googleSignin',googleSignin);
+router.post('/emailSignin', signinController.emailSignin);
+router.post('/googleSignin', signinController.googleSignin);
 
 // Signup Routes
-router.post('/emailSignup',emailSignup);
-router.post('/googleSignup',googleSignup);
-
+router.post('/emailSignup', signupController.emailSignup);
+router.post('/googleSignup', signupController.googleSignup);
 
 // Verify Email
-router.post('/verifyEmailSignup',verifyEmailSignup);
-router.post('/verifyEmailManual',verifyEmailManual);
-router.post('/sendVerificationEmailManual',sendVerificationEmailManual);
+router.post('/verifyEmailSignup', emailVerificationController.verifyEmailSignup);
+router.post('/verifyEmailManual', emailVerificationController.verifyEmailManual);
+router.post('/sendVerificationEmailManual', emailVerificationController.sendVerificationEmailManual);
 
 // Forget Password
-router.post('/sendVerificationEmailForgetPassword',sendVerificationEmailForgetPassword);
-router.post('/checkVerificationEmailForgetPassword',checkVerificationEmailForgetPassword);
+router.post('/sendVerificationEmailForgetPassword', forgotPasswordController.sendVerificationEmailForgetPassword);
+router.post('/checkVerificationEmailForgetPassword', forgotPasswordController.checkVerificationEmailForgetPassword);
 
 // Member Signup
-router.post('/memberSignupVerification',memberSignupVerification);
-router.post('/memberSignupSendInvitation', verificationMiddleware,memberSignupSendInvitation);
+router.post('/memberSignupVerification', memberController.memberSignupVerification);
+router.post('/memberSignupSendInvitation', verificationMiddleware, memberController.memberSignupSendInvitation);
 
-// logout
-router.get('/logout',logout);
+// Logout
+router.get('/logout', logoutController.logout);
 
-router.get('/me',verificationMiddleware,getUserData);
-
+// User Profile
+router.get('/me', verificationMiddleware, userController.getUserData);
 
 export default router;
