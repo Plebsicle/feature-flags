@@ -37,6 +37,7 @@ const constructRedisFlagData = async (flagId: string, environment?: environment_
         const rules : RedisCacheRules[] = [];
         environment.rules.forEach((rule)=>{
             rules.push({
+                name : rule.name,
                 rule_id : rule.id,
                 conditions : rule.conditions as unknown as Conditions,
                 is_enabled : rule.is_enabled
@@ -44,6 +45,7 @@ const constructRedisFlagData = async (flagId: string, environment?: environment_
         });
         const objectToPush : Redis_Value = {
             flagId : flagData.id,
+            flag_type : flagData.flag_type,
             environment : environment.environment,
             is_active : flagData.is_active,
             is_environment_active : environment.is_enabled,

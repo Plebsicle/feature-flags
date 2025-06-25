@@ -2,7 +2,6 @@ import Redis from 'ioredis'
 import { Conditions } from '@repo/types/rule-config';
 import {RolloutConfig} from "@repo/types/rollout-config"
 import {flag_type,environment_type, rollout_type} from '@repo/db/client'
-import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
 import prisma from '@repo/db';
 
 const REDIS_FLAG_URL = process.env.REDIS_FLAG_URL!;
@@ -16,6 +15,7 @@ const redisFlag = new Redis(REDIS_FLAG_URL,{
 });
 
 export interface RedisCacheRules {
+  name : string,
   rule_id : string,
   conditions : Conditions,
   is_enabled : boolean
@@ -23,6 +23,7 @@ export interface RedisCacheRules {
 
 export interface Redis_Value {
   flagId : string,
+  flag_type : flag_type
   is_active : boolean,
   environment : environment_type
   is_environment_active : boolean,
@@ -134,6 +135,7 @@ async function getFlag(orgSlug: string, environment: environment_type, flagKey: 
       const rules : RedisCacheRules[] = [];
         environments.rules.forEach((rule)=>{
             rules.push({
+                name : rule.name,
                 rule_id : rule.id,
                 conditions : rule.conditions as unknown as Conditions,
                 is_enabled : rule.is_enabled
@@ -144,6 +146,7 @@ async function getFlag(orgSlug: string, environment: environment_type, flagKey: 
         }
         const objectToPush : Redis_Value = {
             flagId : flagFromDB.id,
+            flag_type : flagFromDB.flag_type,
             environment,
             is_active : flagFromDB.is_active,
             is_environment_active : environments.is_enabled,
@@ -378,60 +381,6 @@ const killSwitchKeyGenerator =(orgSlug:string,killSwitchId : string) => {
     console.error(e);
   }
 }
-
-
-
-// export type killSwitchValue = {
-//   id : string,
-//   flag : killSwitchFlagConfig[],
-//   is_active : boolean
-// }
-
-// export const setKillSwitch = async (killSwitchId :string,orgSlug : string,killSwitchData : killSwitchValue
-// ) => {
-//   try{
-//     const key =  killSwitchKeyGenerator(orgSlug,killSwitchId)!;
-    
-//     const result = await redisFlag.set(key,JSON.stringify(killSwitchData));
-//     return result === "OK";
-//   }
-//   catch(e){
-//     console.error(e);
-//   }
-// }
-
-// export const removeKillSwitch = async (killSwitchId : string , orgSlug : string)=>{
-//   try{
-//     const key = killSwitchKeyGenerator(orgSlug,killSwitchId)!;
-//     const result = await redisFlag.del(key);
-//     return result > 0;
-//   }
-//   catch(e){
-//     console.error(e);
-//   }
-// }
-
-
-
-// // Get Redis Functions for Flags and Kill Switches
-// export const getKillSwitch = async(killSwitchId : string , orgSlug : string) => {
-//   try{
-
-//   }
-//   catch(e){
-//     console.error(e)
-//   }
-// }
-
-
-
-
-
-
-
-
-
-
 
 
 export {

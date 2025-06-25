@@ -63,7 +63,8 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                 },
                 select: {
                     id: true,
-                    is_active : true
+                    is_active : true,
+                    flag_type :true
                 }
             });
 
@@ -92,7 +93,8 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
                     },
                     select: {
                         id: true,
-                        is_enabled : true
+                        is_enabled : true,
+                        name : true
                     }
                 }),
                 tx.flag_rollout.create({
@@ -160,6 +162,7 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
 
         const orgSlug = req.session.user?.userOrganisationSlug!;
         const redisRules : RedisCacheRules[] = [{
+            name : result.flagRulesCreation.name,
             rule_id : result.flagRulesCreation.id,
             conditions : rules.conditions,
             is_enabled : result.flagRulesCreation.is_enabled
@@ -167,6 +170,7 @@ export const createFlag = async (req: express.Request, res: express.Response) =>
 
         const valueObject : Redis_Value = {
            flagId : result.flagCreationResponse.id,
+           flag_type : result.flagCreationResponse.flag_type,
            environment,
            is_active : result.flagCreationResponse.is_active,
            is_environment_active : result.environmentFlagResponse.is_enabled ,
@@ -265,7 +269,8 @@ export const createEnvironment = async (req : express.Request , res : express.Re
                     },
                     select: {
                         id: true,
-                        is_enabled : true
+                        is_enabled : true,
+                        name : true
                     }
                 }),
                 tx.flag_rollout.create({
@@ -319,6 +324,7 @@ export const createEnvironment = async (req : express.Request , res : express.Re
 
         const orgSlug = req.session.user?.userOrganisationSlug!;
         const rules : RedisCacheRules[] = [{
+            name : result.flagRulesCreation.name,
             rule_id : result.flagRulesCreation.id,
             conditions,
             is_enabled : result.flagRulesCreation.is_enabled
@@ -326,6 +332,7 @@ export const createEnvironment = async (req : express.Request , res : express.Re
 
         const valueObject : Redis_Value = {
            flagId : flagData.id,
+           flag_type : flagData.flag_type,
            environment,
            is_active : flagData.is_active,
            is_environment_active : result.environmentFlagResponse.is_enabled,

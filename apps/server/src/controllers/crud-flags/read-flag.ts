@@ -33,6 +33,7 @@ const getCompleteFlagData = async (flagId: string, environment?: environment_typ
         const rules : RedisCacheRules[] = [];
         environment.rules.forEach((rule)=>{
             rules.push({
+                name : rule.name,
                 rule_id : rule.id,
                 conditions : rule.conditions as unknown as Conditions,
                 is_enabled : rule.is_enabled
@@ -40,6 +41,7 @@ const getCompleteFlagData = async (flagId: string, environment?: environment_typ
         });
         const objectToPush : Redis_Value = {
             flagId : flagData.id,
+            flag_type : flagData.flag_type,
             environment : environment.environment,
             is_active : flagData.is_active,
             is_environment_active : environment.is_enabled,
@@ -234,12 +236,14 @@ export const getRules = async (req : express.Request,res : express.Response) => 
         // Build complete cache data
         const completeData : Redis_Value = {
             flagId: environmentData.flag.id,
+            flag_type : environmentData.flag.flag_type,
             is_active: environmentData.flag.is_active,
             environment : environmentData.environment,
             is_environment_active: environmentData.is_enabled,
             value: environmentData.value as Record<string,any>,
             default_value: environmentData.default_value as Record<string,any>,
             rules: environmentData.rules.map(rule => ({
+                name : rule.name,
                 rule_id: rule.id,
                 conditions: rule.conditions as unknown as Conditions,
                 is_enabled: rule.is_enabled
@@ -304,12 +308,14 @@ export const getRollout = async (req : express.Request , res : express.Response)
         // Build complete cache data
         const completeData : Redis_Value = {
             flagId: environmentData.flag.id,
+            flag_type : environmentData.flag.flag_type,
             is_active: environmentData.flag.is_active,
             environment : environmentData.environment,
             is_environment_active: environmentData.is_enabled,
             value: environmentData.value as Record<string,any>,
             default_value: environmentData.default_value as Record<string,any>,
             rules: environmentData.rules.map(rule => ({
+                name : rule.name,
                 rule_id: rule.id,
                 conditions: rule.conditions as unknown as Conditions,
                 is_enabled: rule.is_enabled
