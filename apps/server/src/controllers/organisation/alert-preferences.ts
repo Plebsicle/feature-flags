@@ -1,10 +1,12 @@
 import prisma from '@repo/db';
-import { user_role } from '@repo/db/client';
+import { FrequencyUnit, user_role } from '@repo/db/client';
 import express from 'express'
 
 
 interface myBody {
-    alert_notification_frequency :  Date | string, 
+    frequency_unit :  FrequencyUnit ,
+    frequency_value : number,
+    number_of_times : number,
     email_enabled : boolean,
     slack_enabled : boolean,
     email_roles_notification : user_role[],
@@ -18,11 +20,14 @@ export const orgAlertPreferences = async (req : express.Request,res : express.Re
             return;
         }
         const organisationId = req.session.user?.userOrganisationId!;
-        const {alert_notification_frequency,email_enabled,slack_enabled,email_roles_notification} = req.body as myBody;
+        const {frequency_unit,frequency_value,number_of_times,email_enabled,slack_enabled,email_roles_notification} = req.body as myBody;
+
         await prisma.alert_preferences.create({
             data : {
                 organisation_id : organisationId,
-                alert_notification_frequency,
+                frequency_unit,
+                frequency_value,
+                number_of_times,
                 email_enabled,
                 slack_enabled,
                 email_roles_notification
@@ -54,14 +59,14 @@ export const getAlertPreferences = async (req : express.Request , res : express.
 
 export const updatePreferences = async (req : express.Request , res : express.Response) => {
     try{
-        const {alert_notification_frequency,email_enabled,slack_enabled,email_roles_notification} = req.body as myBody;
+        const {frequency_unit,frequency_value,number_of_times,email_enabled,slack_enabled,email_roles_notification} = req.body as myBody;
         const organisation_id = req.session.user?.userOrganisationId!;
         await prisma.alert_preferences.update({
             where : {
                 organisation_id
             },
             data : {
-                alert_notification_frequency,slack_enabled,email_enabled,email_roles_notification
+                frequency_unit,frequency_value,number_of_times,slack_enabled,email_enabled,email_roles_notification
             }
         });
         res.status(200).json({success : true , message : "Preference updated succesfully"});

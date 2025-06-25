@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, Save, Loader2, Mail, MessageSquare, Users, Clock } from 'lucide-react'
+import { Bell, Save, Loader2, Mail, MessageSquare, Users, Clock, Hash, Repeat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -15,32 +15,27 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRouter } from 'next/navigation'
 import { Toaster, toast } from 'react-hot-toast'
-
-// Types matching the API structure and database schema
-type user_role = "ADMIN" | "MEMBER" | "VIEWER" | "OWNER"
-
-interface CreateAlertPreferencesFormData {
-  alert_notification_frequency: string // Time string format "HH:mm"
-  email_enabled: boolean
-  slack_enabled: boolean
-  email_roles_notification: user_role[]
-}
+import { FrequencyUnit, user_role } from '@repo/db/client'
+import { AlertPreferencesFormData, getFrequencyUnitDisplay, getRoleColor } from '@/lib/alert-preferences-types'
 
 export function CreateAlertPreferencesModal() {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  const [formData, setFormData] = useState<CreateAlertPreferencesFormData>({
-    alert_notification_frequency: "09:00", // Default to 9 AM
+  const [formData, setFormData] = useState<AlertPreferencesFormData>({
+    frequency_unit: "HOURS" as FrequencyUnit,
+    frequency_value: 24,
+    number_of_times: 3,
     email_enabled: true,
     slack_enabled: false,
     email_roles_notification: ["ADMIN", "OWNER"] // Default roles
   })
 
-  const handleInputChange = (field: keyof CreateAlertPreferencesFormData, value: any) => {
+  const handleInputChange = (field: keyof AlertPreferencesFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
@@ -54,8 +49,16 @@ export function CreateAlertPreferencesModal() {
   }
 
   const validate = (): boolean => {
-    if (!formData.alert_notification_frequency) {
-      toast.error("Notification frequency is required")
+    if (!formData.frequency_unit) {
+      toast.error("Frequency unit is required")
+      return false
+    }
+    if (!formData.frequency_value || formData.frequency_value <= 0) {
+      toast.error("Frequency value must be greater than 0")
+      return false
+    }
+    if (!formData.number_of_times || formData.number_of_times <= 0) {
+      toast.error("Number of times must be greater than 0")
       return false
     }
     if (formData.email_enabled && formData.email_roles_notification.length === 0) {
@@ -71,14 +74,6 @@ export function CreateAlertPreferencesModal() {
     if (!validate()) return
 
     setIsSubmitting(true)
-    
-    // Convert time string to ISO Date string
-    const today = new Date()
-    const [hours, minutes] = formData.alert_notification_frequency.split(':')
-    if(!hours) return;
-    if(!minutes) return;
-    const frequencyDate = new Date()
-    frequencyDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
 
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
     const promise = fetch(`/${backendUrl}/organisation/preferences`, {
@@ -87,10 +82,7 @@ export function CreateAlertPreferencesModal() {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-            ...formData,
-            alert_notification_frequency: frequencyDate.toISOString()
-        }),
+        body: JSON.stringify(formData),
     });
 
     toast.promise(promise, {
@@ -119,15 +111,7 @@ export function CreateAlertPreferencesModal() {
     });
   }
 
-  const getRoleColor = (role: user_role, isSelected: boolean) => {
-    const baseColors = {
-      OWNER: isSelected ? "bg-purple-600 text-white border-purple-600" : "bg-purple-500/20 text-purple-400 border-purple-500/30",
-      ADMIN: isSelected ? "bg-red-600 text-white border-red-600" : "bg-red-500/20 text-red-400 border-red-500/30",
-      MEMBER: isSelected ? "bg-blue-600 text-white border-blue-600" : "bg-blue-500/20 text-blue-400 border-blue-500/30",
-      VIEWER: isSelected ? "bg-slate-600 text-white border-slate-600" : "bg-slate-500/20 text-slate-400 border-slate-500/30"
-    }
-    return baseColors[role] || baseColors.VIEWER
-  }
+
 
   return (
     <>
@@ -151,22 +135,71 @@ export function CreateAlertPreferencesModal() {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Notification Frequency */}
-            <div className="space-y-2">
-              <Label htmlFor="frequency" className="text-neutral-300 flex items-center gap-2">
+            {/* Frequency Configuration */}
+            <div className="space-y-4">
+              <Label className="text-neutral-300 text-base font-medium flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 Notification Frequency *
               </Label>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="frequency_value" className="text-neutral-300">
+                    Frequency Value *
+                  </Label>
+                  <Input
+                    id="frequency_value"
+                    type="number"
+                    min="1"
+                    value={formData.frequency_value}
+                    onChange={(e) => handleInputChange('frequency_value', parseInt(e.target.value) || 1)}
+                    className="bg-slate-700/50 border-slate-600 text-white"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="frequency_unit" className="text-neutral-300">
+                    Frequency Unit *
+                  </Label>
+                  <Select
+                    value={formData.frequency_unit}
+                    onValueChange={(value) => handleInputChange('frequency_unit', value as FrequencyUnit)}
+                  >
+                    <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectItem value="MINUTES" className="text-white hover:bg-slate-700">Minutes</SelectItem>
+                      <SelectItem value="HOURS" className="text-white hover:bg-slate-700">Hours</SelectItem>
+                      <SelectItem value="DAYS" className="text-white hover:bg-slate-700">Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <p className="text-xs text-neutral-500">
+                How often to check for alerts (every {formData.frequency_value} {getFrequencyUnitDisplay(formData.frequency_unit).toLowerCase()})
+              </p>
+            </div>
+
+            {/* Number of Times */}
+            <div className="space-y-2">
+              <Label htmlFor="number_of_times" className="text-neutral-300 flex items-center gap-2">
+                <Repeat className="w-4 h-4" />
+                Number of Times *
+              </Label>
               <Input
-                id="frequency"
-                type="time"
-                value={formData.alert_notification_frequency}
-                onChange={(e) => handleInputChange('alert_notification_frequency', e.target.value)}
+                id="number_of_times"
+                type="number"
+                min="1"
+                value={formData.number_of_times}
+                onChange={(e) => handleInputChange('number_of_times', parseInt(e.target.value) || 1)}
                 className="bg-slate-700/50 border-slate-600 text-white"
                 required
               />
               <p className="text-xs text-neutral-500">
-                Daily time when alert notifications will be sent (if any alerts are triggered)
+                How many times an alert condition must be met before triggering a notification
               </p>
             </div>
 

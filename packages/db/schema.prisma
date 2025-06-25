@@ -314,9 +314,11 @@ model metrics {
 }
 
 model alert_preferences {
-  id                           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  organisation_id              String   @db.Uuid()
-  alert_notification_frequency DateTime
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organisation_id String        @db.Uuid()
+  frequency_unit  FrequencyUnit
+  frequency_value Int
+  number_of_times Int
 
   email_enabled            Boolean     @default(true)
   slack_enabled            Boolean     @default(false)
@@ -480,6 +482,12 @@ enum user_role {
   MEMBER
   VIEWER
   OWNER
+}
+
+enum FrequencyUnit {
+  MINUTES
+  HOURS
+  DAYS
 }
 
 enum alert_operator {

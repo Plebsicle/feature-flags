@@ -5,7 +5,7 @@ import express from 'express'
 interface myBody {
     metric_id : string,
     operator : alert_operator,
-    threshold : number, // -> can be float
+    threshold : number, 
     is_enabled : boolean
 }   
 

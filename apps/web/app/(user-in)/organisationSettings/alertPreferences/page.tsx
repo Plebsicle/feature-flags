@@ -1,31 +1,18 @@
 import Link from "next/link"
 import { cookies } from 'next/headers'
-import { ArrowLeft, Bell, Settings, Mail, MessageSquare, Users, Clock, Calendar } from "lucide-react"
+import { ArrowLeft, Bell, Settings, Mail, MessageSquare, Users, Clock, Calendar, Hash, Repeat } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CreateAlertPreferencesModal } from "@/components/create-alert-preferences-modal"
 import { EditAlertPreferencesModal } from "@/components/edit-alert-preferences-modal"
-
-// Types based on the API response structure and database schema
-type user_role = "ADMIN" | "MEMBER" | "VIEWER" | "OWNER"
-
-interface AlertPreferences {
-  id: string
-  organisation_id: string
-  alert_notification_frequency: Date | string
-  email_enabled: boolean
-  slack_enabled: boolean
-  email_roles_notification: user_role[]
-  created_at: Date
-  updated_at: Date
-}
-
-interface AlertPreferencesResponse {
-  success: boolean
-  message: string
-  data: AlertPreferences | null
-}
+import { FrequencyUnit, user_role } from "@repo/db/client"
+import { 
+  AlertPreferences, 
+  AlertPreferencesResponse, 
+  formatFrequency, 
+  getRoleColor 
+} from "@/lib/alert-preferences-types"
 
 export default async function AlertPreferencesPage() {
   const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000"
@@ -62,30 +49,6 @@ export default async function AlertPreferencesPage() {
   } catch (err) {
     console.error("Error fetching alert preferences:", err)
     error = "Failed to fetch alert preferences. Please try again later."
-  }
-
-  const formatFrequency = (frequency: Date | string) => {
-    try {
-      const date = new Date(frequency)
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    } catch {
-      return "Invalid time"
-    }
-  }
-
-  const getRoleColor = (role: user_role) => {
-    switch (role) {
-      case "OWNER":
-        return "bg-purple-500/20 text-purple-400 border-purple-500/30"
-      case "ADMIN":
-        return "bg-red-500/20 text-red-400 border-red-500/30"
-      case "MEMBER":
-        return "bg-blue-500/20 text-blue-400 border-blue-500/30"
-      case "VIEWER":
-        return "bg-slate-500/20 text-slate-400 border-slate-500/30"
-      default:
-        return "bg-slate-500/20 text-slate-400 border-slate-500/30"
-    }
   }
 
   return (
@@ -189,11 +152,23 @@ export default async function AlertPreferencesPage() {
                         <div>
                           <h4 className="text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
                             <Clock className="w-4 h-4" />
-                            Notification Frequency
+                            Check Frequency
                           </h4>
                           <div className="p-3 bg-slate-700/30 rounded-lg">
                             <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
-                              {formatFrequency(preferences.alert_notification_frequency)}
+                              {formatFrequency(preferences.frequency_value, preferences.frequency_unit)}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="text-sm font-medium text-neutral-300 mb-2 flex items-center gap-2">
+                            <Repeat className="w-4 h-4" />
+                            Trigger Threshold
+                          </h4>
+                          <div className="p-3 bg-slate-700/30 rounded-lg">
+                            <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                              {preferences.number_of_times} {preferences.number_of_times === 1 ? 'time' : 'times'}
                             </Badge>
                           </div>
                         </div>
