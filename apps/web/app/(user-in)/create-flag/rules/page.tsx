@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
-import { ArrowRight, ArrowLeft, Plus, X, Target, Info } from "lucide-react"
+import { ArrowRight, ArrowLeft, Plus, X, Target, Info, ChevronDown } from "lucide-react"
 import { Toaster, toast } from 'react-hot-toast'
 
 const dataTypeOptions: { value: DataType; label: string }[] = [
@@ -27,6 +27,23 @@ const dataTypeOptions: { value: DataType; label: string }[] = [
 export default function RulesPage() {
   const router = useRouter()
   const { state, updateRules } = useFlagCreation()
+  const [customAttributeInputs, setCustomAttributeInputs] = useState<{ [key: number]: string }>({})
+  const [showAttributeDropdowns, setShowAttributeDropdowns] = useState<{ [key: number]: boolean }>({})
+  const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({})
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      Object.entries(showAttributeDropdowns).forEach(([index, isOpen]) => {
+        if (isOpen && dropdownRefs.current[parseInt(index)] && !dropdownRefs.current[parseInt(index)]?.contains(event.target as Node)) {
+          setShowAttributeDropdowns(prev => ({ ...prev, [parseInt(index)]: false }))
+        }
+      })
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showAttributeDropdowns])
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateRules({ name: e.target.value })
@@ -63,7 +80,27 @@ export default function RulesPage() {
   }
 
   const handleAttributeNameChange = (index: number, value: string) => {
-    updateCondition(index, { attribute_name: value })
+    // Check if it's a base attribute
+    const isBaseAttribute = Object.keys(BASE_ATTRIBUTES).includes(value)
+    
+    if (isBaseAttribute) {
+      // Set fixed data type for base attributes
+      const baseAttrType = BASE_ATTRIBUTES[value as keyof typeof BASE_ATTRIBUTES].type as DataType
+      const availableOperators = OPERATORS_BY_TYPE[baseAttrType]
+      updateCondition(index, { 
+        attribute_name: value,
+        attribute_type: baseAttrType,
+        operator_selected: availableOperators[0],
+        attribute_values: []
+      })
+    } else {
+      // For custom attributes, only update the name
+      updateCondition(index, { attribute_name: value })
+    }
+    
+    // Hide dropdown after selection
+    setShowAttributeDropdowns(prev => ({ ...prev, [index]: false }))
+    setCustomAttributeInputs(prev => ({ ...prev, [index]: '' }))
   }
 
   const handleAttributeTypeChange = (index: number, value: DataType) => {
@@ -78,6 +115,26 @@ export default function RulesPage() {
         attribute_values: [] // Reset values when type changes
       })
     }
+  }
+
+  const handleCustomAttributeAdd = (index: number) => {
+    const customValue = customAttributeInputs[index]?.trim()
+    if (customValue) {
+      // Check if it conflicts with base attributes
+      if (Object.keys(BASE_ATTRIBUTES).includes(customValue)) {
+        toast.error('Please use a different name. This attribute already exists as a base attribute.')
+        return
+      }
+      handleAttributeNameChange(index, customValue)
+    }
+  }
+
+  const toggleAttributeDropdown = (index: number) => {
+    setShowAttributeDropdowns(prev => ({ ...prev, [index]: !prev[index] }))
+  }
+
+  const isBaseAttribute = (attributeName: string) => {
+    return Object.keys(BASE_ATTRIBUTES).includes(attributeName)
   }
 
   const handleOperatorChange = (index: number, value: string) => {
@@ -347,12 +404,67 @@ export default function RulesPage() {
                           {/* Attribute Name */}
                           <div className="space-y-2">
                             <Label className="text-white">Attribute Name</Label>
-                            <Input
-                              value={condition.attribute_name}
-                              onChange={(e) => handleAttributeNameChange(index, e.target.value)}
-                              placeholder="e.g., userId, email, country"
-                              className="bg-slate-600/50 border-slate-500 text-white placeholder:text-slate-400"
-                            />
+                            <div className="relative" ref={(el) => { dropdownRefs.current[index] = el }}>
+                              <div className="flex">
+                                <Input
+                                  value={condition.attribute_name}
+                                  onChange={(e) => {
+                                    updateCondition(index, { attribute_name: e.target.value })
+                                    setCustomAttributeInputs(prev => ({ ...prev, [index]: e.target.value }))
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !isBaseAttribute(condition.attribute_name)) {
+                                      e.preventDefault()
+                                      handleCustomAttributeAdd(index)
+                                    }
+                                  }}
+                                  placeholder="Type custom attribute or select from dropdown"
+                                  className="bg-slate-600/50 border-slate-500 text-white placeholder:text-slate-400 pr-10"
+                                />
+                                <Button
+                                  type="button"
+                                  onClick={() => toggleAttributeDropdown(index)}
+                                  className="ml-2 bg-slate-600/50 border-slate-500 hover:bg-slate-500/50"
+                                  size="sm"
+                                >
+                                  <ChevronDown className="w-4 h-4" />
+                                </Button>
+                              </div>
+                              
+                              {/* Dropdown for base attributes */}
+                              {showAttributeDropdowns[index] && (
+                                <div className="absolute z-10 mt-1 w-full bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                  <div className="p-2 text-xs text-slate-300 border-b border-slate-700">
+                                    Base Attributes (Fixed Data Types)
+                                  </div>
+                                  {Object.entries(BASE_ATTRIBUTES).map(([key, attr]) => (
+                                    <button
+                                      key={key}
+                                      type="button"
+                                      onClick={() => handleAttributeNameChange(index, key)}
+                                      className="w-full px-3 py-2 text-left text-white hover:bg-slate-700 focus:bg-slate-700 flex justify-between items-center"
+                                    >
+                                      <div>
+                                        <div className="font-medium">{key}</div>
+                                        <div className="text-xs text-slate-400">{attr.description}</div>
+                                      </div>
+                                      <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
+                                        {attr.type}
+                                      </Badge>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Helper text */}
+                            <div className="flex items-start space-x-2 text-xs text-slate-400">
+                              <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p>Use dropdown for base attributes (fixed types) or type custom names.</p>
+                                <p className="text-amber-400">Note: Avoid naming custom attributes the same as existing base attributes.</p>
+                              </div>
+                            </div>
                           </div>
 
                           {/* Attribute Type */}
@@ -361,8 +473,9 @@ export default function RulesPage() {
                             <Select
                               value={condition.attribute_type}
                               onValueChange={(value) => handleAttributeTypeChange(index, value as DataType)}
+                              disabled={isBaseAttribute(condition.attribute_name)}
                             >
-                              <SelectTrigger className="bg-slate-600/50 border-slate-500 text-white">
+                              <SelectTrigger className={`bg-slate-600/50 border-slate-500 text-white ${isBaseAttribute(condition.attribute_name) ? 'opacity-60 cursor-not-allowed' : ''}`}>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-slate-800 border-slate-700">
@@ -377,6 +490,11 @@ export default function RulesPage() {
                                 ))}
                               </SelectContent>
                             </Select>
+                            {isBaseAttribute(condition.attribute_name) && (
+                              <p className="text-xs text-slate-400">
+                                Data type is fixed for base attributes
+                              </p>
+                            )}
                           </div>
 
                           {/* Operator */}
@@ -463,6 +581,17 @@ export default function RulesPage() {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Additional Rules Note */}
+            <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-200">
+                  <p className="font-medium mb-1">Adding More Rules Later</p>
+                  <p>You can add additional targeting rules later by navigating to the specific environment page where you want to apply more rules.</p>
+                </div>
+              </div>
             </div>
 
             {/* Navigation Buttons */}

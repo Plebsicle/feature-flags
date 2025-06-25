@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { environment_type } from '@repo/db/client'
-import { ABValue, ABMultiVariate } from '@repo/config-types/value-config'
-import { ArrowRight, ArrowLeft, Server, Plus, Minus } from "lucide-react"
+import { ABValue, ABMultiVariate } from '@repo/types/value-config'
+import { ArrowRight, ArrowLeft, Server, Plus, Minus, Info } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 
 // Types for API responses
@@ -79,7 +79,7 @@ export default function EnvironmentsPage() {
           const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
           state.flag_id = flagKey;
           // Fetch flag metadata
-          const flagResponse = await fetch(`${BACKEND_URL}/flag/getFeatureFlagData/${flagKey}`, {
+          const flagResponse = await fetch(`/${BACKEND_URL}/flag/getFeatureFlagData/${flagKey}`, {
             credentials: 'include'
           });
           if (!flagResponse.ok) {
@@ -91,7 +91,7 @@ export default function EnvironmentsPage() {
           console.log('Flag data received:', flagData);
           
           // Fetch existing environments for this flag
-          const envResponse = await fetch(`${BACKEND_URL}/flag/getFlagEnvironmentData/${flagKey}`, {
+          const envResponse = await fetch(`/${BACKEND_URL}/flag/getFlagEnvironmentData/${flagKey}`, {
             credentials: 'include'
           })
 
@@ -107,10 +107,16 @@ export default function EnvironmentsPage() {
           // Extract the actual environment data from the API response
           let environmentArray: EnvironmentResponse[] = []
           
-          if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data)) {
-            // API returns { data: [...], success: true, message: "..." }
+          if (apiResponse && apiResponse.data && apiResponse.data.environmentData && Array.isArray(apiResponse.data.environmentData)) {
+            // API returns { data: { environmentData: [...], flag_id: ..., flag_type: ... }, success: true, message: "..." }
             environmentArray = apiResponse.data.environmentData
-            console.log('Extracted environment data from response.data:', environmentArray);
+            console.log('Extracted environment data from response.data.environmentData:', environmentArray);
+          } else if (apiResponse && Array.isArray(apiResponse.data)) {
+            // Fallback: if data is directly an array
+            environmentArray = apiResponse.data
+            console.log('Extracted environment data from response.data (direct array):', environmentArray);
+          } else {
+            console.warn('Unexpected API response structure:', apiResponse);
           }
           console.log('Processed environment array:', environmentArray);
           console.log('Environment types in array:', environmentArray.map(env => env.environment));
@@ -150,7 +156,14 @@ export default function EnvironmentsPage() {
   // New handlers for variant management
   const handleVariantChange = (index: number, field: 'name' | 'value', newValue: string) => {
     const updatedVariants = [...variants]
-    updatedVariants[index] = { ...updatedVariants[index], [field]: newValue }
+    const currentVariant = updatedVariants[index]
+    if (currentVariant) {
+      updatedVariants[index] = { 
+        name: currentVariant.name,
+        value: currentVariant.value,
+        [field]: newValue 
+      }
+    }
     setVariants(updatedVariants)
     
     // Update the context based on flag type
@@ -199,10 +212,28 @@ export default function EnvironmentsPage() {
   }
 
   const removeVariant = (index: number) => {
-    if (state.flag_type === 'MULTIVARIATE' && variants.length > 1) {
+    if (state.flag_type === 'MULTIVARIATE' && variants.length > 3 && index >= 3) {
       const updatedVariants = variants.filter((_, i) => i !== index)
       setVariants(updatedVariants)
-      handleVariantChange(0, 'value', '') // Trigger update
+      
+      // Update the context with the new variants array
+      const abValue: ABValue = {}
+      updatedVariants.forEach(variant => {
+        if (variant.name && variant.value !== undefined && variant.value !== '') {
+          // Try to parse as number first, then boolean, then keep as string
+          let parsedValue: any = variant.value
+          if (!isNaN(Number(variant.value)) && variant.value.trim() !== '') {
+            parsedValue = Number(variant.value)
+          } else if (variant.value.toLowerCase() === 'true') {
+            parsedValue = true
+          } else if (variant.value.toLowerCase() === 'false') {
+            parsedValue = false
+          }
+          abValue[variant.name] = parsedValue
+        }
+      })
+      const multiVariateValue: ABMultiVariate = { value: abValue }
+      handleValueChange('value', multiVariateValue)
     }
   }
 
@@ -226,7 +257,8 @@ export default function EnvironmentsPage() {
     } else if (state.flag_type === 'MULTIVARIATE') {
       setVariants([
         { name: 'Variant A', value: '' },
-        { name: 'Variant B', value: '' }
+        { name: 'Variant B', value: '' },
+        { name: 'Variant C', value: '' }
       ])
     }
   }, [state.flag_type])
@@ -258,7 +290,7 @@ export default function EnvironmentsPage() {
             <div key={index} className="p-4 border border-slate-700/30 rounded-lg space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-neutral-300">Variant {index + 1}</Label>
-                {state.flag_type === 'MULTIVARIATE' && variants.length > 1 && (
+                {state.flag_type === 'MULTIVARIATE' && variants.length > 3 && index >= 3 && (
                   <Button
                     type="button"
                     onClick={() => removeVariant(index)}
@@ -302,7 +334,7 @@ export default function EnvironmentsPage() {
         <p className="text-xs text-slate-400">
           {state.flag_type === 'AB_TEST' 
             ? 'Configure exactly two variants for A/B testing. Each variant needs a unique name and value.'
-            : 'Configure multiple variants for multivariate testing. Each variant needs a unique name and value.'
+            : 'Configure multiple variants for multivariate testing (minimum 3 required). Each variant needs a unique name and value. The first 3 variants cannot be removed.'
           }
         </p>
       </div>
@@ -418,8 +450,8 @@ export default function EnvironmentsPage() {
         }
       }
     } else if (state.flag_type === 'MULTIVARIATE') {
-      if (variants.length < 1) {
-        toast.error('Multivariate test requires at least 1 variant')
+      if (variants.length < 3) {
+        toast.error('Multivariate test requires at least 3 variants')
         return false
       }
              for (const variant of variants) {
@@ -469,13 +501,13 @@ export default function EnvironmentsPage() {
   // Extract used environments from the existing environments array
   const usedEnvironments = existingEnvironments
     .map(env => env.environment)
-    .filter(env => env != null) // Remove any null/undefined values
+    .filter(env => env != null && env !== undefined) // Remove any null/undefined values
   
-  // console.log('Existing environments from API:', existingEnvironments)
-  // console.log('Used environments extracted:', usedEnvironments)
-  // console.log('All environment options:', environmentOptions.map(opt => opt.value))
-  // console.log('isCreatingEnvironmentOnly:', state.isCreatingEnvironmentOnly)
-  // console.log('isLoading:', isLoading)
+  console.log('Existing environments from API:', existingEnvironments)
+  console.log('Used environments extracted:', usedEnvironments)
+  console.log('All environment options:', environmentOptions.map(opt => opt.value))
+  console.log('isCreatingEnvironmentOnly:', state.isCreatingEnvironmentOnly)
+  console.log('isLoading:', isLoading)
   
   // Filter available environments based on what's already used
   const availableEnvironments = useMemo(() => {
@@ -637,6 +669,17 @@ export default function EnvironmentsPage() {
                 </div>
               </div>
             )}
+
+            {/* Additional Environments Note */}
+            <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-200">
+                  <p className="font-medium mb-1">Adding More Environments Later</p>
+                  <p>You can add additional environments later by navigating to the specific flag page where you want to configure more environments.</p>
+                </div>
+              </div>
+            </div>
 
             {/* Navigation Buttons */}
             <div className="flex justify-between pt-6">

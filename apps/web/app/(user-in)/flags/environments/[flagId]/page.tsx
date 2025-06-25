@@ -430,7 +430,7 @@ export default async function FlagEnvironmentPage({
                   </p>
                 </div>
               </div>
-              <Link href={`/create-flag/environments?flagKey=${environments[0]?.flag_id}`}>
+              <Link href={`/create-flag/environments?flagKey=${flagId}`}>
               <Button className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white">
                 <Plus className="w-4 h-4 mr-2" />
                 Add New Environment
