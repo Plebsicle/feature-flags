@@ -241,6 +241,16 @@ class AlertMonitor {
       
       for (const metric of activeMetrics) {
         try {
+
+          const existingAlert = await this.prisma.triggered_alerts.findFirst({ // skip sending alert if already triggered
+            where : {
+              metric_id : metric.id,
+              alert_status : "TRIGGERED"
+            }
+          });
+          if(existingAlert){
+            continue;
+          }
           // Step 2: Check if alerts are enabled for this metric
           if (!metric.metric_setup || !metric.metric_setup.is_enabled) {
             console.log(`Skipping metric ${metric.metric_key} - alerts not enabled`);
