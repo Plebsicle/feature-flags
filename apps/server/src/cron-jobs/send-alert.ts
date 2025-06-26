@@ -1,4 +1,5 @@
 import cron from 'node-cron'
+import prisma from '@repo/db';
 import { PrismaClient, alert_operator, metric_aggregations, metric_type, user_role, metric_aggregation_method } from '@repo/db/client';
 import { WebClient } from '@slack/web-api';
 import { sendEmailAlert } from '../util/mail';
@@ -25,9 +26,9 @@ class AlertMonitor {
   private prisma: PrismaClient;
   private WebClient : any;
 
-  constructor(WebClient : any) {
+  constructor(WebClient : any,prisma : PrismaClient) {
     this.cronJob = null;
-    this.prisma = new PrismaClient();
+    this.prisma = prisma;
     this.WebClient = WebClient
   }
 
@@ -40,7 +41,7 @@ class AlertMonitor {
     console.log('Starting alert monitoring service...');
     console.log('Job will run every 5 minutes (300 seconds) with expression: */5 * * * *');
     
-    const cronExpression = '*/5 * * * *';
+    const cronExpression = '2-59/5 * * * *';
     this.cronJob = cron.schedule(cronExpression, async () => {
       await this.processAlerts();
     }, {
@@ -354,9 +355,8 @@ class AlertMonitor {
 }
 
 // Create and start the alert monitor
-const alertMonitor = new AlertMonitor(WebClient);
-alertMonitor.start();
+const alertMonitor = new AlertMonitor(WebClient,prisma);
 
 console.log('Alert monitoring cron job is running...');
 
-export default AlertMonitor;
+export default alertMonitor;

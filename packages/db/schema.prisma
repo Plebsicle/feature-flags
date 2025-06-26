@@ -222,7 +222,7 @@ model metric_events {
   numeric_value   Float? // for NUMERIC metrics only
   conversion_step conversion_step_type? // for CONVERSION metrics only
   // Note: COUNT metrics don't need a value field - each event = +1
-
+  
   // Metadata
   timestamp DateTime @default(now()) @db.Timestamptz(6)
   context   Json? // additional context data
@@ -240,11 +240,7 @@ model metric_aggregations {
   id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   metric_id  String @db.Uuid
   metric_key String @db.VarChar(255) // for convenience
-
-  // Feature flag context for this aggregation
-  part_rollout     Boolean? // null means all data, true/false means filtered
-  variation_served String? // null means all variations, specific value means filtered
-
+  
   // Time window for this aggregation
   window_start DateTime @db.Timestamptz(6)
   window_end   DateTime @db.Timestamptz(6)
@@ -276,7 +272,7 @@ model metric_aggregations {
   // Relations
   metric metrics @relation(fields: [metric_id], references: [id], onDelete: Cascade)
 
-  @@unique([metric_id, window_start, window_end, part_rollout, variation_served])
+  @@unique([metric_id, window_start, window_end])
   @@index([metric_id, window_start])
 }
 

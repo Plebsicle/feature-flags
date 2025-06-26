@@ -20,6 +20,10 @@ import metricRoutes from './routes/metrics/metrics'
 import alertRoutes from './routes/alerts/alert'
 import slackRoutes from './routes/slack/slack'
 
+// Cron Jobs
+import aggregateData from './cron-jobs/metric-aggregation';
+import alertMonitor from './cron-jobs/send-alert';
+
 // Standard Contansts for express application
 const app : Express = express();
 const PORT : number = parseInt(process.env.PORT!) || 8000;
@@ -34,6 +38,10 @@ app.use(cors(corsConfiguration));
 app.use(helmet());
 app.use(express.json());
 app.use(sessionMiddleware);
+
+// Cron Jobs
+aggregateData.start();
+alertMonitor.start();
 
 //Routes
 app.use('/auth',authRoutes);
