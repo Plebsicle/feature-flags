@@ -19,7 +19,7 @@ export const createMetricBodySchema = z.object({
   metric_type: metricTypeSchema,
   is_active: z.boolean().default(true),
   unit_measurement: z.string().min(1, "Unit of measurement is required"),
-  aggregation_method: metricAggregationMethodSchema,
+  aggregation_method: metricAggregationMethodSchema.optional(),
   description: z.string().optional(),
   tags: z.array(z.string()).optional()
 });

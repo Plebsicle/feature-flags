@@ -5,9 +5,6 @@ import { FrequencyUnit, user_role } from '@repo/db/client'
  * This ensures consistent typing across create and edit modals
  */
 export interface AlertPreferencesBody {
-  frequency_unit: FrequencyUnit;
-  frequency_value: number;
-  number_of_times: number;
   email_enabled: boolean;
   slack_enabled: boolean;
   email_roles_notification: user_role[];

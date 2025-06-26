@@ -10,9 +10,6 @@ export const frequencyUnitSchema = z.enum(['MINUTE', 'HOUR', 'DAY']);
 
 // Alert preferences schemas
 export const alertPreferencesBodySchema = z.object({
-  frequency_unit: frequencyUnitSchema,
-  frequency_value: z.number().min(1, "Frequency value must be at least 1"),
-  number_of_times: z.number().min(1, "Number of times must be at least 1"),
   email_enabled: z.boolean(),
   slack_enabled: z.boolean(),
   email_roles_notification: z.array(userRoleSchema)

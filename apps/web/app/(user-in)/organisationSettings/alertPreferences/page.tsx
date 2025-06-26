@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { cookies } from 'next/headers'
-import { ArrowLeft, Bell, Settings, Mail, MessageSquare, Users, Clock, Calendar, Hash, Repeat } from "lucide-react"
+import { ArrowLeft, Bell, Settings, Mail, MessageSquare, Users, Calendar } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -102,7 +102,7 @@ export default async function AlertPreferencesPage() {
                   </div>
 
                   {/* Preferences Display */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-6">
                     {/* Notification Methods */}
                     <Card className="hover:shadow-md transition-shadow duration-200">
                       <CardHeader>
@@ -149,30 +149,6 @@ export default async function AlertPreferencesPage() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <Clock className="w-4 h-4" />
-                            Check Frequency
-                          </h4>
-                          <div className="p-3 bg-gray-50 rounded-lg">
-                            <Badge className="bg-amber-100 text-amber-800">
-                              {formatFrequency(preferences.frequency_value, preferences.frequency_unit)}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <Repeat className="w-4 h-4" />
-                            Trigger Threshold
-                          </h4>
-                          <div className="p-3 bg-gray-50 rounded-lg">
-                            <Badge className="bg-orange-100 text-orange-800">
-                              {preferences.number_of_times} {preferences.number_of_times === 1 ? 'time' : 'times'}
-                            </Badge>
-                          </div>
-                        </div>
-
                         <div>
                           <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                             <Users className="w-4 h-4" />

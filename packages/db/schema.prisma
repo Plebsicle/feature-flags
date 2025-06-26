@@ -293,7 +293,7 @@ model metrics {
 
   aggregation_window Int                       @default(300) // seconds
   unit_measurement   String?
-  aggregation_method metric_aggregation_method
+  aggregation_method metric_aggregation_method? @default(AVERAGE)
   description        String?                   @db.Text
   created_at         DateTime                  @default(now()) @db.Timestamptz(6)
   updated_at         DateTime                  @default(now()) @db.Timestamptz(6)
@@ -316,10 +316,6 @@ model metrics {
 model alert_preferences {
   id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   organisation_id String        @db.Uuid()
-  frequency_unit  FrequencyUnit
-  frequency_value Int
-  number_of_times Int
-
   email_enabled            Boolean     @default(true)
   slack_enabled            Boolean     @default(false)
   email_roles_notification user_role[] @default([ADMIN, OWNER])

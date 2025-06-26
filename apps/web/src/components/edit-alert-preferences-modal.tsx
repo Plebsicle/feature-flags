@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Edit, Save, Loader2, Mail, MessageSquare, Users, Clock, Hash, Repeat } from 'lucide-react'
+import { Edit, Save, Loader2, Mail, MessageSquare, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -36,9 +36,6 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const [formData, setFormData] = useState<AlertPreferencesFormData>({
-    frequency_unit: preferences.frequency_unit,
-    frequency_value: preferences.frequency_value,
-    number_of_times: preferences.number_of_times,
     email_enabled: preferences.email_enabled,
     slack_enabled: preferences.slack_enabled,
     email_roles_notification: preferences.email_roles_notification || []
@@ -58,18 +55,6 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
   }
 
   const validate = (): boolean => {
-    if (!formData.frequency_unit) {
-      toast.error("Frequency unit is required")
-      return false
-    }
-    if (!formData.frequency_value || formData.frequency_value <= 0) {
-      toast.error("Frequency value must be greater than 0")
-      return false
-    }
-    if (!formData.number_of_times || formData.number_of_times <= 0) {
-      toast.error("Number of times must be greater than 0")
-      return false
-    }
     if (formData.email_enabled && formData.email_roles_notification.length === 0) {
       toast.error("Please select at least one role for email notifications")
       return false
@@ -147,75 +132,6 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Frequency Configuration */}
-            <div className="space-y-4">
-              <Label className="text-gray-900 text-base font-medium flex items-center gap-2">
-                <div className="bg-indigo-100 p-1 rounded">
-                  <Clock className="w-4 h-4 text-indigo-600" />
-                </div>
-                Notification Frequency *
-              </Label>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="frequency_value" className="text-gray-900">
-                    Frequency Value *
-                  </Label>
-                  <Input
-                    id="frequency_value"
-                    type="number"
-                    min="1"
-                    value={formData.frequency_value}
-                    onChange={(e) => handleInputChange('frequency_value', parseInt(e.target.value) || 1)}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="frequency_unit" className="text-gray-900">
-                    Frequency Unit *
-                  </Label>
-                  <Select
-                    value={formData.frequency_unit}
-                    onValueChange={(value) => handleInputChange('frequency_unit', value as FrequencyUnit)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="MINUTES">Minutes</SelectItem>
-                      <SelectItem value="HOURS">Hours</SelectItem>
-                      <SelectItem value="DAYS">Days</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <p className="text-xs text-gray-500">
-                How often to check for alerts (every {formData.frequency_value} {getFrequencyUnitDisplay(formData.frequency_unit).toLowerCase()})
-              </p>
-            </div>
-
-            {/* Number of Times */}
-            <div className="space-y-2">
-              <Label htmlFor="number_of_times" className="text-gray-900 flex items-center gap-2">
-                <div className="bg-indigo-100 p-1 rounded">
-                  <Repeat className="w-4 h-4 text-indigo-600" />
-                </div>
-                Number of Times *
-              </Label>
-              <Input
-                id="number_of_times"
-                type="number"
-                min="1"
-                value={formData.number_of_times}
-                onChange={(e) => handleInputChange('number_of_times', parseInt(e.target.value) || 1)}
-                required
-              />
-              <p className="text-xs text-gray-500">
-                Number of consecutive failures before triggering an alert
-              </p>
-            </div>
 
             {/* Email Notifications */}
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">

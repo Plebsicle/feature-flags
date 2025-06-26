@@ -108,6 +108,9 @@ importers:
       murmurhash:
         specifier: ^2.0.1
         version: 2.0.1
+      node-cron:
+        specifier: ^4.1.1
+        version: 4.1.1
       nodemailer:
         specifier: ^7.0.3
         version: 7.0.3
@@ -2755,6 +2758,10 @@ packages:
   node-addon-api@8.3.1:
     resolution: {integrity: sha512-lytcDEdxKjGJPTLEfW4mYMigRezMlyJY8W4wxJK8zE533Jlb8L8dRuObJFWg2P+AuOIxoCgKF+2Oq4d4Zd0OUA==}
     engines: {node: ^18 || ^20 || >= 21}
+
+  node-cron@4.1.1:
+    resolution: {integrity: sha512-oJj9CYV7teeCVs+y2Efi5IQ4FGmAYbsXQOehc1AGLlwteec8pC7DjBCUzSyRQ0LYa+CRCgmD+vtlWQcnPpXowA==}
+    engines: {node: '>=6.0.0'}
 
   node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
@@ -6326,6 +6333,8 @@ snapshots:
       lower-case: 1.1.4
 
   node-addon-api@8.3.1: {}
+
+  node-cron@4.1.1: {}
 
   node-fetch@2.7.0:
     dependencies:

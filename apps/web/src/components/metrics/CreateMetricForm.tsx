@@ -151,17 +151,28 @@ export default function CreateMetricForm() {
     setIsSubmitting(true)
     
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    // Prepare request body, only include aggregation_method for NUMERIC metrics
+    const requestBody = {
+        metric_name: formData.metric_name,
+        metric_key: formData.metric_key,
+        metric_type: formData.metric_type,
+        is_active: formData.is_active,
+        unit_measurement: formData.unit_measurement,
+        description: formData.description,
+        flag_environment_id: environmentId,
+        tags: formData.tags.length > 0 ? formData.tags : undefined,
+        ...(formData.metric_type === metric_type.NUMERIC && {
+            aggregation_method: formData.aggregation_method
+        })
+    }
+
     const promise = fetch(`${backendUrl}/metrics`, {
         method: 'POST',
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-            ...formData,
-            flag_environment_id: environmentId,
-            tags: formData.tags.length > 0 ? formData.tags : undefined
-        }),
+        body: JSON.stringify(requestBody),
     });
 
     toast.promise(promise, {
@@ -352,7 +363,7 @@ export default function CreateMetricForm() {
             </div>
 
             {/* Unit & Aggregation */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className={`grid grid-cols-1 ${formData.metric_type === metric_type.NUMERIC ? 'md:grid-cols-2' : ''} gap-6`}>
               <div className="space-y-2">
                 <Label htmlFor="unit_measurement" className="text-gray-900 font-medium">
                   Unit of Measurement *
@@ -370,29 +381,31 @@ export default function CreateMetricForm() {
                 </p>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="aggregation_method" className="text-gray-900 font-medium">
-                  Aggregation Method *
-                </Label>
-                <Select
-                  value={formData.aggregation_method}
-                  onValueChange={(value) => handleInputChange('aggregation_method', value as metric_aggregation_method)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(metric_aggregation_method).map((method) => (
-                      <SelectItem key={method} value={method}>
-                        {method}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-gray-500">
-                  How to aggregate metric values
-                </p>
-              </div>
+              {formData.metric_type === metric_type.NUMERIC && (
+                <div className="space-y-2">
+                  <Label htmlFor="aggregation_method" className="text-gray-900 font-medium">
+                    Aggregation Method *
+                  </Label>
+                  <Select
+                    value={formData.aggregation_method}
+                    onValueChange={(value) => handleInputChange('aggregation_method', value as metric_aggregation_method)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(metric_aggregation_method).map((method) => (
+                        <SelectItem key={method} value={method}>
+                          {method}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    How to aggregate numeric values over time
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Description */}

@@ -15,6 +15,7 @@ oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
  * Get a configured nodemailer transporter
  * @returns Nodemailer transporter instance
  */
+
 async function getTransporter() {
   const accessToken = await oauth2Client.getAccessToken();
   
@@ -41,6 +42,7 @@ async function getTransporter() {
  * @param textContent - Plain text content (optional)
  * @returns Result from nodemailer
  */
+
 export async function sendEmail(to: string, subject: string, htmlContent: string, textContent?: string) {
   try {
     const transporter = await getTransporter();
@@ -61,6 +63,116 @@ export async function sendEmail(to: string, subject: string, htmlContent: string
   }
 }
 
+export async function sendEmailAlert(email: string, alertMessage: string, orgName: string) {
+  try {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Alert Notification</title>
+        <style>
+          body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.5;
+            color: #111827;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            background-color: #F9FAFB;
+          }
+          .email-container {
+            background-color: #FFFFFF;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            border: 1px solid #E5E7EB;
+            overflow: hidden;
+          }
+          .header {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: #FFFFFF;
+            padding: 2.5rem 2rem;
+            text-align: center;
+          }
+          .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+          }
+          .content {
+            padding: 2.5rem;
+            text-align: left;
+          }
+          .org-name {
+            color: #6366F1;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+          }
+          .alert-message {
+            font-size: 1rem;
+            color: #374151;
+            background-color: #FEE2E2;
+            border-left: 4px solid #EF4444;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            line-height: 1.5;
+          }
+          .footer {
+            background-color: #F9FAFB;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            border-top: 1px solid #E5E7EB;
+          }
+          .footer p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #6B7280;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="email-container">
+          <div class="header">
+            <h1>⚠️ Alert Notification</h1>
+          </div>
+          <div class="content">
+            <div class="org-name">${orgName}</div>
+            <div class="alert-message">
+              ${alertMessage}
+            </div>
+          </div>
+          <div class="footer">
+            <p>This alert was generated automatically. Please do not reply to this email.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const textContent = `
+      Alert for ${orgName}
+
+      ${alertMessage}
+
+      This alert was generated automatically. Please do not reply to this email.
+    `;
+
+    return await sendEmail(
+      email,
+      `🚨 Alert Notification - ${orgName}`,
+      htmlContent,
+      textContent
+    );
+  } catch (e) {
+    console.error('Failed to send email alert:', e);
+    return false;
+  }
+}
+
+
 export async function sendVerificationEmail(email: string, token: string, orgName: string) {
   try {
     const verificationUrl = `${FRONTEND_URL}/auth/check-email-verify-final?token=${token}&org=${encodeURIComponent(orgName)}`;
@@ -74,87 +186,91 @@ export async function sendVerificationEmail(email: string, token: string, orgNam
         <title>Verify Your Email</title>
         <style>
           body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.5;
+            color: #111827;
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f8f9fa;
+            padding: 1.5rem;
+            background-color: #F9FAFB;
           }
           .email-container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #FFFFFF;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #E5E7EB;
             overflow: hidden;
           }
           .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px 20px;
+            background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+            color: #FFFFFF;
+            padding: 2.5rem 2rem;
             text-align: center;
           }
           .header h1 {
             margin: 0;
-            font-size: 28px;
+            font-size: 1.5rem;
             font-weight: 600;
+            letter-spacing: -0.025em;
           }
           .content {
-            padding: 40px 30px;
+            padding: 2.5rem;
             text-align: center;
           }
           .org-name {
-            color: #667eea;
+            color: #6366F1;
             font-weight: 600;
-            font-size: 18px;
-            margin-bottom: 20px;
+            font-size: 1.125rem;
+            margin-bottom: 1.5rem;
           }
           .message {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 30px;
-            line-height: 1.8;
+            font-size: 1rem;
+            color: #4B5563;
+            margin-bottom: 2rem;
+            line-height: 1.5;
           }
           .verify-button {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #6366F1;
+            color: #FFFFFF;
             text-decoration: none;
-            padding: 15px 35px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            transition: transform 0.2s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
           }
           .verify-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            background: #4F46E5;
+            transform: translateY(-1px);
           }
           .footer {
-            background-color: #f8f9fa;
-            padding: 20px 30px;
+            background-color: #F9FAFB;
+            padding: 1.5rem 2rem;
             text-align: center;
-            border-top: 1px solid #e9ecef;
+            border-top: 1px solid #E5E7EB;
           }
           .footer p {
             margin: 0;
-            font-size: 14px;
-            color: #6c757d;
+            font-size: 0.875rem;
+            color: #6B7280;
           }
           .divider {
-            margin: 30px 0;
+            margin: 2rem 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+            background: linear-gradient(90deg, transparent, #E5E7EB, transparent);
           }
           .security-note {
-            background-color: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 0 5px 5px 0;
-            font-size: 14px;
-            color: #555;
+            background-color: #F3F4F6;
+            border-left: 4px solid #6366F1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-size: 0.875rem;
+            color: #4B5563;
+            text-align: left;
           }
         </style>
       </head>
@@ -185,7 +301,7 @@ export async function sendVerificationEmail(email: string, token: string, orgNam
           
           <div class="footer">
             <p>If the button doesn't work, copy and paste this link into your browser:</p>
-            <p style="word-break: break-all; color: #667eea; margin-top: 10px;">${verificationUrl}</p>
+            <p style="word-break: break-all; color: #6366F1; margin-top: 0.75rem;">${verificationUrl}</p>
           </div>
         </div>
       </body>
@@ -229,90 +345,95 @@ export async function sendResetPassword(email: string, token: string) {
         <title>Reset Your Password</title>
         <style>
           body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.5;
+            color: #111827;
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f8f9fa;
+            padding: 1.5rem;
+            background-color: #F9FAFB;
           }
           .email-container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #FFFFFF;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #E5E7EB;
             overflow: hidden;
           }
           .header {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            color: white;
-            padding: 30px 20px;
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: #FFFFFF;
+            padding: 2.5rem 2rem;
             text-align: center;
           }
           .header h1 {
             margin: 0;
-            font-size: 28px;
+            font-size: 1.5rem;
             font-weight: 600;
+            letter-spacing: -0.025em;
           }
           .content {
-            padding: 40px 30px;
+            padding: 2.5rem;
             text-align: center;
           }
           .message {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 30px;
-            line-height: 1.8;
+            font-size: 1rem;
+            color: #4B5563;
+            margin-bottom: 2rem;
+            line-height: 1.5;
           }
           .reset-button {
             display: inline-block;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            color: white;
+            background: #EF4444;
+            color: #FFFFFF;
             text-decoration: none;
-            padding: 15px 35px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-            transition: transform 0.2s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
           }
           .reset-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+            background: #DC2626;
+            transform: translateY(-1px);
           }
           .footer {
-            background-color: #f8f9fa;
-            padding: 20px 30px;
+            background-color: #F9FAFB;
+            padding: 1.5rem 2rem;
             text-align: center;
-            border-top: 1px solid #e9ecef;
+            border-top: 1px solid #E5E7EB;
           }
           .footer p {
             margin: 0;
-            font-size: 14px;
-            color: #6c757d;
+            font-size: 0.875rem;
+            color: #6B7280;
           }
           .divider {
-            margin: 30px 0;
+            margin: 2rem 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+            background: linear-gradient(90deg, transparent, #E5E7EB, transparent);
           }
           .security-note {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 0 5px 5px 0;
-            font-size: 14px;
-            color: #856404;
+            background-color: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-size: 0.875rem;
+            color: #92400E;
+            text-align: left;
           }
           .warning-box {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            border-radius: 5px;
-            padding: 15px;
-            margin: 20px 0;
-            font-size: 14px;
-            color: #721c24;
+            background-color: #FEE2E2;
+            border: 1px solid #FECACA;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            font-size: 0.875rem;
+            color: #B91C1C;
+            text-align: left;
           }
         </style>
       </head>
@@ -346,7 +467,7 @@ export async function sendResetPassword(email: string, token: string) {
           
           <div class="footer">
             <p>If the button doesn't work, copy and paste this link into your browser:</p>
-            <p style="word-break: break-all; color: #ff6b6b; margin-top: 10px;">${resetUrl}</p>
+            <p style="word-break: break-all; color: #EF4444; margin-top: 0.75rem;">${resetUrl}</p>
           </div>
         </div>
       </body>
@@ -390,81 +511,85 @@ export async function sendVerificationEmailManualMailer(email: string, token: st
         <title>Verify Your Email</title>
         <style>
           body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.5;
+            color: #111827;
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f8f9fa;
+            padding: 1.5rem;
+            background-color: #F9FAFB;
           }
           .email-container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #FFFFFF;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #E5E7EB;
             overflow: hidden;
           }
           .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px 20px;
+            background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+            color: #FFFFFF;
+            padding: 2.5rem 2rem;
             text-align: center;
           }
           .header h1 {
             margin: 0;
-            font-size: 28px;
+            font-size: 1.5rem;
             font-weight: 600;
+            letter-spacing: -0.025em;
           }
           .content {
-            padding: 40px 30px;
+            padding: 2.5rem;
             text-align: center;
           }
           .message {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 30px;
-            line-height: 1.8;
+            font-size: 1rem;
+            color: #4B5563;
+            margin-bottom: 2rem;
+            line-height: 1.5;
           }
           .verify-button {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #6366F1;
+            color: #FFFFFF;
             text-decoration: none;
-            padding: 15px 35px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            transition: transform 0.2s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
           }
           .verify-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            background: #4F46E5;
+            transform: translateY(-1px);
           }
           .footer {
-            background-color: #f8f9fa;
-            padding: 20px 30px;
+            background-color: #F9FAFB;
+            padding: 1.5rem 2rem;
             text-align: center;
-            border-top: 1px solid #e9ecef;
+            border-top: 1px solid #E5E7EB;
           }
           .footer p {
             margin: 0;
-            font-size: 14px;
-            color: #6c757d;
+            font-size: 0.875rem;
+            color: #6B7280;
           }
           .divider {
-            margin: 30px 0;
+            margin: 2rem 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+            background: linear-gradient(90deg, transparent, #E5E7EB, transparent);
           }
           .security-note {
-            background-color: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 0 5px 5px 0;
-            font-size: 14px;
-            color: #555;
+            background-color: #F3F4F6;
+            border-left: 4px solid #6366F1;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-size: 0.875rem;
+            color: #4B5563;
+            text-align: left;
           }
         </style>
       </head>
@@ -493,7 +618,7 @@ export async function sendVerificationEmailManualMailer(email: string, token: st
           
           <div class="footer">
             <p>If the button doesn't work, copy and paste this link into your browser:</p>
-            <p style="word-break: break-all; color: #667eea; margin-top: 10px;">${verificationUrl}</p>
+            <p style="word-break: break-all; color: #6366F1; margin-top: 0.75rem;">${verificationUrl}</p>
           </div>
         </div>
       </body>
@@ -535,101 +660,107 @@ export async function sendMemberSignupMails(email: string, token: string) {
         <title>Complete Your Signup</title>
         <style>
           body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.5;
+            color: #111827;
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f8f9fa;
+            padding: 1.5rem;
+            background-color: #F9FAFB;
           }
           .email-container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #FFFFFF;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid #E5E7EB;
             overflow: hidden;
           }
           .header {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            padding: 30px 20px;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #FFFFFF;
+            padding: 2.5rem 2rem;
             text-align: center;
           }
           .header h1 {
             margin: 0;
-            font-size: 28px;
+            font-size: 1.5rem;
             font-weight: 600;
+            letter-spacing: -0.025em;
           }
           .content {
-            padding: 40px 30px;
+            padding: 2.5rem;
             text-align: center;
           }
           .message {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 30px;
-            line-height: 1.8;
+            font-size: 1rem;
+            color: #4B5563;
+            margin-bottom: 2rem;
+            line-height: 1.5;
           }
           .signup-button {
             display: inline-block;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
+            background: #10B981;
+            color: #FFFFFF;
             text-decoration: none;
-            padding: 15px 35px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-            transition: transform 0.2s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
           }
           .signup-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+            background: #059669;
+            transform: translateY(-1px);
           }
           .footer {
-            background-color: #f8f9fa;
-            padding: 20px 30px;
+            background-color: #F9FAFB;
+            padding: 1.5rem 2rem;
             text-align: center;
-            border-top: 1px solid #e9ecef;
+            border-top: 1px solid #E5E7EB;
           }
           .footer p {
             margin: 0;
-            font-size: 14px;
-            color: #6c757d;
+            font-size: 0.875rem;
+            color: #6B7280;
           }
           .divider {
-            margin: 30px 0;
+            margin: 2rem 0;
             height: 1px;
-            background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+            background: linear-gradient(90deg, transparent, #E5E7EB, transparent);
           }
           .info-note {
-            background-color: #d1ecf1;
-            border-left: 4px solid #17a2b8;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 0 5px 5px 0;
-            font-size: 14px;
-            color: #0c5460;
+            background-color: #DBEAFE;
+            border-left: 4px solid #3B82F6;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-size: 0.875rem;
+            color: #1E3A8A;
+            text-align: left;
           }
           .steps {
             text-align: left;
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            background-color: #F3F4F6;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
           }
           .steps h3 {
             margin-top: 0;
-            color: #28a745;
+            color: #10B981;
             text-align: center;
+            font-size: 1.125rem;
+            font-weight: 600;
           }
           .steps ol {
             margin: 0;
-            padding-left: 20px;
+            padding-left: 1.25rem;
           }
           .steps li {
-            margin-bottom: 8px;
-            color: #555;
+            margin-bottom: 0.5rem;
+            color: #4B5563;
           }
         </style>
       </head>
@@ -668,7 +799,7 @@ export async function sendMemberSignupMails(email: string, token: string) {
           
           <div class="footer">
             <p>If the button doesn't work, copy and paste this link into your browser:</p>
-            <p style="word-break: break-all; color: #28a745; margin-top: 10px;">${signupUrl}</p>
+            <p style="word-break: break-all; color: #10B981; margin-top: 0.75rem;">${signupUrl}</p>
           </div>
         </div>
       </body>

@@ -4,9 +4,6 @@ import express from 'express'
 import { alertPreferencesBodySchema, validateBody } from '../../util/zod';
 
 interface AlertPreferencesBody {
-    frequency_unit: FrequencyUnit;
-    frequency_value: number;
-    number_of_times: number;
     email_enabled: boolean;
     slack_enabled: boolean;
     email_roles_notification: user_role[];
@@ -43,9 +40,6 @@ class AlertPreferencesController {
 
             const organisationId = req.session.user?.userOrganisationId!;
             const {
-                frequency_unit,
-                frequency_value,
-                number_of_times,
                 email_enabled,
                 slack_enabled,
                 email_roles_notification
@@ -54,9 +48,6 @@ class AlertPreferencesController {
             await this.prisma.alert_preferences.create({
                 data: {
                     organisation_id: organisationId,
-                    frequency_unit,
-                    frequency_value,
-                    number_of_times,
                     email_enabled,
                     slack_enabled,
                     email_roles_notification
@@ -95,9 +86,6 @@ class AlertPreferencesController {
             if (!validatedBody) return;
 
             const {
-                frequency_unit,
-                frequency_value,
-                number_of_times,
                 email_enabled,
                 slack_enabled,
                 email_roles_notification
@@ -109,9 +97,6 @@ class AlertPreferencesController {
                     organisation_id
                 },
                 data: {
-                    frequency_unit,
-                    frequency_value,
-                    number_of_times,
                     slack_enabled,
                     email_enabled,
                     email_roles_notification

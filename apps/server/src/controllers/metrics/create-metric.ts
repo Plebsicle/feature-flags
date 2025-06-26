@@ -11,7 +11,7 @@ interface CreateMetricBody {
     metric_type: metric_type;
     is_active: boolean;
     unit_measurement: string;
-    aggregation_method: metric_aggregation_method;
+    aggregation_method? : metric_aggregation_method;
     description: string;
     tags?: string[];
 }
