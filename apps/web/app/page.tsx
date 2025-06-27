@@ -159,7 +159,7 @@ export default function LandingPage() {
               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
                 <Flag className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">Flagship Feat</span>
+              <span className="text-xl font-bold text-gray-900">Bitswitch</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link href="/auth/signin">
@@ -342,13 +342,6 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="flex items-start space-x-4">
-                    <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Shield className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 text-lg">Secure & Reliable</h4>
-                      <p className="text-gray-600">Bank-grade security with 99.9% uptime guarantee</p>
-                    </div>
                   </div>
                   <div className="flex items-start space-x-4">
                     <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -395,13 +388,6 @@ export default function LandingPage() {
           </motion.div>
         </motion.div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 px-6 bg-white">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-gray-500">© 2024 Flagship Feat. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   )
 }

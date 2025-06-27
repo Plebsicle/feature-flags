@@ -63,64 +63,6 @@ async function getDashboardData(): Promise<DashboardData | null> {
   }
 }
 
-// Alternative approach: Get specific cookies by name
-async function getDashboardDataWithSpecificCookies(): Promise<DashboardData | null> {
-  try {
-    const cookieStore = await cookies();
-    
-    // Debug: Log all available cookies
-    const allCookies = cookieStore.getAll();
-    console.log('All available cookies:', allCookies);
-    const sessionId = cookieStore.get('sessionId')?.value;
-    
-    console.log('Specific cookies found:', {
-      sessionId,
-    });
-    
-    // Build cookie header with only the cookies you need
-    const cookiePairs = [];
-    if (sessionId) cookiePairs.push(`session-id=${sessionId}`);
-    
-    const cookieHeader = cookiePairs.join('; ');
-    
-    console.log('Sending specific cookies:', cookieHeader); // Debug log
-
-    if (!cookieHeader) {
-      console.error('No authentication cookies found');
-      console.log('Check your cookie names and make sure they are set correctly');
-      return null;
-    }
-
-    const response = await fetch(`${BACKEND_URL}/dashboard`, {
-      method: 'GET',
-      headers: {
-        'Cookie': cookieHeader,
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      console.error(`HTTP error! status: ${response.status}`);
-      return null;
-    }
-
-    const data = await response.json();
-    
-    if (!data.success) {
-      console.error('Backend returned error:', data);
-      return null;
-    }
-
-    return data.data;
-  } catch (err) {
-    console.error('Error fetching dashboard data:', err);
-    return null;
-  }
-}
-
-// SERVER COMPONENT - This renders on server, great for SEO
 function StatCard({
   title,
   value,
@@ -156,7 +98,7 @@ function StatCard({
   )
 }
 
-// SERVER COMPONENT - Rendered on server
+
 function ActivityItem({
   type,
   message,
@@ -188,49 +130,6 @@ function ActivityItem({
       </div>
     </div>
   )
-}
-
-// ALTERNATIVE: Use headers to get cookies (sometimes more reliable)
-async function getDashboardDataUsingHeaders(): Promise<DashboardData | null> {
-  try {
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    const cookieHeader = headersList.get('cookie');
-    
-    console.log('Raw cookie header from request:', cookieHeader);
-
-    if (!cookieHeader) {
-      console.error('No cookie header found in request');
-      return null;
-    }
-
-    const response = await fetch(`${BACKEND_URL}/dashboard`, {
-      method: 'GET',
-      headers: {
-        'Cookie': cookieHeader,
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      console.error(`HTTP error! status: ${response.status}`);
-      return null;
-    }
-
-    const data = await response.json();
-    
-    if (!data.success) {
-      console.error('Backend returned error:', data);
-      return null;
-    }
-
-    return data.data;
-  } catch (err) {
-    console.error('Error fetching dashboard data:', err);
-    return null;
-  }
 }
 
 function getActivityStatus(title: string): "success" | "warning" | "pending" {

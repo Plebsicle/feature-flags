@@ -19,6 +19,9 @@ import organisationRoutes from './routes/organisation/org'
 import metricRoutes from './routes/metrics/metrics'
 import alertRoutes from './routes/alerts/alert'
 import slackRoutes from './routes/slack/slack'
+import evaluationRoutes from './routes/evaluation/eval'
+import auditLogRoutes from './routes/audit-logs/audit'
+import alertLogsRoutes from './routes/alert-logs/alerts'
 
 // Cron Jobs
 import aggregateData from './cron-jobs/metric-aggregation';
@@ -52,6 +55,9 @@ app.use('/organisation',organisationRoutes);
 app.use('/metrics',metricRoutes);  
 app.use('/alerts',alertRoutes);
 app.use('/slack',slackRoutes);
+app.use('/evaluation',evaluationRoutes);
+app.use('/auditLogs',auditLogRoutes);
+app.use('/alertLogs',alertLogsRoutes);
 
 //Security Measure
 app.disable('x-powered-by');

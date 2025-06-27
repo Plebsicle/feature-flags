@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { environment_type } from '@repo/db/client'
 import { ABValue, ABMultiVariate } from '@repo/types/value-config'
-import { ArrowRight, ArrowLeft, Server, Plus, Minus, Info } from "lucide-react"
+import { ArrowRight, ArrowLeft, Server, Plus, Minus, Info, Check } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 
 // Types for API responses
@@ -200,177 +200,155 @@ export default function EnvironmentsPage() {
           abValue[variant.name] = parsedValue
         }
       })
-      const multiVariateValue: ABMultiVariate = { value: abValue }
-      handleValueChange('value', multiVariateValue)
+      handleValueChange('value', abValue)
     }
   }
 
   const addVariant = () => {
-    if (state.flag_type === 'MULTIVARIATE') {
-      setVariants([...variants, { name: `Variant ${String.fromCharCode(65 + variants.length)}`, value: '' }])
-    }
+    setVariants([...variants, { name: `Variant ${String.fromCharCode(65 + variants.length)}`, value: '' }])
   }
 
   const removeVariant = (index: number) => {
-    if (state.flag_type === 'MULTIVARIATE' && variants.length > 3 && index >= 3) {
-      const updatedVariants = variants.filter((_, i) => i !== index)
-      setVariants(updatedVariants)
+    if (variants.length > 2) {
+      const newVariants = variants.filter((_, i) => i !== index)
+      setVariants(newVariants)
       
-      // Update the context with the new variants array
-      const abValue: ABValue = {}
-      updatedVariants.forEach(variant => {
-        if (variant.name && variant.value !== undefined && variant.value !== '') {
-          // Try to parse as number first, then boolean, then keep as string
-          let parsedValue: any = variant.value
-          if (!isNaN(Number(variant.value)) && variant.value.trim() !== '') {
-            parsedValue = Number(variant.value)
-          } else if (variant.value.toLowerCase() === 'true') {
-            parsedValue = true
-          } else if (variant.value.toLowerCase() === 'false') {
-            parsedValue = false
+      // Update context after removal
+      if (state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') {
+        const abValue: ABValue = {}
+        newVariants.forEach(variant => {
+          if (variant.name && variant.value !== undefined && variant.value !== '') {
+            let parsedValue: any = variant.value
+            if (!isNaN(Number(variant.value)) && variant.value.trim() !== '') {
+              parsedValue = Number(variant.value)
+            } else if (variant.value.toLowerCase() === 'true') {
+              parsedValue = true
+            } else if (variant.value.toLowerCase() === 'false') {
+              parsedValue = false
+            }
+            abValue[variant.name] = parsedValue
           }
-          abValue[variant.name] = parsedValue
-        }
-      })
-      const multiVariateValue: ABMultiVariate = { value: abValue }
-      handleValueChange('value', multiVariateValue)
+        })
+        handleValueChange('value', abValue)
+      }
+    } else {
+      toast.error('At least 2 variants are required')
     }
   }
 
   const handleDefaultValueChange = (newValue: string) => {
     setDefaultValue(newValue)
-    try {
-      const parsed = JSON.parse(newValue)
-      handleValueChange('default_value', parsed)
-    } catch {
-      handleValueChange('default_value', newValue)
+    
+    // Parse the value based on flag type
+    let parsedValue: any = newValue
+    if (state.flag_type === 'NUMBER') {
+      parsedValue = Number(newValue) || 0
+    } else if (state.flag_type === 'BOOLEAN') {
+      parsedValue = newValue.toLowerCase() === 'true'
+    } else if (state.flag_type === 'JSON') {
+      try {
+        parsedValue = JSON.parse(newValue)
+      } catch {
+        parsedValue = newValue // Keep as string if invalid JSON
+      }
     }
+    
+    handleValueChange('default_value', parsedValue)
   }
 
-  // Initialize variants when flag type changes
-  useEffect(() => {
-    if (state.flag_type === 'AB_TEST') {
-      setVariants([
-        { name: 'Variant A', value: '' },
-        { name: 'Variant B', value: '' }
-      ])
-    } else if (state.flag_type === 'MULTIVARIATE') {
-      setVariants([
-        { name: 'Variant A', value: '' },
-        { name: 'Variant B', value: '' },
-        { name: 'Variant C', value: '' }
-      ])
-    }
-  }, [state.flag_type])
-
   const renderVariantConfiguration = () => {
-    if (!['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type)) {
-      return null
-    }
-
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label className="text-white">Variants</Label>
-          {state.flag_type === 'MULTIVARIATE' && (
-            <Button
-              type="button"
-              onClick={addVariant}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Variant
-            </Button>
-          )}
+          <Label className="text-sm font-medium text-gray-700">Variants</Label>
+          <Button
+            onClick={addVariant}
+            size="sm"
+            variant="outline"
+            className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 h-8 px-3"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Add
+          </Button>
         </div>
         
-        <div className="space-y-3">
-          {variants.map((variant, index) => (
-            <div key={index} className="p-4 border border-slate-700/30 rounded-lg space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-neutral-300">Variant {index + 1}</Label>
-                {state.flag_type === 'MULTIVARIATE' && variants.length > 3 && index >= 3 && (
-                  <Button
-                    type="button"
-                    onClick={() => removeVariant(index)}
-                    size="sm"
-                    variant="outline"
-                    className="border-red-700 text-red-300 hover:bg-red-800/20"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </Button>
-                )}
+        {variants.map((variant, index) => (
+          <div key={index} className="p-3 border border-gray-200 rounded-md bg-gray-50">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium text-gray-900 text-sm">Variant {String.fromCharCode(65 + index)}</h4>
+              {variants.length > 2 && (
+                <Button
+                  onClick={() => removeVariant(index)}
+                  size="sm"
+                  variant="ghost"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                >
+                  <Minus className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700">Name</Label>
+                <Input
+                  value={variant.name}
+                  onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
+                  placeholder="Variant name"
+                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-neutral-300 text-sm">Name</Label>
-                  <Input
-                    value={variant.name}
-                    onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
-                    placeholder="Variant name"
-                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-                  />
-                </div>
-                
-                <div>
-                  <Label className="text-neutral-300 text-sm">Value</Label>
-                  <Input
-                    value={variant.value}
-                    onChange={(e) => handleVariantChange(index, 'value', e.target.value)}
-                    placeholder="Enter variant value (string, number, true/false)"
-                    className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-                  />
-                  <p className="text-xs text-slate-400 mt-1">
-                    Supports strings, numbers, and booleans (true/false)
-                  </p>
-                </div>
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-gray-700">Value</Label>
+                <Input
+                  value={variant.value}
+                  onChange={(e) => handleVariantChange(index, 'value', e.target.value)}
+                  placeholder="Variant value"
+                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                />
               </div>
             </div>
-          ))}
-        </div>
-        
-        <p className="text-xs text-slate-400">
-          {state.flag_type === 'AB_TEST' 
-            ? 'Configure exactly two variants for A/B testing. Each variant needs a unique name and value.'
-            : 'Configure multiple variants for multivariate testing (minimum 3 required). Each variant needs a unique name and value. The first 3 variants cannot be removed.'
-          }
-        </p>
+          </div>
+        ))}
       </div>
     )
   }
 
   const renderValueInput = (field: 'value' | 'default_value', label: string) => {
-    const currentValue = field === 'value' ? state.environments.value.value : state.environments.default_value.value
-
-    // For AB_TEST and MULTIVARIATE, use variant configuration for value
-    if ((state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') && field === 'value') {
-      return renderVariantConfiguration()
+    if (['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type)) {
+      if (field === 'value') {
+        return renderVariantConfiguration()
+      } else {
+        // Default value for AB/Multivariate tests
+        return (
+          <div className="space-y-1">
+            <Input
+              value={defaultValue}
+              onChange={(e) => handleDefaultValueChange(e.target.value)}
+              placeholder="Default fallback value"
+              className="h-9 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+        )
+      }
     }
 
-    // For default_value with AB_TEST and MULTIVARIATE, allow JSON input
-    if ((state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') && field === 'default_value') {
-      return (
-        <Textarea
-          value={defaultValue || (typeof currentValue === 'string' ? currentValue : JSON.stringify(currentValue, null, 2))}
-          onChange={(e) => handleDefaultValueChange(e.target.value)}
-          placeholder='{"key": "value"} or simple value'
-          className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 font-mono text-sm"
-          rows={4}
-        />
-      )
-    }
+    const currentValue = field === 'value' ? state.environments.value?.value : state.environments.default_value?.value
 
+    // Handle different input types based on flag type
     switch (state.flag_type) {
       case 'BOOLEAN':
         return (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Switch
-              checked={currentValue || false}
+              checked={currentValue === true}
               onCheckedChange={(checked) => handleValueChange(field, checked)}
+              className="data-[state=checked]:bg-indigo-600"
             />
-            <Label className="text-white">{currentValue ? 'True' : 'False'}</Label>
+            <Label className="text-sm text-gray-600">
+              {currentValue === true ? 'True' : 'False'}
+            </Label>
           </div>
         )
 
@@ -379,20 +357,9 @@ export default function EnvironmentsPage() {
           <Input
             type="number"
             value={currentValue || ''}
-            onChange={(e) => handleValueChange(field, parseFloat(e.target.value) || 0)}
-            placeholder="Enter number value"
-            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-          />
-        )
-
-      case 'STRING':
-        return (
-          <Input
-            type="text"
-            value={currentValue || ''}
-            onChange={(e) => handleValueChange(field, e.target.value)}
-            placeholder="Enter string value"
-            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
+            onChange={(e) => handleValueChange(field, Number(e.target.value) || 0)}
+            placeholder="Enter a number"
+            className="h-9 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
           />
         )
 
@@ -405,23 +372,22 @@ export default function EnvironmentsPage() {
                 const parsed = JSON.parse(e.target.value)
                 handleValueChange(field, parsed)
               } catch {
-                // Keep the raw string if JSON is invalid
                 handleValueChange(field, e.target.value)
               }
             }}
-            placeholder={`Enter JSON for ${state.flag_type.toLowerCase()}`}
-            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 min-h-[120px] font-mono text-sm"
+            placeholder='{"key": "value"}'
+            className="min-h-[80px] font-mono text-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
           />
         )
 
+      case 'STRING':
       default:
         return (
           <Input
-            type="text"
             value={currentValue || ''}
             onChange={(e) => handleValueChange(field, e.target.value)}
-            placeholder="Enter value"
-            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
+            placeholder="Enter a string value"
+            className="h-9 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
           />
         )
     }
@@ -432,59 +398,36 @@ export default function EnvironmentsPage() {
       toast.error('Environment is required')
       return false
     }
-    
-    // Validate variants for AB_TEST and MULTIVARIATE
-    if (state.flag_type === 'AB_TEST') {
-      if (variants.length !== 2) {
-        toast.error('AB test requires exactly 2 variants')
+
+    // For AB_TEST and MULTIVARIATE, check that all variants have names and values
+    if (state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') {
+      const emptyVariants = variants.filter(v => !v.name.trim() || !v.value.toString().trim())
+      if (emptyVariants.length > 0) {
+        toast.error('All variants must have names and values')
         return false
       }
-      for (const variant of variants) {
-        if (!variant.name.trim()) {
-          toast.error('All variants must have names')
-          return false
-        }
-        if (variant.value === undefined || variant.value === '') {
-          toast.error('All variants must have values')
-          return false
-        }
-      }
-    } else if (state.flag_type === 'MULTIVARIATE') {
-      if (variants.length < 3) {
-        toast.error('Multivariate test requires at least 3 variants')
+      
+      // Check for duplicate variant names
+      const variantNames = variants.map(v => v.name.trim().toLowerCase())
+      const uniqueNames = new Set(variantNames)
+      if (uniqueNames.size !== variantNames.length) {
+        toast.error('Variant names must be unique')
         return false
       }
-             for (const variant of variants) {
-         if (!variant.name.trim()) {
-           toast.error('All variants must have names')
-           return false
-         }
-         if (variant.value === undefined || variant.value === '') {
-           toast.error('All variants must have values')
-           return false
-         }
-       }
-    }
-    
-    // Validate JSON for specific flag types
-    if (['JSON'].includes(state.flag_type)) {
-      try {
-        JSON.parse(typeof state.environments.value.value === 'string' ? state.environments.value.value : JSON.stringify(state.environments.value.value))
-      } catch {
-        toast.error('Invalid JSON format for value')
+      
+      // For AB_TEST, ensure exactly 2 variants
+      if (state.flag_type === 'AB_TEST' && variants.length !== 2) {
+        toast.error('A/B tests must have exactly 2 variants')
+        return false
+      }
+    } else {
+      // For other flag types, check that value is provided
+      if (state.environments.value?.value === undefined || state.environments.value?.value === '') {
+        toast.error('Value is required')
         return false
       }
     }
-    
-    // Validate default value for AB_TEST and MULTIVARIATE
-    if (['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type) && defaultValue) {
-      try {
-        JSON.parse(defaultValue)
-      } catch {
-        // Allow non-JSON default values
-      }
-    }
-    
+
     return true
   }
 
@@ -527,186 +470,193 @@ export default function EnvironmentsPage() {
 
   return (
     <>
-    <Toaster />
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center">
-              <Server className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white">
-                {state.isCreatingEnvironmentOnly ? 'Add Environment' : 'Create Feature Flag'}
-              </h1>
-              <p className="text-neutral-400">
-                {state.isCreatingEnvironmentOnly ? 'Configure a new environment for your feature flag' : 'Step 2 of 4'}
-              </p>
-            </div>
-          </div>
-          
-          {/* Progress indicator */}
-          {!state.isCreatingEnvironmentOnly && (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-medium">✓</div>
-              <div className="h-1 w-16 bg-green-500"></div>
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-medium">2</div>
-              <div className="h-1 w-16 bg-slate-700"></div>
-              <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-sm font-medium">3</div>
-              <div className="h-1 w-16 bg-slate-700"></div>
-              <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-sm font-medium">4</div>
-            </div>
-          )}
-        </div>
-
-        {/* Form */}
-        <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-          <CardHeader>
-            <CardTitle className="text-white">Environment Configuration</CardTitle>
-            <CardDescription className="text-neutral-400">
-              {state.isCreatingEnvironmentOnly 
-                ? `Add a new environment configuration for your ${state.flag_type?.toLowerCase()} flag`
-                : `Select an environment and configure values for your ${state.flag_type?.toLowerCase()} flag`
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Existing Environments Info (only in add environment mode) */}
-            {state.isCreatingEnvironmentOnly && existingEnvironments.length > 0 && (
-              <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50">
-                <h3 className="text-white font-medium mb-2">Existing Environments</h3>
-                <div className="flex flex-wrap gap-2">
-                  {existingEnvironments.map((env) => (
-                    <div key={env.id} className="bg-blue-900/50 text-blue-200 px-3 py-1 rounded-full text-sm">
-                      {environmentOptions.find(opt => opt.value === env.environment)?.label || env.environment}
-                    </div>
-                  ))}
-                </div>
-                <p className="text-slate-400 text-sm mt-2">
-                  These environments are already configured for this feature flag.
+      <Toaster />
+      <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
+                <Server className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {state.isCreatingEnvironmentOnly ? 'Add Environment' : 'Environment Configuration'}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {state.isCreatingEnvironmentOnly ? 'Configure a new environment for your feature flag' : 'Step 2 of 4 - Configure environment settings'}
                 </p>
               </div>
+            </div>
+            
+            {/* Progress indicator */}
+            {!state.isCreatingEnvironmentOnly && (
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-medium shadow-sm">
+                  <Check className="w-4 h-4" />
+                </div>
+                <div className="h-1 w-16 bg-emerald-500 rounded-full"></div>
+                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium shadow-sm">
+                  2
+                </div>
+                <div className="h-1 w-16 bg-gray-200 rounded-full"></div>
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">
+                  3
+                </div>
+                <div className="h-1 w-16 bg-gray-200 rounded-full"></div>
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">
+                  4
+                </div>
+              </div>
             )}
+          </div>
 
-
-            {/* Environment Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="environment" className="text-white">Environment *</Label>
-              {isLoading ? (
-                <div className="bg-slate-700/50 border-slate-600 text-white p-3 rounded-md">
-                  Loading available environments...
-                </div>
-              ) : availableEnvironments.length === 0 && state.isCreatingEnvironmentOnly ? (
-                <div className="bg-amber-900/20 border-amber-600/30 text-amber-200 p-3 rounded-md">
-                  All environments have been configured for this feature flag.
-                  <div className="mt-2">
-                    <Button 
-                      onClick={() => router.back()}
-                      variant="outline"
-                      size="sm"
-                      className="border-amber-600/50 text-amber-200 hover:bg-amber-900/30"
-                    >
-                      Go Back
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <Select value={state.environments.environment} onValueChange={handleEnvironmentChange}>
-                  <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
-                    <SelectValue placeholder="Select environment" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    {availableEnvironments.map((option) => (
-                      <SelectItem 
-                        key={option.value} 
-                        value={option.value}
-                        className="text-white hover:bg-slate-700 focus:bg-slate-700"
-                      >
-                        <div className="flex flex-col">
-                          <span className="font-medium">{option.label}</span>
-                          <span className="text-xs text-slate-400">{option.description}</span>
-                        </div>
-                      </SelectItem>
+          {/* Form */}
+          <Card className="shadow-lg border-gray-200 bg-white rounded-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl font-semibold text-gray-900">Environment Configuration</CardTitle>
+              <CardDescription className="text-gray-600">
+                {state.isCreatingEnvironmentOnly 
+                  ? `Add a new environment configuration for your ${state.flag_type?.toLowerCase()} flag`
+                  : `Select an environment and configure values for your ${state.flag_type?.toLowerCase()} flag`
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Existing Environments Info (only in add environment mode) */}
+              {state.isCreatingEnvironmentOnly && existingEnvironments.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 mb-2">Existing Environments</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {existingEnvironments.map((env) => (
+                      <div key={env.id} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {environmentOptions.find(opt => opt.value === env.environment)?.label || env.environment}
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-
-            {/* Flag Type Info */}
-            <div className="bg-slate-700/30 p-4 rounded-lg border border-slate-600/50">
-              <h3 className="text-white font-medium mb-2">Flag Type: {state.flag_type}</h3>
-              <p className="text-slate-400 text-sm">
-                {state.flag_type === 'BOOLEAN' && 'Configure true/false values for this toggle flag.'}
-                {state.flag_type === 'STRING' && 'Configure text values for this string flag.'}
-                {state.flag_type === 'NUMBER' && 'Configure numeric values for this number flag.'}
-                {state.flag_type === 'JSON' && 'Configure JSON objects for this complex flag.'}
-                {state.flag_type === 'AB_TEST' && 'Configure exactly two variants (A and B) for A/B testing.'}
-                {state.flag_type === 'MULTIVARIATE' && 'Configure multiple variants for multivariate testing.'}
-              </p>
-            </div>
-
-            {/* Value Configuration - Only show if environment selection is available */}
-            {availableEnvironments.length > 0 && (
-              <div className="space-y-6">
-                {/* Value Configuration */}
-                <div className="space-y-4">
-                  <Label className="text-white text-lg">Value Configuration</Label>
-                  {renderValueInput('value', 'Value')}
-                  {!['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type) && (
-                    <p className="text-xs text-slate-400">The value returned when the flag is enabled</p>
-                  )}
-                </div>
-
-                {/* Default Value - Always available */}
-                <div className="space-y-2">
-                  <Label className="text-white">Default Value</Label>
-                  {renderValueInput('default_value', 'Default Value')}
-                  <p className="text-xs text-slate-400">
-                    The fallback value when the flag is disabled or when an error occurs
+                  </div>
+                  <p className="text-gray-600 text-sm mt-2">
+                    These environments are already configured for this feature flag.
                   </p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Additional Environments Note */}
-            <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-200">
-                  <p className="font-medium mb-1">Adding More Environments Later</p>
-                  <p>You can add additional environments later by navigating to the specific flag page where you want to configure more environments.</p>
+              {/* Environment Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="environment" className="text-sm font-medium text-gray-700">Environment *</Label>
+                {isLoading ? (
+                  <div className="bg-gray-50 border border-gray-300 text-gray-600 p-3 rounded-md">
+                    Loading available environments...
+                  </div>
+                ) : availableEnvironments.length === 0 && state.isCreatingEnvironmentOnly ? (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg">
+                    <p className="font-medium">All environments have been configured for this feature flag.</p>
+                    <div className="mt-3">
+                      <Button 
+                        onClick={() => router.back()}
+                        variant="outline"
+                        size="sm"
+                        className="border-amber-300 text-amber-800 hover:bg-amber-100"
+                      >
+                        Go Back
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Select value={state.environments.environment} onValueChange={handleEnvironmentChange}>
+                    <SelectTrigger className="h-10 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                      <SelectValue placeholder="Select environment" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-gray-200 shadow-lg">
+                      {availableEnvironments.map((option) => (
+                        <SelectItem 
+                          key={option.value} 
+                          value={option.value}
+                          className="py-2 px-3 hover:bg-gray-50 focus:bg-gray-50"
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-900">{option.label}</span>
+                            <span className="text-xs text-gray-500">{option.description}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+
+              {/* Flag Type Info */}
+              <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-900 mb-1">Flag Type: {state.flag_type}</h3>
+                <p className="text-gray-600 text-sm">
+                  {state.flag_type === 'BOOLEAN' && 'Configure true/false values for this toggle flag.'}
+                  {state.flag_type === 'STRING' && 'Configure text values for this string flag.'}
+                  {state.flag_type === 'NUMBER' && 'Configure numeric values for this number flag.'}
+                  {state.flag_type === 'JSON' && 'Configure JSON objects for this complex flag.'}
+                  {state.flag_type === 'AB_TEST' && 'Configure exactly two variants (A and B) for A/B testing.'}
+                  {state.flag_type === 'MULTIVARIATE' && 'Configure multiple variants for multivariate testing.'}
+                </p>
+              </div>
+
+              {/* Value Configuration - Only show if environment selection is available */}
+              {availableEnvironments.length > 0 && (
+                <div className="space-y-5">
+                  {/* Value Configuration */}
+                  <div className="space-y-3">
+                    <Label className="font-semibold text-gray-900">Value Configuration</Label>
+                    {renderValueInput('value', 'Value')}
+                    {!['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type) && (
+                      <p className="text-xs text-gray-500">The value returned when the flag is enabled</p>
+                    )}
+                  </div>
+
+                  {/* Default Value - Always available */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Default Value</Label>
+                    {renderValueInput('default_value', 'Default Value')}
+                    <p className="text-xs text-gray-500">
+                      The fallback value when the flag is disabled or when an error occurs
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Environments Note */}
+              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <Info className="w-5 h-5 text-cyan-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-cyan-800">
+                    <p className="font-medium mb-1">Adding More Environments Later</p>
+                    <p>You can add additional environments later by navigating to the specific flag page where you want to configure more environments.</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between pt-6">
-              {!state.isCreatingEnvironmentOnly && (
+              {/* Navigation Buttons */}
+              <div className="flex justify-between pt-4 border-t border-gray-200">
+                {!state.isCreatingEnvironmentOnly && (
+                  <Button 
+                    onClick={handlePrevious}
+                    variant="outline"
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Previous
+                  </Button>
+                )}
+                
                 <Button 
-                  onClick={handlePrevious}
-                  variant="outline"
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                  onClick={handleNext}
+                  disabled={availableEnvironments.length === 0}
+                  className={`bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 font-medium rounded-md shadow-sm transition-all duration-200 hover:shadow-md ${state.isCreatingEnvironmentOnly ? 'ml-auto' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
+                  Next Step
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
-              )}
-              
-              <Button 
-                onClick={handleNext}
-                disabled={availableEnvironments.length === 0}
-                className={`bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white px-8 ${state.isCreatingEnvironmentOnly ? 'ml-auto' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                Next Step
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
     </>
   )
 }

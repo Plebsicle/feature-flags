@@ -187,6 +187,19 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
     }
   }
 
+  const getMetricTypeColor = (type: metric_type) => {
+    switch (type) {
+      case "CONVERSION":
+        return 'from-emerald-500 to-teal-500'
+      case "COUNT":
+        return 'from-blue-500 to-cyan-500'
+      case "NUMERIC":
+        return 'from-purple-500 to-pink-500'
+      default:
+        return 'from-gray-500 to-slate-500'
+    }
+  }
+
   return (
     <>
       <Toaster />

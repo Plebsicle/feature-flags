@@ -1,9 +1,9 @@
 import express from 'express'
-import alertReadController from '../../controllers/alerts/read-alert';
-import alertCreateController from '../../controllers/alerts/create-alert';
-import alertUpdateController from '../../controllers/alerts/update-alert';
+import alertReadController from '../../controllers/alerts-metrics/read-alert';
+import alertCreateController from '../../controllers/alerts-metrics/create-alert';
+import alertUpdateController from '../../controllers/alerts-metrics/update-alert';
 import { verificationMiddleware } from '../../middlewares/verification';
-import alertDeleteController from '../../controllers/alerts/delete-alert';
+import alertDeleteController from '../../controllers/alerts-metrics/delete-alert';
 
 const router = express.Router();
 

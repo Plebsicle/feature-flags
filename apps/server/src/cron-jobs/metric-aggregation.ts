@@ -101,6 +101,7 @@ class MetricAggregations {
         const aggregationResults = [];
         const windowStart = new Date();
         for (const metric of metricData) {
+            if (!metric.metric_events || metric.metric_events.length === 0) continue;
             const { metric_events, id: metric_id, metric_key, metric_type: type, aggregation_window } = metric;
             
 

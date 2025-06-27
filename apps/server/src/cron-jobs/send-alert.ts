@@ -118,7 +118,7 @@ class AlertMonitor {
           const result = await client.chat.postMessage({
             channel: channel.channel_id,
             text: message,
-            username: 'Flag Manager', 
+            username: 'BitSwitch-FlagManager', 
           });
           results.push({ channel: channel.channel_id, success: true, result });
         } catch (error) {

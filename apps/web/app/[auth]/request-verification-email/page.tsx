@@ -84,7 +84,7 @@ export default function RequestVerificationEmailPage() {
               <motion.div variants={itemVariants}>
                 <div className="flex items-center justify-center mb-4">
                   <Flag className="w-6 h-6 text-indigo-600 mr-2" />
-                  <span className="text-lg font-semibold text-gray-900">FeatureFlag</span>
+                  <span className="text-lg font-semibold text-gray-900">Bitswitch</span>
                 </div>
                 <CardTitle className="text-2xl font-bold text-gray-900">
                   Resend Verification

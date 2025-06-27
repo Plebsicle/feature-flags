@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { motion } from "framer-motion"
 import {
   Flag,
   BarChart3,
@@ -108,7 +107,7 @@ export default function DashboardLayout({
       },
       {
         name: "Alerts",
-        href: "/alerts",
+        href: "/alerts?status=TRIGGERED",
         icon: Bell,
         color: "text-amber-600",
         bgColor: "bg-amber-50",
@@ -198,7 +197,7 @@ export default function DashboardLayout({
                   <Flag className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-gray-900 hidden sm:block">
-                  Flagship Feat
+                  Bitswitch
                 </span>
               </Link>
             </div>
@@ -245,7 +244,7 @@ export default function DashboardLayout({
         <div className="flex flex-col h-full">
           <nav className="flex-1 p-4 space-y-2">
             {sidebarItems.map((item) => {
-              const isActive = pathname.startsWith(item.href || '')
+              const isActive = pathname?.startsWith(item.href || '') || false
               const Icon = item.icon
               
               if (item.href) {

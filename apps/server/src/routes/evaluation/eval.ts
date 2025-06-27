@@ -4,4 +4,6 @@ import { featureFlagController } from '../../controllers/evaluation';
 
 const router = express.Router();
 
-router.post('/evaluate',featureFlagController.evaluateFeatureFlag);
+router.post('/',featureFlagController.evaluateFeatureFlag);
+
+export default router;

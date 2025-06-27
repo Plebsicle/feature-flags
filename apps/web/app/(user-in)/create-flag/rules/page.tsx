@@ -9,11 +9,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { DateTimePicker } from "@/components/ui/datetime-picker"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
-import { ArrowRight, ArrowLeft, Plus, X, Target, Info, ChevronDown } from "lucide-react"
+import { ArrowRight, ArrowLeft, Plus, X, Target, Info, ChevronDown, Check } from "lucide-react"
 import { Toaster, toast } from 'react-hot-toast'
+import { format } from 'date-fns'
 
 const dataTypeOptions: { value: DataType; label: string }[] = [
   { value: 'STRING', label: 'String' },
@@ -150,24 +152,7 @@ export default function RulesPage() {
     
     switch (dataType) {
       case 'DATE':
-        // Validate DD/MM/YYYY format
-        const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/
-        const dateMatch = trimmedValue.match(dateRegex)
-        if (!dateMatch) {
-          toast.error('Date must be in DD/MM/YYYY format')
-          return null
-        }
-        // Additional validation to check if it's a valid date
-        const day = dateMatch[1]!
-        const month = dateMatch[2]!
-        const year = dateMatch[3]!
-        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
-        if (date.getDate() !== parseInt(day) || 
-            date.getMonth() !== parseInt(month) - 1 || 
-            date.getFullYear() !== parseInt(year)) {
-          toast.error('Please enter a valid date')
-          return null
-        }
+        // For date type, we'll handle this differently with the date picker
         return trimmedValue
       
       case 'NUMBER':
@@ -202,36 +187,45 @@ export default function RulesPage() {
 
   const addValue = (conditionIndex: number, value: string) => {
     const condition = state.rules.conditions[conditionIndex]
-    if (condition && value.trim()) {
-      let newValues: string[] = []
-      
-      if (condition.attribute_type === 'ARRAY') {
-        // For array type, split by comma and trim each value
-        const arrayValues = value.split(',').map(v => v.trim()).filter(v => v.length > 0)
-        const validatedValues = arrayValues.map(v => validateAndFormatValue(v, 'STRING')).filter(v => v !== null) as string[]
-        const uniqueValues = [...new Set([...condition.attribute_values, ...validatedValues])]
-        newValues = uniqueValues
-      } else {
-        // For non-array types, only allow single value and replace existing
-        const validatedValue = validateAndFormatValue(value, condition.attribute_type)
-        if (validatedValue !== null) {
-          newValues = [validatedValue] // Replace with single value
-        } else {
-          return // Don't update if validation failed
-        }
-      }
-      
-      // Update the condition with new values
-      updateCondition(conditionIndex, { attribute_values: newValues })
+    if (!condition) return
+
+    const validatedValue = validateAndFormatValue(value, condition.attribute_type)
+    if (validatedValue === null) return
+
+    // Check for duplicates
+    if (condition.attribute_values.includes(validatedValue)) {
+      toast.error('This value has already been added')
+      return
     }
+
+    const newValues = [...condition.attribute_values, validatedValue]
+    updateCondition(conditionIndex, { attribute_values: newValues })
+  }
+
+  const addDateValue = (conditionIndex: number, date: Date | undefined) => {
+    if (!date) return
+    
+    const condition = state.rules.conditions[conditionIndex]
+    if (!condition) return
+
+    const dateString = format(date, "PPP HH:mm")
+    
+    // Check for duplicates
+    if (condition.attribute_values.includes(dateString)) {
+      toast.error('This date has already been added')
+      return
+    }
+
+    const newValues = [...condition.attribute_values, dateString]
+    updateCondition(conditionIndex, { attribute_values: newValues })
   }
 
   const removeValue = (conditionIndex: number, valueIndex: number) => {
     const condition = state.rules.conditions[conditionIndex]
-    if (condition) {
-      const newValues = condition.attribute_values.filter((_, i) => i !== valueIndex)
-      handleValuesChange(conditionIndex, newValues)
-    }
+    if (!condition) return
+
+    const newValues = condition.attribute_values.filter((_, i) => i !== valueIndex)
+    updateCondition(conditionIndex, { attribute_values: newValues })
   }
 
   const validateForm = () => {
@@ -240,18 +234,17 @@ export default function RulesPage() {
       return false
     }
 
-    // Validate conditions
-    for (const [index, condition] of state.rules.conditions.entries()) {
+    for (const condition of state.rules.conditions) {
       if (!condition.attribute_name.trim()) {
-        toast.error(`Attribute name is required for condition ${index + 1}`)
+        toast.error('All conditions must have an attribute name')
         return false
       }
-      if (!condition.attribute_values || condition.attribute_values.length === 0) {
-        toast.error(`At least one value is required for condition ${index + 1}`)
+      if (condition.attribute_values.length === 0) {
+        toast.error('All conditions must have at least one value')
         return false
       }
     }
-    
+
     return true
   }
 
@@ -267,174 +260,193 @@ export default function RulesPage() {
 
   const getValuePlaceholder = (attributeType: DataType) => {
     switch (attributeType) {
-      case 'ARRAY':
-        return 'Enter values separated by commas (e.g., value1, value2, value3)'
+      case 'STRING':
+        return 'Enter text value'
       case 'NUMBER':
-        return 'Enter a number value (e.g., 42)'
+        return 'Enter number (e.g., 123)'
       case 'BOOLEAN':
         return 'Enter true or false'
       case 'DATE':
-        return 'Enter date in DD/MM/YYYY format (e.g., 25/12/2023)'
+        return 'Select date and time'
       case 'SEMVER':
-        return 'Enter semantic version (e.g., 1.0.0)'
-      case 'STRING':
-        return 'Enter a text value'
+        return 'Enter version (e.g., 1.0.0)'
+      case 'ARRAY':
+        return 'Enter array value'
       default:
-        return 'Enter a single value'
+        return 'Enter value'
     }
   }
 
   const getValueHelperText = (attributeType: DataType) => {
     switch (attributeType) {
-      case 'ARRAY':
-        return 'Multiple values allowed - separate with commas'
-      case 'DATE':
-        return 'Must be in DD/MM/YYYY format'
-      case 'BOOLEAN':
-        return 'Only "true" or "false" allowed'
+      case 'STRING':
+        return 'Press Enter to add text value'
       case 'NUMBER':
-        return 'Numeric values only'
+        return 'Press Enter to add numeric value'
+      case 'BOOLEAN':
+        return 'Enter "true" or "false", then press Enter'
+      case 'DATE':
+        return 'Use the date picker to select date and time'
       case 'SEMVER':
-        return 'Must follow semantic versioning format'
+        return 'Use semantic versioning (e.g., 1.0.0), then press Enter'
+      case 'ARRAY':
+        return 'Press Enter to add array value'
       default:
-        return 'Single value only - new entry replaces existing'
+        return 'Press Enter to add value'
     }
   }
 
   return (
     <>
-    <Toaster />
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center">
-              <Target className="w-5 h-5 text-white" />
+      <Toaster />
+      <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-md">
+                <Target className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Targeting Rules</h1>
+                <p className="text-sm text-gray-600">Step 3 of 4 - Define who sees this flag</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white">Create Feature Flag</h1>
-              <p className="text-neutral-400">Step 3 of 4</p>
+            
+            {/* Progress indicator */}
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
+                <Check className="w-3 h-3" />
+              </div>
+              <div className="h-1 w-12 bg-emerald-500 rounded-full"></div>
+              <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
+                <Check className="w-3 h-3" />
+              </div>
+              <div className="h-1 w-12 bg-emerald-500 rounded-full"></div>
+              <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-medium shadow-sm">
+                3
+              </div>
+              <div className="h-1 w-12 bg-gray-200 rounded-full"></div>
+              <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs font-medium">
+                4
+              </div>
             </div>
           </div>
-          
-          {/* Progress indicator */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-medium">✓</div>
-            <div className="h-1 w-16 bg-green-500"></div>
-            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm font-medium">✓</div>
-            <div className="h-1 w-16 bg-orange-500"></div>
-            <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-medium">3</div>
-            <div className="h-1 w-16 bg-slate-700"></div>
-            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-sm font-medium">4</div>
-          </div>
-        </div>
 
-        {/* Form */}
-        <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-          <CardHeader>
-            <CardTitle className="text-white">Targeting Rules</CardTitle>
-            <CardDescription className="text-neutral-400">
-              Define conditions that determine when your flag should be evaluated
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Rule Name */}
-            <div className="space-y-2">
-              <Label htmlFor="rule-name" className="text-white">Rule Name *</Label>
-              <Input
-                id="rule-name"
-                value={state.rules.name}
-                onChange={handleNameChange}
-                placeholder="e.g., Premium Users Rule"
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-              />
-            </div>
-
-            {/* Rule Description */}
-            <div className="space-y-2">
-              <Label htmlFor="rule-description" className="text-white">Description (Optional)</Label>
-              <Textarea
-                id="rule-description"
-                value={state.rules.description || ''}
-                onChange={handleDescriptionChange}
-                placeholder="Describe when this rule should apply..."
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 min-h-[80px]"
-              />
-            </div>
-
-            {/* Conditions */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-white">Conditions</Label>
-                <Button
-                  onClick={addCondition}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Condition
-                </Button>
+          {/* Form */}
+          <Card className="shadow-md border-gray-200 bg-white rounded-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-semibold text-gray-900">Targeting Rules</CardTitle>
+              <CardDescription className="text-gray-600 text-sm">
+                Define conditions to determine when this feature flag should be enabled
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Rule Name */}
+              <div className="space-y-1">
+                <Label htmlFor="rule-name" className="text-sm font-medium text-gray-700">
+                  Rule Name *
+                </Label>
+                <Input
+                  id="rule-name"
+                  value={state.rules.name}
+                  onChange={handleNameChange}
+                  placeholder="e.g., Premium Users Only"
+                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                />
               </div>
 
-              {state.rules.conditions.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
-                  <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No conditions added yet.</p>
-                  <p className="text-sm">Click "Add Condition" to define targeting rules.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {state.rules.conditions.map((condition, index) => (
-                    <Card key={index} className="bg-slate-700/30 border-slate-600/50">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-4">
-                          <h4 className="text-white font-medium">Condition {index + 1}</h4>
-                          <Button
-                            onClick={() => removeCondition(index)}
-                            size="sm"
-                            variant="ghost"
-                            className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
+              {/* Rule Description */}
+              <div className="space-y-1">
+                <Label htmlFor="rule-description" className="text-sm font-medium text-gray-700">
+                  Description
+                </Label>
+                <Textarea
+                  id="rule-description"
+                  value={state.rules.description}
+                  onChange={handleDescriptionChange}
+                  placeholder="Describe the purpose of this targeting rule..."
+                  className="min-h-[60px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 resize-none text-sm"
+                />
+              </div>
 
-                        <div className="grid md:grid-cols-2 gap-4">
+              {/* Conditions */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="font-medium text-gray-900">Conditions</Label>
+                  <Button
+                    onClick={addCondition}
+                    size="sm"
+                    variant="outline"
+                    className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 h-7 px-2 text-xs"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Condition
+                  </Button>
+                </div>
+
+                {state.rules.conditions.length === 0 ? (
+                  <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                    <Target className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600 font-medium mb-1 text-sm">No conditions defined</p>
+                    <p className="text-gray-500 text-xs mb-3">Add conditions to control when this flag is enabled</p>
+                    <Button
+                      onClick={addCondition}
+                      size="sm"
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Add First Condition
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {state.rules.conditions.map((condition, index) => (
+                      <Card key={index} className="border-gray-200 shadow-sm">
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-sm font-medium text-gray-900">
+                              Condition {index + 1}
+                            </CardTitle>
+                            <Button
+                              onClick={() => removeCondition(index)}
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
                           {/* Attribute Name */}
-                          <div className="space-y-2">
-                            <Label className="text-white">Attribute Name</Label>
-                            <div className="relative" ref={(el) => { dropdownRefs.current[index] = el }}>
+                          <div className="space-y-1">
+                            <Label className="text-xs font-medium text-gray-700">Attribute Name *</Label>
+                            <div className="relative" ref={el => dropdownRefs.current[index] = el}>
                               <div className="flex">
                                 <Input
                                   value={condition.attribute_name}
                                   onChange={(e) => {
-                                    updateCondition(index, { attribute_name: e.target.value })
+                                    handleAttributeNameChange(index, e.target.value)
                                     setCustomAttributeInputs(prev => ({ ...prev, [index]: e.target.value }))
                                   }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !isBaseAttribute(condition.attribute_name)) {
-                                      e.preventDefault()
-                                      handleCustomAttributeAdd(index)
-                                    }
-                                  }}
                                   placeholder="Type custom attribute or select from dropdown"
-                                  className="bg-slate-600/50 border-slate-500 text-white placeholder:text-slate-400 pr-10"
+                                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                 />
                                 <Button
                                   type="button"
                                   onClick={() => toggleAttributeDropdown(index)}
-                                  className="ml-2 bg-slate-600/50 border-slate-500 hover:bg-slate-500/50"
+                                  className="ml-1 bg-gray-100 border-gray-300 hover:bg-gray-200 h-8 w-8 p-0"
                                   size="sm"
                                 >
-                                  <ChevronDown className="w-4 h-4" />
+                                  <ChevronDown className="w-3 h-3 text-gray-600" />
                                 </Button>
                               </div>
                               
                               {/* Dropdown for base attributes */}
                               {showAttributeDropdowns[index] && (
-                                <div className="absolute z-10 mt-1 w-full bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                  <div className="p-2 text-xs text-slate-300 border-b border-slate-700">
+                                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                                  <div className="p-2 text-xs text-gray-600 border-b border-gray-100 bg-gray-50">
                                     Base Attributes (Fixed Data Types)
                                   </div>
                                   {Object.entries(BASE_ATTRIBUTES).map(([key, attr]) => (
@@ -442,13 +454,13 @@ export default function RulesPage() {
                                       key={key}
                                       type="button"
                                       onClick={() => handleAttributeNameChange(index, key)}
-                                      className="w-full px-3 py-2 text-left text-white hover:bg-slate-700 focus:bg-slate-700 flex justify-between items-center"
+                                      className="w-full px-2 py-1.5 text-left text-gray-900 hover:bg-gray-50 focus:bg-gray-50 flex justify-between items-center text-xs"
                                     >
                                       <div>
                                         <div className="font-medium">{key}</div>
-                                        <div className="text-xs text-slate-400">{attr.description}</div>
+                                        <div className="text-xs text-gray-500">{attr.description}</div>
                                       </div>
-                                      <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
+                                      <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
                                         {attr.type}
                                       </Badge>
                                     </button>
@@ -458,32 +470,32 @@ export default function RulesPage() {
                             </div>
                             
                             {/* Helper text */}
-                            <div className="flex items-start space-x-2 text-xs text-slate-400">
+                            <div className="flex items-start space-x-1 text-xs text-gray-500">
                               <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
                               <div>
                                 <p>Use dropdown for base attributes (fixed types) or type custom names.</p>
-                                <p className="text-amber-400">Note: Avoid naming custom attributes the same as existing base attributes.</p>
+                                <p className="text-amber-600">Note: Avoid naming custom attributes the same as existing base attributes.</p>
                               </div>
                             </div>
                           </div>
 
                           {/* Attribute Type */}
-                          <div className="space-y-2">
-                            <Label className="text-white">Data Type</Label>
+                          <div className="space-y-1">
+                            <Label className="text-xs font-medium text-gray-700">Data Type</Label>
                             <Select
                               value={condition.attribute_type}
                               onValueChange={(value) => handleAttributeTypeChange(index, value as DataType)}
                               disabled={isBaseAttribute(condition.attribute_name)}
                             >
-                              <SelectTrigger className={`bg-slate-600/50 border-slate-500 text-white ${isBaseAttribute(condition.attribute_name) ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                              <SelectTrigger className={`h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm ${isBaseAttribute(condition.attribute_name) ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}>
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-slate-800 border-slate-700">
+                              <SelectContent className="bg-white border-gray-200 shadow-lg">
                                 {dataTypeOptions.map((option) => (
                                   <SelectItem
                                     key={option.value}
                                     value={option.value}
-                                    className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                    className="py-1.5 px-2 hover:bg-gray-50 focus:bg-gray-50 text-sm"
                                   >
                                     {option.label}
                                   </SelectItem>
@@ -491,28 +503,28 @@ export default function RulesPage() {
                               </SelectContent>
                             </Select>
                             {isBaseAttribute(condition.attribute_name) && (
-                              <p className="text-xs text-slate-400">
+                              <p className="text-xs text-gray-500">
                                 Data type is fixed for base attributes
                               </p>
                             )}
                           </div>
 
                           {/* Operator */}
-                          <div className="space-y-2">
-                            <Label className="text-white">Operator</Label>
+                          <div className="space-y-1">
+                            <Label className="text-xs font-medium text-gray-700">Operator</Label>
                             <Select
                               value={condition.operator_selected}
                               onValueChange={(value) => handleOperatorChange(index, value)}
                             >
-                              <SelectTrigger className="bg-slate-600/50 border-slate-500 text-white">
+                              <SelectTrigger className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-slate-800 border-slate-700">
+                              <SelectContent className="bg-white border-gray-200 shadow-lg">
                                 {OPERATORS_BY_TYPE[condition.attribute_type].map((operator) => (
                                   <SelectItem
                                     key={operator}
                                     value={operator}
-                                    className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                    className="py-1.5 px-2 hover:bg-gray-50 focus:bg-gray-50 text-sm"
                                   >
                                     {operator.replace(/_/g, ' ')}
                                   </SelectItem>
@@ -522,52 +534,61 @@ export default function RulesPage() {
                           </div>
 
                           {/* Values */}
-                          <div className="space-y-2">
-                            <Label className="text-white">
+                          <div className="space-y-1">
+                            <Label className="text-xs font-medium text-gray-700">
                               {condition.attribute_type === 'ARRAY' ? 'Values' : 'Value'}
                             </Label>
                             <div className="space-y-2">
-                              <Input
-                                placeholder={getValuePlaceholder(condition.attribute_type)}
-                                className="bg-slate-600/50 border-slate-500 text-white placeholder:text-slate-400"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault()
+                              {condition.attribute_type === 'DATE' ? (
+                                <DateTimePicker
+                                  value={undefined}
+                                  onChange={(date) => addDateValue(index, date)}
+                                  placeholder={getValuePlaceholder(condition.attribute_type)}
+                                  className="w-full h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white rounded-md"
+                                />
+                              ) : (
+                                <Input
+                                  placeholder={getValuePlaceholder(condition.attribute_type)}
+                                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault()
+                                      const input = e.target as HTMLInputElement
+                                      if (input.value.trim()) {
+                                        addValue(index, input.value)
+                                        input.value = ''
+                                      }
+                                    }
+                                  }}
+                                  onBlur={(e) => {
+                                    // Also add value on blur (when user clicks away)
                                     const input = e.target as HTMLInputElement
                                     if (input.value.trim()) {
                                       addValue(index, input.value)
                                       input.value = ''
                                     }
-                                  }
-                                }}
-                                onBlur={(e) => {
-                                  // Also add value on blur (when user clicks away)
-                                  const input = e.target as HTMLInputElement
-                                  if (input.value.trim()) {
-                                    addValue(index, input.value)
-                                    input.value = ''
-                                  }
-                                }}
-                              />
-                              <div className="flex items-center space-x-2 text-sm text-slate-400">
-                                <Info className="w-4 h-4" />
+                                  }}
+                                />
+                              )}
+                              <div className="flex items-center space-x-1 text-xs text-gray-500">
+                                <Info className="w-3 h-3" />
                                 <span>{getValueHelperText(condition.attribute_type)}</span>
                               </div>
                               {condition.attribute_values.length > 0 && (
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-1">
                                   {condition.attribute_values.map((value, valueIndex) => (
                                     <Badge
                                       key={valueIndex}
                                       variant="secondary"
-                                      className="bg-blue-900/50 text-blue-200 hover:bg-blue-900/70"
+                                      className="bg-indigo-100 text-indigo-800 hover:bg-indigo-200 px-2 py-0.5 text-xs"
                                     >
                                       {value}
                                       <button
                                         onClick={() => removeValue(index, valueIndex)}
-                                        className="ml-2 hover:bg-red-500/20 rounded-full p-0.5"
+                                        className="ml-1 hover:bg-red-100 rounded-full p-0.5"
                                         title="Remove value"
                                       >
-                                        <X className="w-3 h-3" />
+                                        <X className="w-2 h-2" />
                                       </button>
                                     </Badge>
                                   ))}
@@ -575,48 +596,47 @@ export default function RulesPage() {
                               )}
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            {/* Additional Rules Note */}
-            <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-200">
-                  <p className="font-medium mb-1">Adding More Rules Later</p>
-                  <p>You can add additional targeting rules later by navigating to the specific environment page where you want to apply more rules.</p>
+              {/* Additional Rules Note */}
+              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3">
+                <div className="flex items-start space-x-2">
+                  <Info className="w-4 h-4 text-cyan-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-cyan-800">
+                    <p className="font-medium mb-1">Adding More Rules Later</p>
+                    <p>You can add additional targeting rules later by navigating to the specific environment page where you want to apply more rules.</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between pt-6">
-              <Button 
-                onClick={handlePrevious}
-                variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Previous
-              </Button>
-              
-              <Button 
-                onClick={handleNext}
-                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8"
-              >
-                Next Step
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              {/* Navigation Buttons */}
+              <div className="flex justify-between pt-3 border-t border-gray-200">
+                <Button 
+                  onClick={handlePrevious}
+                  variant="outline"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-sm"
+                >
+                  <ArrowLeft className="w-3 h-3 mr-1" />
+                  Previous
+                </Button>
+                
+                <Button 
+                  onClick={handleNext}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 font-medium rounded-md shadow-sm transition-all duration-200 hover:shadow-md text-sm"
+                >
+                  Next Step
+                  <ArrowRight className="w-3 h-3 ml-1" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
     </>
   )
 }

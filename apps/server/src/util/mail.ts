@@ -48,7 +48,7 @@ export async function sendEmail(to: string, subject: string, htmlContent: string
     const transporter = await getTransporter();
     
     const mailOptions = {
-      from: `"Medication-Management" <${process.env.EMAIL_USER}>`,
+      from: `"Bitswitch" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       text: textContent || htmlContent.replace(/<[^>]*>/g, ''), // Strip HTML if no text version provided

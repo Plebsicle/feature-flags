@@ -1,6 +1,5 @@
 import { PrismaClient } from '@repo/db/client';
 import express from 'express'
-import { extractAuditInfo } from '../../util/ip-agent';
 
 class AlertReadController {
     private prisma: PrismaClient;
@@ -34,37 +33,6 @@ class AlertReadController {
         return metricData.metric_setup.organization_id === organisationId;
     }
 
-    private async createReadAuditLog(
-        organisationId: string,
-        userId: string | undefined,
-        metricData: any,
-        metricId: string,
-        userRole: string,
-        ip: string,
-        userAgent: string
-    ) {
-        await this.prisma.audit_logs.create({
-            data: {
-                organisation_id: organisationId,
-                user_id: userId,
-                action: 'EVALUATE', // Using EVALUATE for read operations
-                resource_type: 'ALERT',
-                resource_id: metricData.id,
-                attributes_changed: {
-                    operation: 'read',
-                    metric_id: metricId,
-                    metric_name: metricData.metric_setup.metric_name,
-                    metric_key: metricData.metric_setup.metric_key,
-                    alert_threshold: metricData.threshold,
-                    alert_operator: metricData.operator,
-                    user_role: userRole
-                },
-                ip_address: ip,
-                user_agent: userAgent
-            }
-        });
-    }
-
     getAlerts = async (req: express.Request, res: express.Response) => {
         try {
             const userRole = req.session.user?.userRole;
@@ -74,7 +42,6 @@ class AlertReadController {
             }
 
             const organisationId = req.session.user?.userOrganisationId;
-            const userId = req.session.user?.userId;
             const metricId = req.params.metricId;
 
             const metricData = await this.getAlertWithMetric(metricId);
@@ -89,22 +56,6 @@ class AlertReadController {
                 res.status(403).json({ success: false, message: "Not authorized to access this alert" });
                 return;
             }
-
-            // Extract audit information
-            const { ip, userAgent } = extractAuditInfo(req);
-
-            // Create audit log entry for alert access
-            await this.createReadAuditLog(
-                organisationId!,
-                userId,
-                metricData,
-                metricId,
-                userRole!,
-                ip,
-                userAgent!
-            );
-
-            res.status(200).json({ success: true, message: "data fetched succesfully", data: metricData });
         }
         catch (e) {
             console.error(e);
