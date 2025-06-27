@@ -5,8 +5,8 @@ import { z } from 'zod';
 // ============================================================================
 
 // Common schemas
-export const flagTypeSchema = z.enum(['BOOLEAN', 'STRING', 'NUMBER', 'JSON']);
-export const rolloutTypeSchema = z.enum(['PERCENTAGE', 'USER_ATTRIBUTE', 'RANDOM']);
+export const flagTypeSchema = z.enum(['BOOLEAN', 'STRING', 'NUMBER', 'JSON','AB_TEST','MULTIVARIATE']);
+export const rolloutTypeSchema = z.enum(['PERCENTAGE', 'PROGRESSIVE_ROLLOUT', 'CUSTOM_PROGRESSIVE_ROLLOUT']);
 
 // Create flag schemas
 export const createFlagBodySchema = z.object({
@@ -22,7 +22,7 @@ export const createFlagBodySchema = z.object({
   rules: z.object({
     name: z.string().min(1, "Rule name is required"),
     description: z.string().optional(),
-    conditions: z.record(z.any()).optional()
+    conditions: z.array(z.any()).optional()
   }),
   rollout: z.object({
     type: rolloutTypeSchema,
@@ -34,21 +34,29 @@ export const createFlagBodySchema = z.object({
 export const createEnvironmentBodySchema = z.object({
   flag_id: z.string().uuid("Invalid flag ID format"),
   environment: z.string().min(1, "Environment is required"),
-  ruleName: z.string().min(1, "Rule name is required"),
-  ruleDescription: z.string().optional(),
-  value: z.any(),
-  default_value: z.any(),
-  conditions: z.record(z.any()).optional(),
-  rollout_type: rolloutTypeSchema,
-  rollout_config: z.record(z.any()).optional()
+  description: z.string().optional(),
+  environments: z.object({
+    environment: z.string().min(1, "Environment is required"),
+    value: z.any(),
+    default_value: z.any()
+  }),
+  rules: z.object({
+    name: z.string().min(1, "Rule name is required"),
+    description: z.string().optional(),
+    conditions: z.array(z.any()).optional()
+  }),
+  rollout: z.object({
+    type: rolloutTypeSchema,
+    config: z.record(z.any()).optional()
+  }),
 });
 
 export const addRulesBodySchema = z.object({
-  environment_id: z.string().uuid("Invalid environment ID format"),
-  ruleDescription: z.string().optional(),
-  conditions: z.record(z.any()).optional(),
-  ruleName: z.string().min(1, "Rule name is required"),
-  isEnabled: z.boolean().optional().default(true)
+  flag_environment_id: z.string().uuid("Invalid environment ID format"),
+  description: z.string().optional(),
+  conditions: z.array(z.any()).optional(),
+  name: z.string().min(1, "Rule name is required"),
+  is_enabled: z.boolean().optional().default(true)
 });
 
 // Read flag schemas
@@ -69,14 +77,12 @@ export const updateFeatureFlagBodySchema = z.object({
 });
 
 export const updateFlagRuleBodySchema = z.object({
-  flag_id: z.string().uuid("Invalid flag ID format"),
-  flagRuleId: z.string().uuid("Invalid rule ID format"),
-  ruleDescription: z.string().optional(),
-  conditions: z.record(z.any()).optional(),
-  ruleName: z.string().optional(),
+  ruleId: z.string().uuid("Invalid rule ID format"),
+  description: z.string().optional(),
+  conditions: z.array(z.any()).optional(),
+  name: z.string().optional(),
   isEnabled: z.boolean().optional(),
-  value: z.any().optional(),
-  environment: z.string().optional()
+  flag_environment_id: z.string().uuid("Invalid rule ID format")
 });
 
 export const updateFlagRolloutBodySchema = z.object({

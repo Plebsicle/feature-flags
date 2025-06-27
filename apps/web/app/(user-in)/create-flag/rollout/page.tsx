@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -166,7 +167,9 @@ const rolloutTypeOptions = [
 
 export default function RolloutPage() {
   const router = useRouter()
-  const { state, updateRollout, submitFlag } = useFlagCreation()
+  const searchParams = useSearchParams()
+  const { state, updateRollout, submitFlag, setEnvironmentCreationMode } = useFlagCreation()
+  const { hydrateFromExistingFlag } = useFlagCreation()
 
   const handleRolloutTypeChange = (value: string) => {
     const type = value as rollout_type
@@ -467,25 +470,129 @@ export default function RolloutPage() {
       return
     }
 
-    const promise = submitFlag()
-
-    toast.promise(promise, {
-      loading: 'Creating your feature flag...',
-      success: (flag_id) => {
-        setTimeout(() => {
-          router.push(`/flags`)
-        }, 1500)
-        return 'Feature flag created successfully! Redirecting...'
-      },
-      error: (err) => {
-        console.error(err)
-        return 'Failed to create feature flag. Please try again.'
+    // Check if we're creating an environment for an existing flag
+    if (state.isCreatingEnvironmentOnly) {
+      if (!state.flag_id) {
+        toast.error('Flag ID is required for environment creation')
+        return
       }
-    })
+
+      const createEnvironmentPromise = async () => {
+        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+        
+        const requestBody = {
+          flag_id: state.flag_id,
+          environment: state.environments.environment,
+          description: state.rules.description,
+          environments: {
+            environment: state.environments.environment,
+            value: wrapValue(state.environments.value?.value),
+            default_value: wrapValue(state.environments.default_value?.value)
+          },
+          rules: {
+            name: state.rules.name,
+            description: state.rules.description,
+            conditions: state.rules.conditions
+          },
+          rollout: {
+            type: state.rollout.type,
+            config: state.rollout.config
+          }
+        }
+
+        const response = await fetch(`/${BACKEND_URL}/flag/createEnvironment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(requestBody)
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const result = await response.json()
+        console.log('Environment created successfully:', result)
+        return result
+      }
+
+      toast.promise(createEnvironmentPromise(), {
+        loading: 'Creating environment...',
+        success: () => {
+          setTimeout(() => {
+            router.push(`/flags`)
+          }, 1500)
+          return 'Environment created successfully! Redirecting...'
+        },
+        error: (err) => {
+          console.error(err)
+          return 'Failed to create environment. Please try again.'
+        }
+      })
+    } else {
+      // Original flag creation flow
+      const createFlagPromise = async () => {
+        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
+        console.log(state.environments.environment,state.environments.value);
+        const requestBody = {
+          name: state.name,
+          key: state.key,
+          description: state.description,
+          flag_type: state.flag_type,
+          environments: {
+            environment: state.environments.environment,
+            value: wrapValue(state.environments.value?.value),
+            default_value: wrapValue(state.environments.default_value?.value)
+          },
+          rules: state.rules,
+          rollout: state.rollout,
+          tags: state.tags
+        }
+
+        const response = await fetch(`/${BACKEND_URL}/flag/createFlag`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(requestBody)
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const result = await response.json()
+        console.log('Flag created successfully:', result)
+        return result
+      }
+
+      toast.promise(createFlagPromise(), {
+        loading: 'Creating your feature flag...',
+        success: (flag_id) => {
+          setTimeout(() => {
+            router.push(`/flags`)
+          }, 1500)
+          return 'Feature flag created successfully! Redirecting...'
+        },
+        error: (err) => {
+          console.error(err)
+          return 'Failed to create feature flag. Please try again.'
+        }
+      })
+    }
   }
 
   const handlePrevious = () => {
-    router.push('/create-flag/rules')
+    // Preserve the flagKey parameter when navigating if in environment creation mode
+    const flagKey = searchParams?.get('flagKey')
+    if (state.isCreatingEnvironmentOnly && flagKey) {
+      router.push(`/create-flag/rules?flagKey=${flagKey}`)
+    } else {
+      router.push('/create-flag/rules')
+    }
   }
 
   return (
@@ -542,19 +649,25 @@ export default function RolloutPage() {
               <div className="space-y-2">
                 <Label htmlFor="rollout-type" className="text-xs font-medium text-gray-700">Rollout Type *</Label>
                 <Select value={state.rollout.type} onValueChange={handleRolloutTypeChange}>
-                  <SelectTrigger className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
-                    <SelectValue placeholder="Select rollout type" />
+                  <SelectTrigger className="h-10 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm pl-3 pr-8">
+                    <SelectValue placeholder="Select rollout type">
+                      {state.rollout.type && (
+                        <span className="text-gray-900">
+                          {rolloutTypeOptions.find(option => option.value === state.rollout.type)?.label}
+                        </span>
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-gray-200 shadow-lg">
+                  <SelectContent className="bg-white border-gray-200 shadow-lg max-h-60 overflow-y-auto">
                     {rolloutTypeOptions.map((option) => (
                       <SelectItem 
                         key={option.value} 
                         value={option.value}
-                        className="py-2 px-3 hover:bg-gray-50 focus:bg-gray-50"
+                        className="py-3 pl-3 pr-8 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer"
                       >
-                        <div className="flex flex-col">
-                          <span className="font-medium text-gray-900 text-sm">{option.label}</span>
-                          <span className="text-xs text-gray-500">{option.description}</span>
+                        <div className="flex flex-col space-y-1">
+                          <span className="font-medium text-gray-900 text-sm leading-tight">{option.label}</span>
+                          <span className="text-xs text-gray-500 leading-tight">{option.description}</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -581,11 +694,15 @@ export default function RolloutPage() {
                   Previous Step
                 </Button>
                 <Button 
-                  onClick={handleSubmit}
+                  onClick={() => {
+                    console.log('Button clicked - state.isCreatingEnvironmentOnly:', state.isCreatingEnvironmentOnly)
+                    console.log('Full state:', state)
+                    handleSubmit()
+                  }}
                   className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-4 py-1.5 text-sm font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                 >
                   <Rocket className="w-3 h-3 mr-1" />
-                  Create Flag
+                  {state.isCreatingEnvironmentOnly ? 'Create Environment' : 'Create Flag'}
                 </Button>
               </div>
             </CardContent>

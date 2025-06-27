@@ -12,7 +12,6 @@ import { rollout_type, environment_type } from '@repo/db/node_modules/@prisma/cl
 import { Conditions } from '@repo/types/rule-config';
 
 import { extractCustomAttributes } from '../../util/extract-attributes';
-import { insertCustomAttributes } from '../../util/insert-custom-attribute';
 import { updateEnvironmentRedis, updateFeatureFlagRedis, updateFlagRolloutRedis, updateFlagRulesRedis } from '../../services/redis/redis-flag';
 import { Redis_Value, RedisCacheRules } from '../../services/redis/redis-flag'; // Import your Redis types
 import { extractAuditInfo } from '../../util/ip-agent';
@@ -204,20 +203,26 @@ class UpdateFlagController {
     updateFlagRule = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            const parsedBody = updateFlagRuleBodySchema.parse(req.body);
+            
+            const parsedBody = validateBody(updateFlagRuleBodySchema,req,res);
             req.body = parsedBody;
             
             if (!this.checkUserAuthorization(req, res)) return;
 
             const {
-                flagRuleId,       // FR
-                ruleDescription,  // FR
+                ruleId,       // FR
+                description,  // FR
                 conditions,       // FR
-                ruleName,         // FR
+                name,         // FR
                 isEnabled,        // FR
-                environment_id,      // For audit logging
+                flag_environment_id,      // For audit logging
             } = req.body;
             console.log(req.body);
+
+            const ruleName = name;
+            const flagRuleId = ruleId;
+            const ruleDescription = description;
+            const environment_id  = flag_environment_id;
             // Get user_id and organisation_id from session
             const user_id = req.session?.user?.userId;
             const organisationId = req.session?.user?.userOrganisationId!;
@@ -275,11 +280,6 @@ class UpdateFlagController {
             }
 
             const result = await this.prisma.$transaction(async (tx: any) => {
-                // Insert custom attributes first if conditions are being updated
-                if (customAttributes.length > 0) {
-                    await insertCustomAttributes(tx, organisationId, customAttributes);
-                }
-
                 // Get current values before update
                 const currentFlagRule = await tx.flag_rules.findUnique({
                     where: { id: flagRuleId },
@@ -301,7 +301,6 @@ class UpdateFlagController {
                 }
 
                 // Use flagId from the rule relation
-                const actualFlagId = currentFlagRule.flag_environment.flag_id;
 
                 // Create attributes_changed structure
                 const attributesChanged: Record<string, { newValue: any, oldValue: any }> = {};

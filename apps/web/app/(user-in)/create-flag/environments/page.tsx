@@ -27,12 +27,6 @@ interface EnvironmentResponse {
   updated_at: Date;
 }
 
-interface EnvironmentData  {
-  environmentData : EnvironmentResponse,
-  flag_id: string;
-  flag_type: any;
-}
-
 // Types for variants
 interface Variant {
   name: string;
@@ -60,9 +54,6 @@ export default function EnvironmentsPage() {
   ])
   const [defaultValue, setDefaultValue] = useState<string>('')
 
-  // Check if we're in "add environment" mode
-  const flagKey = searchParams?.get('flagKey')
-  const isAddEnvironmentMode = Boolean(flagKey)
 
   // Handle existing flag hydration
   useEffect(() => {
@@ -71,13 +62,14 @@ export default function EnvironmentsPage() {
     // Only fetch and hydrate if flagKey exists and context is not already initialized
     if (flagKey && (!state.name || state.name.trim() === '')) {
       // Set environment creation mode
+      console.log('Environments page - Setting environment creation mode to true for flagKey:', flagKey)
       setEnvironmentCreationMode(true)
+      hydrateFromExistingFlag({ flag_id: flagKey })
       
       const fetchExistingFlag = async () => {
         setIsLoading(true)
         try {
           const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
-          state.flag_id = flagKey;
           // Fetch flag metadata
           const flagResponse = await fetch(`/${BACKEND_URL}/flag/getFeatureFlagData/${flagKey}`, {
             credentials: 'include'
@@ -153,6 +145,39 @@ export default function EnvironmentsPage() {
     })
   }
 
+  // Value validation based on flag type
+  const validateValueByType = (value: string, flagType: string): { isValid: boolean; parsedValue?: any; error?: string } => {
+    const trimmedValue = value.trim()
+    
+    switch (flagType) {
+      case 'NUMBER':
+        if (trimmedValue === '') return { isValid: false, error: 'Number value is required' }
+        if (isNaN(Number(trimmedValue))) return { isValid: false, error: 'Please enter a valid number' }
+        return { isValid: true, parsedValue: Number(trimmedValue) }
+      
+      case 'BOOLEAN':
+        if (trimmedValue.toLowerCase() !== 'true' && trimmedValue.toLowerCase() !== 'false') {
+          return { isValid: false, error: 'Boolean value must be "true" or "false"' }
+        }
+        return { isValid: true, parsedValue: trimmedValue.toLowerCase() === 'true' }
+      
+      case 'JSON':
+      case 'AB_TEST':
+      case 'MULTIVARIATE':
+        if (trimmedValue === '') return { isValid: false, error: 'JSON value is required' }
+        try {
+          const parsed = JSON.parse(trimmedValue)
+          return { isValid: true, parsedValue: parsed }
+        } catch {
+          return { isValid: false, error: 'Please enter valid JSON format' }
+        }
+      
+      case 'STRING':
+      default:
+        return { isValid: true, parsedValue: trimmedValue }
+    }
+  }
+
   // New handlers for variant management
   const handleVariantChange = (index: number, field: 'name' | 'value', newValue: string) => {
     const updatedVariants = [...variants]
@@ -166,38 +191,19 @@ export default function EnvironmentsPage() {
     }
     setVariants(updatedVariants)
     
-    // Update the context based on flag type
-    if (state.flag_type === 'AB_TEST') {
+    // Update the context based on flag type - for AB/Multivariate, treat values as JSON
+    if (state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') {
       const abValue: ABValue = {}
       updatedVariants.forEach(variant => {
         if (variant.name && variant.value !== undefined && variant.value !== '') {
-          // Try to parse as number first, then boolean, then keep as string
-          let parsedValue: any = variant.value
-          if (!isNaN(Number(variant.value)) && variant.value.trim() !== '') {
-            parsedValue = Number(variant.value)
-          } else if (variant.value.toLowerCase() === 'true') {
-            parsedValue = true
-          } else if (variant.value.toLowerCase() === 'false') {
-            parsedValue = false
+          // For AB/Multivariate, parse as JSON to allow complex values
+          try {
+            const parsedValue = JSON.parse(variant.value)
+            abValue[variant.name] = parsedValue
+          } catch {
+            // If not valid JSON, treat as string
+            abValue[variant.name] = variant.value
           }
-          abValue[variant.name] = parsedValue
-        }
-      })
-      handleValueChange('value', abValue)
-    } else if (state.flag_type === 'MULTIVARIATE') {
-      const abValue: ABValue = {}
-      updatedVariants.forEach(variant => {
-        if (variant.name && variant.value !== undefined && variant.value !== '') {
-          // Try to parse as number first, then boolean, then keep as string
-          let parsedValue: any = variant.value
-          if (!isNaN(Number(variant.value)) && variant.value.trim() !== '') {
-            parsedValue = Number(variant.value)
-          } else if (variant.value.toLowerCase() === 'true') {
-            parsedValue = true
-          } else if (variant.value.toLowerCase() === 'false') {
-            parsedValue = false
-          }
-          abValue[variant.name] = parsedValue
         }
       })
       handleValueChange('value', abValue)
@@ -205,28 +211,40 @@ export default function EnvironmentsPage() {
   }
 
   const addVariant = () => {
+    // Prevent adding variants for AB_TEST (must have exactly 2 variants)
+    if (state.flag_type === 'AB_TEST') {
+      toast.error('A/B tests can only have exactly 2 variants')
+      return
+    }
+    
     setVariants([...variants, { name: `Variant ${String.fromCharCode(65 + variants.length)}`, value: '' }])
   }
 
   const removeVariant = (index: number) => {
+    // Prevent removal for AB_TEST (must have exactly 2 variants)
+    if (state.flag_type === 'AB_TEST') {
+      toast.error('A/B tests must have exactly 2 variants')
+      return
+    }
+    
+    // For MULTIVARIATE, allow removal if more than 2 variants
     if (variants.length > 2) {
       const newVariants = variants.filter((_, i) => i !== index)
       setVariants(newVariants)
       
       // Update context after removal
-      if (state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') {
+      if (state.flag_type === 'MULTIVARIATE') {
         const abValue: ABValue = {}
         newVariants.forEach(variant => {
           if (variant.name && variant.value !== undefined && variant.value !== '') {
-            let parsedValue: any = variant.value
-            if (!isNaN(Number(variant.value)) && variant.value.trim() !== '') {
-              parsedValue = Number(variant.value)
-            } else if (variant.value.toLowerCase() === 'true') {
-              parsedValue = true
-            } else if (variant.value.toLowerCase() === 'false') {
-              parsedValue = false
+            // For AB/Multivariate, parse as JSON to allow complex values
+            try {
+              const parsedValue = JSON.parse(variant.value)
+              abValue[variant.name] = parsedValue
+            } catch {
+              // If not valid JSON, treat as string
+              abValue[variant.name] = variant.value
             }
-            abValue[variant.name] = parsedValue
           }
         })
         handleValueChange('value', abValue)
@@ -239,21 +257,20 @@ export default function EnvironmentsPage() {
   const handleDefaultValueChange = (newValue: string) => {
     setDefaultValue(newValue)
     
-    // Parse the value based on flag type
-    let parsedValue: any = newValue
-    if (state.flag_type === 'NUMBER') {
-      parsedValue = Number(newValue) || 0
-    } else if (state.flag_type === 'BOOLEAN') {
-      parsedValue = newValue.toLowerCase() === 'true'
-    } else if (state.flag_type === 'JSON') {
-      try {
-        parsedValue = JSON.parse(newValue)
-      } catch {
-        parsedValue = newValue // Keep as string if invalid JSON
-      }
+    // Only validate and parse if the value is not empty
+    if (newValue.trim() === '') {
+      handleValueChange('default_value', '')
+      return
     }
     
-    handleValueChange('default_value', parsedValue)
+    // Validate and parse the value based on flag type
+    const validation = validateValueByType(newValue, state.flag_type)
+    if (validation.isValid) {
+      handleValueChange('default_value', validation.parsedValue)
+    } else {
+      // For invalid values, still store the raw value but show error on form submission
+      handleValueChange('default_value', newValue)
+    }
   }
 
   const renderVariantConfiguration = () => {
@@ -261,22 +278,42 @@ export default function EnvironmentsPage() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium text-gray-700">Variants</Label>
-          <Button
-            onClick={addVariant}
-            size="sm"
-            variant="outline"
-            className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 h-8 px-3"
-          >
-            <Plus className="w-3 h-3 mr-1" />
-            Add
-          </Button>
+          {state.flag_type === 'MULTIVARIATE' && (
+            <Button
+              onClick={addVariant}
+              size="sm"
+              variant="outline"
+              className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 h-8 px-3"
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Add
+            </Button>
+          )}
+        </div>
+        
+        {/* Variant restrictions info */}
+        <div className={`p-3 rounded-lg border text-sm ${
+          state.flag_type === 'AB_TEST' 
+            ? 'bg-amber-50 border-amber-200 text-amber-800' 
+            : 'bg-blue-50 border-blue-200 text-blue-800'
+        }`}>
+          <div className="flex items-center space-x-2">
+            <Info className="w-4 h-4 flex-shrink-0" />
+            <div>
+              {state.flag_type === 'AB_TEST' ? (
+                <p><strong>A/B Test:</strong> Must have exactly 2 variants (A and B). Adding or removing variants is not allowed.</p>
+              ) : (
+                <p><strong>Multivariate Test:</strong> Can have multiple variants. You can add or remove variants as needed (minimum 2 required).</p>
+              )}
+            </div>
+          </div>
         </div>
         
         {variants.map((variant, index) => (
           <div key={index} className="p-3 border border-gray-200 rounded-md bg-gray-50">
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-medium text-gray-900 text-sm">Variant {String.fromCharCode(65 + index)}</h4>
-              {variants.length > 2 && (
+              {state.flag_type === 'MULTIVARIATE' && variants.length > 2 && (
                 <Button
                   onClick={() => removeVariant(index)}
                   size="sm"
@@ -301,12 +338,26 @@ export default function EnvironmentsPage() {
               
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-gray-700">Value</Label>
-                <Input
-                  value={variant.value}
-                  onChange={(e) => handleVariantChange(index, 'value', e.target.value)}
-                  placeholder="Variant value"
-                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                />
+                {(state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') ? (
+                  <Textarea
+                    value={variant.value}
+                    onChange={(e) => handleVariantChange(index, 'value', e.target.value)}
+                    placeholder='{"key": "value"} or "string" or 123 or true'
+                    className="h-16 font-mono text-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 resize-none"
+                  />
+                ) : (
+                  <Input
+                    value={variant.value}
+                    onChange={(e) => handleVariantChange(index, 'value', e.target.value)}
+                    placeholder="Variant value"
+                    className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                )}
+                {(state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') && (
+                  <p className="text-xs text-gray-500">
+                    Enter JSON values for complex data structures or simple values like "string", 123, true
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -407,6 +458,18 @@ export default function EnvironmentsPage() {
         return false
       }
       
+      // Validate variant values as JSON
+      for (const variant of variants) {
+        if (variant.value.trim()) {
+          try {
+            JSON.parse(variant.value)
+          } catch {
+            toast.error(`Variant "${variant.name}" has invalid JSON value. Please enter valid JSON.`)
+            return false
+          }
+        }
+      }
+      
       // Check for duplicate variant names
       const variantNames = variants.map(v => v.name.trim().toLowerCase())
       const uniqueNames = new Set(variantNames)
@@ -421,9 +484,27 @@ export default function EnvironmentsPage() {
         return false
       }
     } else {
-      // For other flag types, check that value is provided
-      if (state.environments.value?.value === undefined || state.environments.value?.value === '') {
+      // For other flag types, check that value is provided and valid
+      const currentValue = state.environments.value?.value
+      if (currentValue === undefined || currentValue === '') {
         toast.error('Value is required')
+        return false
+      }
+      
+      // Validate the current value based on flag type
+      const valueStr = typeof currentValue === 'object' ? JSON.stringify(currentValue) : String(currentValue)
+      const validation = validateValueByType(valueStr, state.flag_type)
+      if (!validation.isValid) {
+        toast.error(`Invalid value: ${validation.error}`)
+        return false
+      }
+    }
+
+    // Validate default value if provided
+    if (defaultValue.trim()) {
+      const validation = validateValueByType(defaultValue, state.flag_type)
+      if (!validation.isValid) {
+        toast.error(`Invalid default value: ${validation.error}`)
         return false
       }
     }
@@ -433,7 +514,13 @@ export default function EnvironmentsPage() {
 
   const handleNext = () => {
     if (validateForm()) {
-      router.push('/create-flag/rules')
+      // Preserve the flagKey parameter when navigating if in environment creation mode
+      console.log(state);
+      if (state.isCreatingEnvironmentOnly && state.flag_id) {
+        router.push(`/create-flag/rules?flagKey=${state.flag_id}`)
+      } else {
+        router.push('/create-flag/rules')
+      }
     }
   }
 
@@ -450,6 +537,7 @@ export default function EnvironmentsPage() {
   console.log('Used environments extracted:', usedEnvironments)
   console.log('All environment options:', environmentOptions.map(opt => opt.value))
   console.log('isCreatingEnvironmentOnly:', state.isCreatingEnvironmentOnly)
+  console.log('Flag Id',state.flag_id);
   console.log('isLoading:', isLoading)
   
   // Filter available environments based on what's already used
@@ -571,7 +659,7 @@ export default function EnvironmentsPage() {
                         <SelectItem 
                           key={option.value} 
                           value={option.value}
-                          className="py-2 px-3 hover:bg-gray-50 focus:bg-gray-50"
+                          className="py-2 pl-3 pr-8 hover:bg-gray-50 focus:bg-gray-50"
                         >
                           <div className="flex flex-col">
                             <span className="font-medium text-gray-900">{option.label}</span>

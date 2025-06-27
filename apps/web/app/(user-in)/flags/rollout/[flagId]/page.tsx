@@ -104,25 +104,25 @@ const getRolloutTypeInfo = (type: rollout_type) => {
       return {
         label: 'Percentage Rollout',
         description: 'Fixed percentage rollout with start and end dates',
-        color: 'bg-green-900/50 text-green-200'
+        color: 'bg-emerald-100 text-emerald-800'
       }
     case 'PROGRESSIVE_ROLLOUT':
       return {
         label: 'Progressive Rollout',
         description: 'Gradually increase percentage over time',
-        color: 'bg-blue-900/50 text-blue-200'
+        color: 'bg-blue-100 text-blue-800'
       }
     case 'CUSTOM_PROGRESSIVE_ROLLOUT':
       return {
         label: 'Custom Progressive Rollout',
         description: 'Define custom stages and percentages',
-        color: 'bg-purple-900/50 text-purple-200'
+        color: 'bg-purple-100 text-purple-800'
       }
     default:
       return {
         label: 'Unknown Rollout',
         description: 'Unknown rollout type',
-        color: 'bg-gray-900/50 text-gray-200'
+        color: 'bg-gray-100 text-gray-800'
       }
   }
 }
@@ -130,27 +130,27 @@ const getRolloutTypeInfo = (type: rollout_type) => {
 // Helper function to format rollout config for display
 const formatConfigForDisplay = (type: rollout_type, config: any): React.ReactNode => {
   if (!config || typeof config !== 'object') {
-    return <span className="text-slate-400">No configuration available</span>
+    return <span className="text-gray-600">No configuration available</span>
   }
 
   switch (type) {
     case 'PERCENTAGE':
       return (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Percentage:</span>
-            <span className="text-white font-medium">{config.percentage || 0}%</span>
+            <span className="text-sm font-medium text-gray-700">Percentage:</span>
+            <span className="text-sm text-gray-900 font-medium">{config.percentage || 0}%</span>
           </div>
           {config.startDate && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Start Date:</span>
-              <span className="text-white">{new Date(config.startDate).toLocaleDateString()}</span>
+              <span className="text-sm font-medium text-gray-700">Start Date:</span>
+              <span className="text-sm text-gray-900">{new Date(config.startDate).toLocaleDateString()}</span>
             </div>
           )}
           {config.endDate && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">End Date:</span>
-              <span className="text-white">{new Date(config.endDate).toLocaleDateString()}</span>
+              <span className="text-sm font-medium text-gray-700">End Date:</span>
+              <span className="text-sm text-gray-900">{new Date(config.endDate).toLocaleDateString()}</span>
             </div>
           )}
         </div>
@@ -158,29 +158,29 @@ const formatConfigForDisplay = (type: rollout_type, config: any): React.ReactNod
 
     case 'PROGRESSIVE_ROLLOUT':
       return (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Start Percentage:</span>
-            <span className="text-white font-medium">{config.startPercentage || 0}%</span>
+            <span className="text-sm font-medium text-gray-700">Start Percentage:</span>
+            <span className="text-sm text-gray-900 font-medium">{config.startPercentage || 0}%</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Increment:</span>
-            <span className="text-white font-medium">{config.incrementPercentage || 0}%</span>
+            <span className="text-sm font-medium text-gray-700">Increment:</span>
+            <span className="text-sm text-gray-900 font-medium">{config.incrementPercentage || 0}%</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Max Percentage:</span>
-            <span className="text-white font-medium">{config.maxPercentage || 0}%</span>
+            <span className="text-sm font-medium text-gray-700">Max Percentage:</span>
+            <span className="text-sm text-gray-900 font-medium">{config.maxPercentage || 0}%</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Frequency:</span>
-            <span className="text-white font-medium">
+            <span className="text-sm font-medium text-gray-700">Frequency:</span>
+            <span className="text-sm text-gray-900 font-medium">
               Every {config.frequency?.value || 1} {config.frequency?.unit || 'days'}
             </span>
           </div>
           {config.currentStage && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Current Stage:</span>
-              <span className="text-white font-medium">
+              <span className="text-sm font-medium text-gray-700">Current Stage:</span>
+              <span className="text-sm text-gray-900 font-medium">
                 Stage {config.currentStage.stage + 1} ({config.currentStage.percentage}%)
               </span>
             </div>
@@ -190,32 +190,32 @@ const formatConfigForDisplay = (type: rollout_type, config: any): React.ReactNod
 
     case 'CUSTOM_PROGRESSIVE_ROLLOUT':
       return (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Total Stages:</span>
-            <span className="text-white font-medium">{config.stages?.length || 0}</span>
+            <span className="text-sm font-medium text-gray-700">Total Stages:</span>
+            <span className="text-sm text-gray-900 font-medium">{config.stages?.length || 0}</span>
           </div>
           {config.currentStage && (
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Current Stage:</span>
-              <span className="text-white font-medium">
+              <span className="text-sm font-medium text-gray-700">Current Stage:</span>
+              <span className="text-sm text-gray-900 font-medium">
                 Stage {config.currentStage.stage + 1} ({config.currentStage.percentage}%)
               </span>
             </div>
           )}
-          {config.stages && config.stages.length > 0 && (
-            <div className="mt-3">
-              <span className="text-slate-400 text-sm">Stages:</span>
-              <div className="mt-1 space-y-1">
+          {config.stages && Array.isArray(config.stages) && config.stages.length > 0 && (
+            <div className="mt-4">
+              <span className="text-sm font-medium text-gray-700 block mb-2">Stages:</span>
+              <div className="space-y-2">
                 {config.stages.slice(0, 3).map((stage: any, index: number) => (
-                  <div key={index} className="flex justify-between text-sm">
-                    <span className="text-slate-300">Stage {index + 1}:</span>
-                    <span className="text-white">{stage.percentage}%</span>
+                  <div key={index} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Stage {index + 1}:</span>
+                    <span className="text-gray-900">{stage.percentage}%</span>
                   </div>
                 ))}
                 {config.stages.length > 3 && (
-                  <div className="text-slate-400 text-xs">
-                    +{config.stages.length - 3} more stages
+                  <div className="text-sm text-gray-600">
+                    ...and {config.stages.length - 3} more stages
                   </div>
                 )}
               </div>
@@ -225,7 +225,13 @@ const formatConfigForDisplay = (type: rollout_type, config: any): React.ReactNod
       )
 
     default:
-      return <span className="text-slate-400">Unknown configuration</span>
+      return (
+        <div className="bg-gray-100 border border-gray-300 rounded p-3">
+          <code className="text-sm font-mono text-gray-800">
+            {JSON.stringify(config, null, 2)}
+          </code>
+        </div>
+      )
   }
 }
 
@@ -244,21 +250,21 @@ const RolloutCard = ({ rollout, environmentId }: { rollout: RolloutData; environ
   const typeInfo = getRolloutTypeInfo(rollout.type)
 
   return (
-    <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/50 transition-all duration-200">
+    <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <Rocket className="w-5 h-5 text-blue-400" />
+            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+              <Rocket className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <CardTitle className="text-white text-lg flex items-center gap-2">
-                {typeInfo.label}
-                <Badge className={typeInfo.color}>
+              <CardTitle className="text-lg text-gray-900 flex items-center space-x-2">
+                <span>{typeInfo.label}</span>
+                <Badge className={`text-xs ${typeInfo.color}`}>
                   {rollout.type}
                 </Badge>
               </CardTitle>
-              <CardDescription className="text-neutral-400">
+              <CardDescription className="text-gray-600">
                 {typeInfo.description}
               </CardDescription>
             </div>
@@ -268,38 +274,37 @@ const RolloutCard = ({ rollout, environmentId }: { rollout: RolloutData; environ
               rolloutData={rollout}
               environmentId={environmentId}
             />
-            
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-3 block">Configuration</label>
+          {formatConfigForDisplay(rollout.type, rollout.config)}
+        </div>
+        
+        <Separator />
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="text-neutral-400 font-medium text-sm mb-2 block">Configuration</label>
-            {formatConfigForDisplay(rollout.type, rollout.config)}
+            <label className="text-sm font-medium text-gray-700">Rollout ID</label>
+            <code className="block text-xs text-gray-600 bg-gray-100 p-2 rounded mt-1 font-mono break-all">
+              {rollout.id}
+            </code>
           </div>
           <div>
-            <label className="text-neutral-400 font-medium text-sm">Status</label>
-            <div className="mt-2">
-              <Badge variant="default" className="bg-emerald-900/50 text-emerald-200">
-                Active
-              </Badge>
+            <label className="text-sm font-medium text-gray-700">Created</label>
+            <div className="flex items-center space-x-1 mt-1">
+              <Calendar className="w-3 h-3 text-gray-400" />
+              <span className="text-sm text-gray-900">{formatDate(rollout.created_at)}</span>
             </div>
           </div>
-        </div>
-        <Separator className="bg-slate-700/50" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div>
-            <label className="text-neutral-400 font-medium">Rollout ID</label>
-            <p className="text-white font-mono mt-1 break-all">{rollout.id}</p>
-          </div>
-          <div>
-            <label className="text-neutral-400 font-medium">Created</label>
-            <p className="text-white mt-1">{formatDate(rollout.created_at)}</p>
-          </div>
-          <div>
-            <label className="text-neutral-400 font-medium">Updated</label>
-            <p className="text-white mt-1">{formatDate(rollout.updated_at)}</p>
+            <label className="text-sm font-medium text-gray-700">Updated</label>
+            <div className="flex items-center space-x-1 mt-1">
+              <Calendar className="w-3 h-3 text-gray-400" />
+              <span className="text-sm text-gray-900">{formatDate(rollout.updated_at)}</span>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -329,112 +334,104 @@ export default async function FlagRolloutPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <div className="p-4 sm:p-6 lg:p-8">
-        <Suspense fallback={<RolloutLoading />}>
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-              <div className="flex items-center space-x-4">
-                <Link href={`/flags/environments/${flagId}`}>
-                  <Button variant="outline" size="sm" className="border-slate-700 text-neutral-300 hover:bg-slate-800/50">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Environments
-                  </Button>
-                </Link>
-                <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold text-white flex items-center">
-                    <Rocket className="w-8 h-8 mr-3 text-blue-400" />
-                    Rollout Configuration
-                  </h1>
-                  <p className="text-neutral-400 mt-1">
-                    Manage rollout strategy and deployment settings for this environment
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6 lg:p-8">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div className="flex items-center space-x-4">
+              <Link href={`/flags/${flagId}`}>
+                <Button variant="outline" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Flag
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  Rollout Strategy
+                </h1>
+                <p className="text-gray-600 text-base sm:text-lg mt-1">
+                  Control how your feature flag is gradually released to users
+                </p>
+              </div>
+            </div>
+            {!rollout && (
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Rollout
+              </Button>
+            )}
+          </div>
+
+          {/* Rollout Configuration */}
+          {rollout ? (
+            <RolloutCard rollout={rollout} environmentId={environmentId} />
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Rocket className="w-6 h-6 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No rollout configured</h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Set up a rollout strategy to gradually release this feature flag to your users with controlled percentages and timing.
+              </p>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Rollout Strategy
+              </Button>
+            </div>
+          )}
+
+          {/* Rollout Types Info */}
+          <Card className="bg-blue-50 border border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-lg text-gray-900 flex items-center">
+                <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
+                Rollout Types
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Choose the right rollout strategy for your feature
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <BarChart3 className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900">Percentage</h4>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Fixed percentage rollout with specific start and end dates
+                  </p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900">Progressive</h4>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Automatically increase percentage over time with set intervals
+                  </p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <Settings className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900">Custom</h4>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Define custom stages and percentages for precise control
                   </p>
                 </div>
               </div>
-            </div>
-
-            {/* Rollout Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                      <BarChart3 className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-white">{getRolloutTypeInfo(rollout.type).label}</p>
-                      <p className="text-sm text-neutral-400">Rollout Type</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-white">Active</p>
-                      <p className="text-sm text-neutral-400">Status</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                      <Settings className="w-5 h-5 text-purple-400" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-white">
-                        {rollout.type === 'CUSTOM_PROGRESSIVE_ROLLOUT' 
-                          ? rollout.config?.stages?.length || 0
-                          : rollout.type === 'PERCENTAGE' 
-                          ? `${rollout.config?.percentage || 0}%`
-                          : `${rollout.config?.currentStage?.percentage || 0}%`
-                        }
-                      </p>
-                      <p className="text-sm text-neutral-400">
-                        {rollout.type === 'CUSTOM_PROGRESSIVE_ROLLOUT' ? 'Stages' : 'Current %'}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Rollout Configuration */}
-            <div className="space-y-6">
-              <div className="flex items-center space-x-2">
-                <Settings className="w-5 h-5 text-blue-400" />
-                <h2 className="text-xl font-semibold text-white">Current Configuration</h2>
-              </div>
-              
-              <RolloutCard rollout={rollout} environmentId={environmentId} />
-            </div>
-
-            {/* Action Bar */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-700/50">
-              <Button variant="outline" className="border-slate-700 text-neutral-300 hover:bg-slate-800/50">
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Configuration
-              </Button>
-              <Button variant="outline" className="border-slate-700 text-neutral-300 hover:bg-slate-800/50">
-                <Code className="w-4 h-4 mr-2" />
-                Export Settings
-              </Button>
-              <Button variant="outline" className="border-slate-700 text-neutral-300 hover:bg-slate-800/50">
-                <BarChart3 className="w-4 h-4 mr-2" />
-                View Analytics
-              </Button>
-            </div>
-          </div>
-        </Suspense>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

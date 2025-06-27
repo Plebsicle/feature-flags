@@ -24,6 +24,7 @@ interface EditEnvironmentModalProps {
   currentValue: any
   currentDefaultValue: any
   currentIsEnabled: boolean
+  flagType?: string
 }
 
 export function EditEnvironmentModal({ 
@@ -31,7 +32,8 @@ export function EditEnvironmentModal({
   environmentName, 
   currentValue, 
   currentDefaultValue, 
-  currentIsEnabled 
+  currentIsEnabled,
+  flagType = 'STRING'
 }: EditEnvironmentModalProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -48,26 +50,99 @@ export function EditEnvironmentModal({
   })
   
   const router = useRouter()
-  const wrapValue = (innerValue: any): { value: any } => {
-  return { value: innerValue }
-  }
-  const parseValue = (inputValue: string) => {
-    if (inputValue.trim() === '' || inputValue.trim() === 'null') return null
+  
+  // Value validation based on flag type
+  const validateValueByType = (value: string, flagType: string): { isValid: boolean; parsedValue?: any; error?: string } => {
+    const trimmedValue = value.trim()
     
-    // Try to parse as JSON first
-    try {
-      return JSON.parse(inputValue)
-    } catch {
-      // If JSON parse fails, return as string
-      return inputValue
+    if (trimmedValue === '' || trimmedValue === 'null') {
+      return { isValid: true, parsedValue: null }
+    }
+    
+    switch (flagType) {
+      case 'NUMBER':
+        if (isNaN(Number(trimmedValue))) return { isValid: false, error: 'Please enter a valid number' }
+        return { isValid: true, parsedValue: Number(trimmedValue) }
+      
+      case 'BOOLEAN':
+        if (trimmedValue.toLowerCase() !== 'true' && trimmedValue.toLowerCase() !== 'false') {
+          return { isValid: false, error: 'Boolean value must be "true" or "false"' }
+        }
+        return { isValid: true, parsedValue: trimmedValue.toLowerCase() === 'true' }
+      
+      case 'JSON':
+      case 'AB_TEST':
+      case 'MULTIVARIATE':
+        try {
+          const parsed = JSON.parse(trimmedValue)
+          return { isValid: true, parsedValue: parsed }
+        } catch {
+          return { isValid: false, error: 'Please enter valid JSON format' }
+        }
+      
+      case 'STRING':
+      default:
+        return { isValid: true, parsedValue: trimmedValue }
+    }
+  }
+  
+  const wrapValue = (innerValue: any): { value: any } => {
+    return { value: innerValue }
+  }
+
+  const getValuePlaceholder = (flagType: string): string => {
+    switch (flagType) {
+      case 'NUMBER':
+        return 'Enter a number (e.g., 123)'
+      case 'BOOLEAN':
+        return 'Enter true or false'
+      case 'JSON':
+      case 'AB_TEST':
+      case 'MULTIVARIATE':
+        return '{"key": "value"} or "string" or 123 or true'
+      case 'STRING':
+      default:
+        return 'Enter a string value'
+    }
+  }
+
+  const getValueHelpText = (flagType: string): string => {
+    switch (flagType) {
+      case 'NUMBER':
+        return 'Only numeric values are allowed (e.g., 123, 45.67)'
+      case 'BOOLEAN':
+        return 'Only "true" or "false" values are allowed'
+      case 'JSON':
+      case 'AB_TEST':
+      case 'MULTIVARIATE':
+        return 'Enter valid JSON format for complex data structures'
+      case 'STRING':
+      default:
+        return 'Any text value is allowed'
     }
   }
 
   const handleSave = async () => {
     setIsLoading(true)
     
-    const parsedValue = wrapValue(value)
-    const parsedDefaultValue = wrapValue(defaultValue)
+    // Validate values before saving
+    const valueValidation = validateValueByType(value, flagType)
+    const defaultValueValidation = validateValueByType(defaultValue, flagType)
+    
+    if (!valueValidation.isValid) {
+      toast.error(`Invalid value: ${valueValidation.error}`)
+      setIsLoading(false)
+      return
+    }
+    
+    if (!defaultValueValidation.isValid) {
+      toast.error(`Invalid default value: ${defaultValueValidation.error}`)
+      setIsLoading(false)
+      return
+    }
+    
+    const parsedValue = wrapValue(valueValidation.parsedValue)
+    const parsedDefaultValue = wrapValue(defaultValueValidation.parsedValue)
 
     const promise = fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/updateEnvironment`, {
         method: 'PUT',
@@ -175,36 +250,36 @@ export function EditEnvironmentModal({
             {/* Current Value */}
             <div className="space-y-2">
               <Label htmlFor="value" className="text-gray-900 font-medium">
-                Current Value
+                Current Value ({flagType})
               </Label>
               <Textarea
                 id="value"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="Enter value (string, number, boolean, or JSON)"
+                placeholder={getValuePlaceholder(flagType)}
                 className="min-h-[100px] font-mono text-sm"
                 disabled={isLoading}
               />
               <p className="text-xs text-gray-500">
-                Examples: "hello", 123, true, false, null, {`{"key": "value"}`}
+                {getValueHelpText(flagType)}
               </p>
             </div>
 
             {/* Default Value */}
             <div className="space-y-2">
               <Label htmlFor="defaultValue" className="text-gray-900 font-medium">
-                Default Value
+                Default Value ({flagType})
               </Label>
               <Textarea
                 id="defaultValue"
                 value={defaultValue}
                 onChange={(e) => setDefaultValue(e.target.value)}
-                placeholder="Enter default value (fallback when conditions are not met)"
+                placeholder={getValuePlaceholder(flagType)}
                 className="min-h-[100px] font-mono text-sm"
                 disabled={isLoading}
               />
               <p className="text-xs text-gray-500">
-                This value is used when no rules match the evaluation context
+                Fallback value when conditions are not met. {getValueHelpText(flagType)}
               </p>
             </div>
           </div>

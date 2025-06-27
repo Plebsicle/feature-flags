@@ -49,8 +49,8 @@ class CreateFlagController {
     createFlag = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            // const validatedBody = validateBody(createFlagBodySchema, req, res);
-            // if (!validatedBody) return;
+            const validatedBody = validateBody(createFlagBodySchema, req, res);
+            if (!validatedBody) return;
 
             if (!this.checkUserAuthorization(req, res, true)) return;
 
@@ -263,15 +263,21 @@ class CreateFlagController {
 
             const {
                 flag_id,
-                environment,
-                ruleName,
-                ruleDescription,
-                value,default_value,
-                conditions,
-                rollout_type,
-                rollout_config
+                environments,
+                description,
+                rollout,
+                rules
             } = req.body;
             console.log(req.body);
+
+            const environment = environments.environment;
+            const value = environments.value;
+            const default_value = environments.default_value;
+            const ruleName = rules.name;
+            const conditions = rules.conditions;
+            const ruleDescription = description;
+            const rollout_config = rollout.config;
+            const rollout_type = rollout.type;
             // Input validation/sanitization here (add as needed)
 
             const flagData = await this.prisma.feature_flags.findUnique({
@@ -361,7 +367,7 @@ class CreateFlagController {
             });
 
             const orgSlug = req.session.user?.userOrganisationSlug!;
-            const rules : RedisCacheRules[] = [{
+            const cacheRules : RedisCacheRules[] = [{
                 name : result.flagRulesCreation.name,
                 rule_id : result.flagRulesCreation.id,
                 conditions,
@@ -376,7 +382,7 @@ class CreateFlagController {
                is_environment_active : result.environmentFlagResponse.is_enabled,
                value,
                default_value,
-               rules,
+               rules : cacheRules,
                rollout_config : result.flagRolloutCreation.config as unknown as RolloutConfig
             }
 
@@ -407,7 +413,12 @@ class CreateFlagController {
 
             const { ip, userAgent } = this.extractIpAndUserAgent(req);
 
-            const {environment_id , ruleDescription , conditions , ruleName , isEnabled} = req.body;
+            const {flag_environment_id , description , conditions , name , is_enabled} = req.body;
+            const environment_id = flag_environment_id;
+            const ruleName = name;
+            const isEnabled = is_enabled;
+            const ruleDescription = description;
+
             if(!environment_id){
                 res.json(400).json({success : false,message : "No Env Id"});
                 return;
@@ -438,7 +449,8 @@ class CreateFlagController {
                     resource_id : ruleCreation.id,
                 }
             })
-            // caching
+            // TODO:caching
+            res.status(200).json({success : true , message : "Rule Added Succesfully"});
         }
         catch(e){
             console.error(e);
@@ -448,7 +460,6 @@ class CreateFlagController {
 
 // Instantiate and export the controller
 import dbInstance from '@repo/db';
-import { Ts } from '@slack/web-api/dist/types/response/SearchAllResponse';
 
 const createFlagController = new CreateFlagController({
     prisma: dbInstance

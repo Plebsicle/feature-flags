@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,7 +29,8 @@ const dataTypeOptions: { value: DataType; label: string }[] = [
 
 export default function RulesPage() {
   const router = useRouter()
-  const { state, updateRules } = useFlagCreation()
+  const searchParams = useSearchParams()
+  const { state, updateRules, setEnvironmentCreationMode } = useFlagCreation()
   const [customAttributeInputs, setCustomAttributeInputs] = useState<{ [key: number]: string }>({})
   const [showAttributeDropdowns, setShowAttributeDropdowns] = useState<{ [key: number]: boolean }>({})
   const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({})
@@ -151,10 +153,6 @@ export default function RulesPage() {
     const trimmedValue = value.trim()
     
     switch (dataType) {
-      case 'DATE':
-        // For date type, we'll handle this differently with the date picker
-        return trimmedValue
-      
       case 'NUMBER':
         // Validate number format
         if (isNaN(Number(trimmedValue))) {
@@ -171,8 +169,17 @@ export default function RulesPage() {
         }
         return trimmedValue.toLowerCase()
       
+      case 'DATE':
+        // Basic date validation
+        const dateValue = new Date(trimmedValue)
+        if (isNaN(dateValue.getTime())) {
+          toast.error('Please enter a valid date (YYYY-MM-DD or ISO string)')
+          return null
+        }
+        return trimmedValue
+      
       case 'SEMVER':
-        // Validate semantic version format (basic validation)
+        // Validate semantic version format
         const semverRegex = /^\d+\.\d+\.\d+(-[a-zA-Z0-9-.]+)?(\+[a-zA-Z0-9-.]+)?$/
         if (!semverRegex.test(trimmedValue)) {
           toast.error('Please enter a valid semantic version (e.g., 1.0.0)')
@@ -180,6 +187,8 @@ export default function RulesPage() {
         }
         return trimmedValue
       
+      case 'STRING':
+      case 'ARRAY':
       default:
         return trimmedValue
     }
@@ -187,18 +196,44 @@ export default function RulesPage() {
 
   const addValue = (conditionIndex: number, value: string) => {
     const condition = state.rules.conditions[conditionIndex]
-    if (!condition) return
+    if (!condition || !value.trim()) return
 
-    const validatedValue = validateAndFormatValue(value, condition.attribute_type)
-    if (validatedValue === null) return
-
-    // Check for duplicates
-    if (condition.attribute_values.includes(validatedValue)) {
-      toast.error('This value has already been added')
+    // For non-array types, only allow one value
+    if (condition.attribute_type !== 'ARRAY' && condition.attribute_values.length >= 1) {
+      toast.error('Only one value is allowed for this data type. Remove the existing value first.')
       return
     }
 
-    const newValues = [...condition.attribute_values, validatedValue]
+    // Validate the value based on data type
+    const validatedValue = validateAndFormatValue(value, condition.attribute_type)
+    if (validatedValue === null) return
+
+    let newValues: string[] = []
+    
+    if (condition.attribute_type === 'ARRAY') {
+      // For array type, split by comma and trim each value
+      const arrayValues = value.split(',').map(v => v.trim()).filter(v => v.length > 0)
+      
+      // Check for duplicates
+      const existingValues = new Set(condition.attribute_values)
+      const newUniqueValues = arrayValues.filter(val => !existingValues.has(val))
+      
+      if (newUniqueValues.length === 0) {
+        toast.error('All values have already been added')
+        return
+      }
+      
+      newValues = [...condition.attribute_values, ...newUniqueValues]
+    } else {
+      // For other types, check for duplicates
+      if (condition.attribute_values.includes(validatedValue)) {
+        toast.error('This value has already been added')
+        return
+      }
+      
+      newValues = [validatedValue] // Replace existing value for non-array types
+    }
+
     updateCondition(conditionIndex, { attribute_values: newValues })
   }
 
@@ -234,6 +269,12 @@ export default function RulesPage() {
       return false
     }
 
+    // Require at least one condition
+    if (state.rules.conditions.length === 0) {
+      toast.error('You need to add at least one condition')
+      return false
+    }
+
     for (const condition of state.rules.conditions) {
       if (!condition.attribute_name.trim()) {
         toast.error('All conditions must have an attribute name')
@@ -250,28 +291,40 @@ export default function RulesPage() {
 
   const handleNext = () => {
     if (validateForm()) {
-      router.push('/create-flag/rollout')
+      // Preserve the flagKey parameter when navigating if in environment creation mode
+      const flagKey = searchParams?.get('flagKey')
+      if (state.isCreatingEnvironmentOnly && flagKey) {
+        router.push(`/create-flag/rollout?flagKey=${flagKey}`)
+      } else {
+        router.push('/create-flag/rollout')
+      }
     }
   }
 
   const handlePrevious = () => {
-    router.push('/create-flag/environments')
+    // Preserve the flagKey parameter when navigating if in environment creation mode
+    const flagKey = searchParams?.get('flagKey')
+    if (state.isCreatingEnvironmentOnly && flagKey) {
+      router.push(`/create-flag/environments?flagKey=${flagKey}`)
+    } else {
+      router.push('/create-flag/environments')
+    }
   }
 
   const getValuePlaceholder = (attributeType: DataType) => {
     switch (attributeType) {
       case 'STRING':
-        return 'Enter text value'
+        return 'Enter text value (only one allowed)'
       case 'NUMBER':
-        return 'Enter number (e.g., 123)'
+        return 'Enter number (only one allowed)'
       case 'BOOLEAN':
-        return 'Enter true or false'
+        return 'Enter true or false (only one allowed)'
       case 'DATE':
-        return 'Select date and time'
+        return 'Enter date (only one allowed)'
       case 'SEMVER':
-        return 'Enter version (e.g., 1.0.0)'
+        return 'Enter version e.g., 1.0.0 (only one allowed)'
       case 'ARRAY':
-        return 'Enter array value'
+        return 'Enter values separated by commas (multiple allowed)'
       default:
         return 'Enter value'
     }
@@ -280,17 +333,17 @@ export default function RulesPage() {
   const getValueHelperText = (attributeType: DataType) => {
     switch (attributeType) {
       case 'STRING':
-        return 'Press Enter to add text value'
+        return 'Press Enter to add text value (only one allowed)'
       case 'NUMBER':
-        return 'Press Enter to add numeric value'
+        return 'Press Enter to add numeric value (only one allowed)'
       case 'BOOLEAN':
-        return 'Enter "true" or "false", then press Enter'
+        return 'Enter "true" or "false", then press Enter (only one allowed)'
       case 'DATE':
-        return 'Use the date picker to select date and time'
+        return 'Enter date format, then press Enter (only one allowed)'
       case 'SEMVER':
-        return 'Use semantic versioning (e.g., 1.0.0), then press Enter'
+        return 'Use semantic versioning (e.g., 1.0.0), then press Enter (only one allowed)'
       case 'ARRAY':
-        return 'Press Enter to add array value'
+        return 'Press Enter to add values, comma-separated for multiple (multiple allowed)'
       default:
         return 'Press Enter to add value'
     }
@@ -422,7 +475,7 @@ export default function RulesPage() {
                           {/* Attribute Name */}
                           <div className="space-y-1">
                             <Label className="text-xs font-medium text-gray-700">Attribute Name *</Label>
-                            <div className="relative" ref={el => dropdownRefs.current[index] = el}>
+                            <div className="relative" ref={(el) => { dropdownRefs.current[index] = el }}>
                               <div className="flex">
                                 <Input
                                   value={condition.attribute_name}
@@ -570,10 +623,17 @@ export default function RulesPage() {
                                   }}
                                 />
                               )}
-                              <div className="flex items-center space-x-1 text-xs text-gray-500">
-                                <Info className="w-3 h-3" />
-                                <span>{getValueHelperText(condition.attribute_type)}</span>
-                              </div>
+                              {condition.attribute_type === 'ARRAY' ? (
+                                <div className="flex items-center space-x-1 text-xs text-indigo-600 bg-indigo-50 p-2 rounded">
+                                  <Info className="w-3 h-3" />
+                                  <span>{getValueHelperText(condition.attribute_type)}</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-1 text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                                  <Info className="w-3 h-3" />
+                                  <span>{getValueHelperText(condition.attribute_type)}</span>
+                                </div>
+                              )}
                               {condition.attribute_values.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
                                   {condition.attribute_values.map((value, valueIndex) => (

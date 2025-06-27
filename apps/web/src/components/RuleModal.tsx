@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
-import { Plus, X, Target, Info, Edit, Save, Loader2 } from "lucide-react"
+import { Plus, X, Target, Info, Edit, Save, Loader2, ChevronDown } from "lucide-react"
 import { Toaster, toast } from 'react-hot-toast'
 
 interface RuleData {
@@ -48,12 +48,28 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [showAttributeDropdowns, setShowAttributeDropdowns] = useState<{ [key: number]: boolean }>({})
+  const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({})
 
   // Form state
   const [ruleName, setRuleName] = useState('')
   const [ruleDescription, setRuleDescription] = useState('')
   const [isEnabled, setIsEnabled] = useState(true)
   const [conditions, setConditions] = useState<Condition[]>([])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      Object.entries(showAttributeDropdowns).forEach(([index, isOpen]) => {
+        if (isOpen && dropdownRefs.current[parseInt(index)] && !dropdownRefs.current[parseInt(index)]?.contains(event.target as Node)) {
+          setShowAttributeDropdowns(prev => ({ ...prev, [parseInt(index)]: false }))
+        }
+      })
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showAttributeDropdowns])
 
   // Initialize form with existing rule data if editing
   useEffect(() => {
@@ -111,13 +127,41 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
   }
 
   const handleAttributeNameChange = (index: number, value: string) => {
-    updateCondition(index, { attribute_name: value })
+    // Check if it's a base attribute
+    const isBaseAttribute = Object.keys(BASE_ATTRIBUTES).includes(value)
+    
+    if (isBaseAttribute) {
+      // Set fixed data type for base attributes
+      const baseAttrType = BASE_ATTRIBUTES[value as keyof typeof BASE_ATTRIBUTES].type as DataType
+      const availableOperators = OPERATORS_BY_TYPE[baseAttrType]
+      updateCondition(index, { 
+        attribute_name: value,
+        attribute_type: baseAttrType,
+        operator_selected: availableOperators[0],
+        attribute_values: []
+      })
+    } else {
+      // For custom attributes, only update the name
+      updateCondition(index, { attribute_name: value })
+    }
+    
+    // Hide dropdown after selection
+    setShowAttributeDropdowns(prev => ({ ...prev, [index]: false }))
+    
     // Clear validation error when attribute name is changed
     if (errors[`condition_${index}_name`]) {
       const newErrors = { ...errors }
       delete newErrors[`condition_${index}_name`]
       setErrors(newErrors)
     }
+  }
+
+  const toggleAttributeDropdown = (index: number) => {
+    setShowAttributeDropdowns(prev => ({ ...prev, [index]: !prev[index] }))
+  }
+
+  const isBaseAttribute = (attributeName: string) => {
+    return Object.keys(BASE_ATTRIBUTES).includes(attributeName)
   }
 
   const handleAttributeTypeChange = (index: number, value: DataType) => {
@@ -148,34 +192,104 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
     }
   }
 
+  const validateAndFormatValue = (value: string, dataType: DataType): string | null => {
+    const trimmedValue = value.trim()
+    
+    switch (dataType) {
+      case 'NUMBER':
+        // Validate number format
+        if (isNaN(Number(trimmedValue))) {
+          toast.error('Please enter a valid number')
+          return null
+        }
+        return trimmedValue
+      
+      case 'BOOLEAN':
+        // Validate boolean format
+        if (trimmedValue.toLowerCase() !== 'true' && trimmedValue.toLowerCase() !== 'false') {
+          toast.error('Boolean value must be "true" or "false"')
+          return null
+        }
+        return trimmedValue.toLowerCase()
+      
+      case 'DATE':
+        // Basic date validation - you might want to enhance this
+        const dateValue = new Date(trimmedValue)
+        if (isNaN(dateValue.getTime())) {
+          toast.error('Please enter a valid date (YYYY-MM-DD or ISO string)')
+          return null
+        }
+        return trimmedValue
+      
+      case 'SEMVER':
+        // Validate semantic version format
+        const semverRegex = /^\d+\.\d+\.\d+(-[a-zA-Z0-9-.]+)?(\+[a-zA-Z0-9-.]+)?$/
+        if (!semverRegex.test(trimmedValue)) {
+          toast.error('Please enter a valid semantic version (e.g., 1.0.0)')
+          return null
+        }
+        return trimmedValue
+      
+      case 'STRING':
+      case 'ARRAY':
+      default:
+        return trimmedValue
+    }
+  }
+
   const addValue = (conditionIndex: number, value: string) => {
     const condition = conditions[conditionIndex]
-    if (condition && value.trim()) {
-      let newValues: string[] = []
+    if (!condition || !value.trim()) return
+
+    // For non-array types, only allow one value
+    if (condition.attribute_type !== 'ARRAY' && condition.attribute_values.length >= 1) {
+      toast.error('Only one value is allowed for this data type. Remove the existing value first.')
+      return
+    }
+
+    // Validate the value based on data type
+    const validatedValue = validateAndFormatValue(value, condition.attribute_type)
+    if (validatedValue === null) return
+
+    let newValues: string[] = []
+    
+    if (condition.attribute_type === 'ARRAY') {
+      // For array type, split by comma and trim each value
+      const arrayValues = value.split(',').map(v => v.trim()).filter(v => v.length > 0)
+      // Validate each array value as string (arrays contain string values)
+      const validatedArrayValues = arrayValues.filter(val => {
+        if (!val) return false
+        return true // Arrays can contain any string values
+      })
       
-      if (condition.attribute_type === 'ARRAY') {
-        // For array type, split by comma and trim each value
-        const arrayValues = value.split(',').map(v => v.trim()).filter(v => v.length > 0)
-        const uniqueValues = [...new Set([...condition.attribute_values, ...arrayValues])]
-        newValues = uniqueValues
-      } else {
-        // For other types, add single value if not already present
-        if (!condition.attribute_values.includes(value.trim())) {
-          newValues = [...condition.attribute_values, value.trim()]
-        } else {
-          newValues = condition.attribute_values
-        }
+      // Check for duplicates
+      const existingValues = new Set(condition.attribute_values)
+      const newUniqueValues = validatedArrayValues.filter(val => !existingValues.has(val))
+      
+      if (newUniqueValues.length === 0) {
+        toast.error('All values have already been added')
+        return
       }
       
-      // Update the condition with new values
-      updateCondition(conditionIndex, { attribute_values: newValues })
-      
-      // Clear validation error immediately after adding values
-      if (newValues.length > 0 && errors[`condition_${conditionIndex}_values`]) {
-        const newErrors = { ...errors }
-        delete newErrors[`condition_${conditionIndex}_values`]
-        setErrors(newErrors)
+      newValues = [...condition.attribute_values, ...newUniqueValues]
+    } else {
+      // For other types, check for duplicates
+      if (condition.attribute_values.includes(validatedValue)) {
+        toast.error('This value has already been added')
+        return
       }
+      
+      newValues = [validatedValue] // Replace existing value for non-array types
+    }
+    
+    // Update the condition with new values
+    updateCondition(conditionIndex, { attribute_values: newValues })
+    
+    // Clear validation error immediately after adding values
+    if (newValues.length > 0 && errors[`condition_${conditionIndex}_values`]) {
+      const newErrors = { ...errors }
+      delete newErrors[`condition_${conditionIndex}_values`]
+      setErrors(newErrors)
     }
   }
 
@@ -194,7 +308,13 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
       newErrors.name = 'Rule name is required'
     }
 
-    // Validate conditions
+    // Require at least one condition
+    if (conditions.length === 0) {
+      toast.error('You need to add at least one condition')
+      return false
+    }
+
+    // Validate each condition
     conditions.forEach((condition, index) => {
       if (!condition.attribute_name.trim()) {
         newErrors[`condition_${index}_name`] = 'Attribute name is required'
@@ -209,14 +329,18 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
   }
 
   const handleSubmit = async () => {
+    console.log('Form validation started')
     if (!validateForm()) {
+      console.log('Form validation failed')
       return
     }
+    console.log('Form validation passed')
 
     setLoading(true)
+    toast.loading(mode === 'create' ? 'Creating rule...' : 'Updating rule...')
     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
     
-    let url = `/${BACKEND_URL}/flag/rule`
+    let url = `/${BACKEND_URL}/flag/addRules`
     let method = 'POST'
     let body: any = {
       name: ruleName,
@@ -227,61 +351,67 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
     }
 
     if (mode === 'edit' && existingRule) {
-      url = `/${BACKEND_URL}/flag/rule`
+      url = `/${BACKEND_URL}/flag/updateFlagRule`
       method = 'PUT'
       body.ruleId = existingRule.id
     }
 
-    const promise = fetch(url, {
-      method,
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body)
-    })
+    console.log('Making request to:', url)
+    console.log('Request body:', body)
 
-    toast.promise(promise, {
-      loading: mode === 'create' ? 'Creating rule...' : 'Updating rule...',
-      success: (response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        const result = response.json() as Promise<{ success: boolean; message?: string }>;
-        result.then(data => {
-          if (data.success) {
-            setOpen(false)
-            router.refresh()
-          } else {
-            throw new Error(data.message || 'Failed to save rule')
-          }
-        })
-        return mode === 'create' ? 'Rule created successfully!' : 'Rule updated successfully!'
-      },
-      error: (err) => {
-        console.error('Error saving rule:', err)
-        setErrors({ submit: 'Failed to save rule. Please try again.' })
-        return 'Failed to save rule. Please try again.'
+    try {
+      const response = await fetch(url, {
+        method,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+      })
+
+      console.log('Response received:', response.status)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
-    }).finally(() => {
+      
+      const data = await response.json() as { success: boolean; message?: string }
+      console.log('Response data:', data)
+      
+      if (data.success) {
+        console.log('Success - closing modal and refreshing')
+        toast.dismiss()
+        setOpen(false)
+        router.refresh()
+        toast.success(mode === 'create' ? 'Rule created successfully!' : 'Rule updated successfully!')
+      } else {
+        throw new Error(data.message || 'Failed to save rule')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      toast.dismiss()
+      setErrors({ submit: 'Failed to save rule. Please try again.' })
+      toast.error('Failed to save rule. Please try again.')
+    } finally {
+      console.log('Setting loading to false')
       setLoading(false)
-    })
+    }
   }
 
   const getValuePlaceholder = (attributeType: DataType) => {
     switch (attributeType) {
       case 'STRING':
-        return 'Enter a text value'
+        return 'Enter a text value (only one allowed)'
       case 'NUMBER':
-        return 'Enter a number'
+        return 'Enter a number (only one allowed)'
       case 'BOOLEAN':
-        return 'true or false'
+        return 'Enter true or false (only one allowed)'
       case 'DATE':
-        return 'YYYY-MM-DD or ISO string'
+        return 'Enter YYYY-MM-DD or ISO string (only one allowed)'
       case 'SEMVER':
-        return '1.0.0 (semantic version)'
+        return 'Enter 1.0.0 format (only one allowed)'
       case 'ARRAY':
-        return 'Enter values separated by commas'
+        return 'Enter values separated by commas (multiple allowed)'
       default:
         return 'Enter a value'
     }
@@ -412,11 +542,72 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                           {/* Attribute Name */}
                           <div className="space-y-2">
                             <Label className="text-gray-900 font-medium">Attribute Name</Label>
-                            <Input
-                              value={condition.attribute_name}
-                              onChange={(e) => handleAttributeNameChange(index, e.target.value)}
-                              placeholder="e.g., userId, email, country"
-                            />
+                            <div className="relative" ref={(el) => { dropdownRefs.current[index] = el }}>
+                              <div className="flex">
+                                <Input
+                                  value={condition.attribute_name}
+                                  onChange={(e) => handleAttributeNameChange(index, e.target.value)}
+                                  placeholder="Type custom attribute or select from dropdown"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault()
+                                      const input = e.target as HTMLInputElement
+                                      if (input.value.trim()) {
+                                        // Check if it conflicts with base attributes
+                                        if (Object.keys(BASE_ATTRIBUTES).includes(input.value.trim())) {
+                                          toast.error('Please use a different name. This attribute already exists as a base attribute.')
+                                          return
+                                        }
+                                        handleAttributeNameChange(index, input.value.trim())
+                                      }
+                                    }
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  onClick={() => toggleAttributeDropdown(index)}
+                                  className="ml-1 bg-gray-100 border-gray-300 hover:bg-gray-200 h-10 w-10 p-0"
+                                  size="sm"
+                                >
+                                  <ChevronDown className="w-4 h-4 text-gray-600" />
+                                </Button>
+                              </div>
+                              
+                              {/* Dropdown for base attributes */}
+                              {showAttributeDropdowns[index] && (
+                                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                                  <div className="p-2 text-xs text-gray-600 border-b border-gray-100 bg-gray-50">
+                                    Base Attributes (Fixed Data Types)
+                                  </div>
+                                  {Object.entries(BASE_ATTRIBUTES).map(([key, attr]) => (
+                                    <button
+                                      key={key}
+                                      type="button"
+                                      onClick={() => handleAttributeNameChange(index, key)}
+                                      className="w-full px-2 py-1.5 text-left text-gray-900 hover:bg-gray-50 focus:bg-gray-50 flex justify-between items-center text-sm"
+                                    >
+                                      <div>
+                                        <div className="font-medium">{key}</div>
+                                        <div className="text-xs text-gray-500">{attr.description}</div>
+                                      </div>
+                                      <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
+                                        {attr.type}
+                                      </Badge>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* Helper text */}
+                            <div className="flex items-start space-x-1 text-xs text-gray-500">
+                              <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p>Use dropdown for base attributes (fixed types) or type custom names.</p>
+                                <p className="text-amber-600">Note: Avoid naming custom attributes the same as existing base attributes.</p>
+                              </div>
+                            </div>
+                            
                             {errors[`condition_${index}_name`] && (
                               <p className="text-red-600 text-sm">{errors[`condition_${index}_name`]}</p>
                             )}
@@ -428,8 +619,9 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                             <Select
                               value={condition.attribute_type}
                               onValueChange={(value) => handleAttributeTypeChange(index, value as DataType)}
+                              disabled={isBaseAttribute(condition.attribute_name)}
                             >
-                              <SelectTrigger>
+                              <SelectTrigger className={isBaseAttribute(condition.attribute_name) ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -443,6 +635,11 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                                 ))}
                               </SelectContent>
                             </Select>
+                            {isBaseAttribute(condition.attribute_name) && (
+                              <p className="text-xs text-gray-500">
+                                Data type is fixed for base attributes
+                              </p>
+                            )}
                           </div>
 
                           {/* Operator */}
@@ -493,10 +690,15 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                                   }
                                 }}
                               />
-                              {condition.attribute_type === 'ARRAY' && (
+                              {condition.attribute_type === 'ARRAY' ? (
                                 <div className="flex items-center space-x-2 text-sm text-indigo-600 bg-indigo-50 p-2 rounded">
                                   <Info className="w-4 h-4" />
-                                  <span>For arrays, enter multiple values separated by commas</span>
+                                  <span>For arrays, enter multiple values separated by commas. You can add multiple entries.</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-2 text-sm text-amber-600 bg-amber-50 p-2 rounded">
+                                  <Info className="w-4 h-4" />
+                                  <span>Only one value is allowed for this data type. Adding a new value will replace the existing one.</span>
                                 </div>
                               )}
                               {condition.attribute_values.length > 0 && (
