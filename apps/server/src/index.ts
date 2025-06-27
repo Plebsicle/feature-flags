@@ -26,6 +26,7 @@ import alertLogsRoutes from './routes/alert-logs/alerts'
 // Cron Jobs
 import aggregateData from './cron-jobs/metric-aggregation';
 import alertMonitor from './cron-jobs/send-alert';
+import rolloutJob from './cron-jobs/rollout-job';
 
 // Standard Contansts for express application
 const app : Express = express();
@@ -45,6 +46,7 @@ app.use(sessionMiddleware);
 // Cron Jobs
 aggregateData.start();
 alertMonitor.start();
+rolloutJob.start();
 
 //Routes
 app.use('/auth',authRoutes);
@@ -58,6 +60,7 @@ app.use('/slack',slackRoutes);
 app.use('/evaluation',evaluationRoutes);
 app.use('/auditLogs',auditLogRoutes);
 app.use('/alertLogs',alertLogsRoutes);
+
 
 //Security Measure
 app.disable('x-powered-by');

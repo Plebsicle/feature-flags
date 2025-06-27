@@ -2,6 +2,7 @@ import prisma from '@repo/db';
 import express from 'express';
 import { Redis_Value, RedisCacheRules, setFlag } from '../../services/redis/redis-flag';
 import { RolloutConfig } from '@repo/types/rollout-config';
+import { convertToMilliseconds } from '../../util/convertToMs';
 import { 
     createFlagBodySchema, 
     createEnvironmentBodySchema, 
@@ -48,8 +49,8 @@ class CreateFlagController {
     createFlag = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            const validatedBody = validateBody(createFlagBodySchema, req, res);
-            if (!validatedBody) return;
+            // const validatedBody = validateBody(createFlagBodySchema, req, res);
+            // if (!validatedBody) return;
 
             if (!this.checkUserAuthorization(req, res, true)) return;
 
@@ -70,10 +71,28 @@ class CreateFlagController {
             const {environment,value,default_value} = environments;
             const {type  ,config} = rollout;
             const rollout_type = type;
-            const rollout_config = config;
+            let rollout_config = config;
             console.log(req.body);
 
-            // Input validation/sanitization here (add as needed)
+           if (rollout_config.currentStage) {
+            if (!rollout_config.stages) {
+                const frequencyMs = convertToMilliseconds(rollout_config.frequency);
+                rollout_config.currentStage.nextProgressAt = new Date(
+                    new Date(rollout_config.startDate).getTime() + frequencyMs * (rollout_config.currentStage.stage + 1)
+                );
+            } else {
+                
+                const nextStage = rollout_config.stages.find(
+                    //@ts-ignore
+                    s => s.stage === rollout_config.currentStage.stage + 1
+                );
+                if (nextStage) {
+                    rollout_config.currentStage.nextProgressAt = new Date(nextStage.stageDate);
+                } else {
+                    rollout_config.currentStage.nextProgressAt = undefined; // No further stages
+                }
+            }
+}
 
             const result = await this.prisma.$transaction(async (tx) => {
                 // Insert custom attributes first
@@ -429,6 +448,7 @@ class CreateFlagController {
 
 // Instantiate and export the controller
 import dbInstance from '@repo/db';
+import { Ts } from '@slack/web-api/dist/types/response/SearchAllResponse';
 
 const createFlagController = new CreateFlagController({
     prisma: dbInstance

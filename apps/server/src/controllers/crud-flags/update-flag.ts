@@ -7,6 +7,7 @@ import {
     updateEnvironmentBodySchema,
     validateBody 
 } from '../../util/zod';
+import { convertToMilliseconds } from '../../util/convertToMs';
 import { rollout_type, environment_type } from '@repo/db/node_modules/@prisma/client'
 import { Conditions } from '@repo/types/rule-config';
 
@@ -368,7 +369,7 @@ class UpdateFlagController {
             
             if (!this.checkUserAuthorization(req, res)) return;
 
-            const {
+            let {
                 rollout_type,     // FRout
                 rollout_config,   // FRout
                 environment_id
@@ -404,6 +405,28 @@ class UpdateFlagController {
                     message: "No valid fields to update"
                 });
                 return;
+            }
+
+            if(flagRolloutUpdates.config){
+                if (rollout_config.currentStage) {
+                    if (!rollout_config.stages) {
+                        const frequencyMs = convertToMilliseconds(rollout_config.frequency);
+                        rollout_config.currentStage.nextProgressAt = new Date(
+                            new Date(rollout_config.startDate).getTime() + frequencyMs * (rollout_config.currentStage.stage + 1)
+                        );
+                    } else {
+                        const nextStage = rollout_config.stages.find(
+                            //@ts-ignore
+                            s => s.stage === rollout_config.currentStage.stage + 1
+                        );
+                        if (nextStage) {
+                            rollout_config.currentStage.nextProgressAt = new Date(nextStage.stageDate);
+                        } else {
+                            rollout_config.currentStage.nextProgressAt = undefined;
+                        }
+                    }
+                }
+                flagRolloutUpdates['config'] = rollout_config;
             }
 
             const result = await this.prisma.$transaction(async (tx: any) => {
