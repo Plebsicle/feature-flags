@@ -48,36 +48,32 @@ export default function SignUpPage() {
       return
     }
 
-    const promise = signup(name, email, password);
-    toast.promise(promise, {
-      loading: 'Creating your account...',
-      success: (success) => {
-        if (success) {
-          router.push("/organisation");
-          return 'Account created successfully!';
-        } else {
-          throw new Error('Failed to create account');
-        }
-      },
-      error: 'Failed to create account. Please try again.'
-    });
+    try {
+      const success = signup(name, email, password);
+      if (success) {
+        toast.success('Account details saved! Please complete your organization setup.');
+        router.push("/organisation");
+      } else {
+        toast.error('Failed to save account details. Please try again.');
+      }
+    } catch (error) {
+      toast.error('Failed to create account. Please try again.');
+    }
   }
 
   const handleGoogleSuccess =  (credentialResponse: { credential?: string }) =>{
     const googleToken = credentialResponse.credential;
-    const promise = signup(undefined,undefined,undefined,googleToken);
-    toast.promise(promise, {
-      loading: 'Signing up with Google...',
-      success: (success) => {
-        if (success) {
-          router.push('/organisation');
-          return 'Account created successfully!';
-        } else {
-          throw new Error('Failed to create account');
-        }
-      },
-      error: 'Google signup failed. Please try again.'
-    });
+    try {
+      const success = signup(undefined,undefined,undefined,googleToken);
+      if (success) {
+        toast.success('Google account details saved! Please complete your organization setup.');
+        router.push('/organisation');
+      } else {
+        toast.error('Failed to save Google account details. Please try again.');
+      }
+    } catch (error) {
+      toast.error('Google signup failed. Please try again.');
+    }
   }
 
   const handleGoogleFailure = () =>{

@@ -334,7 +334,7 @@ export async function sendVerificationEmail(email: string, token: string, orgNam
 
 export async function sendResetPassword(email: string, token: string) {
   try {
-    const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
+    const resetUrl = `${FRONTEND_URL}/auth/reset-password?token=${token}`;
     
     const htmlContent = `
       <!DOCTYPE html>

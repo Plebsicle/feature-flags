@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { ArrowRight, Building2, Sparkles, Flag } from "lucide-react"
@@ -18,19 +18,26 @@ export default function OrganizationPage() {
   const { partialSignupDetails, completeSignup, isLoading } = useAuth()
   const router = useRouter()
 
+  useEffect(() => {
+    if (!partialSignupDetails) {
+      router.push("/auth/signin")
+    }
+  }, [partialSignupDetails, router])
+
   if (!partialSignupDetails) {
-    router.push("/auth/signin")
     return null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("Before signup", partialSignupDetails);
     const { googleToken } = partialSignupDetails;
     console.log(googleToken);
     const response = await completeSignup(organizationName);
+    console.log("After signup", partialSignupDetails);
     console.log(response);
     if (response) {
-      if (googleToken) {
+      if (partialSignupDetails.googleToken) {
         router.push("/dashboard");
       }
       else {

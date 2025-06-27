@@ -204,7 +204,7 @@ class DashboardController {
             
             let conversionRate;
             if (metricIds.length === 0) {
-                conversionRate = "Setup Metrics to see conversion rates";
+                conversionRate = "Setup metrics to see conversion rates";
             } else {
                 const aggregations = await this.prisma.metric_aggregations.findMany({
                     where: {
@@ -229,6 +229,7 @@ class DashboardController {
 
             const activeFlags = await this.prisma.feature_flags.count({
                 where: {
+                    organization_id : userOrganisationId,
                     is_active: true
                 }
             });
