@@ -143,11 +143,6 @@ class MemberController {
             req.body = parsedBody;
 
             const { name, password, token } = req.body;
-            const validation = await memberSignupValidation(name, password, token);
-            if (!validation) {
-                res.status(401).json("Invalid Inputs");
-                return;
-            }
 
             const findToken = await this.findValidInvitationToken(token);
             if (!findToken) {
@@ -194,7 +189,56 @@ class MemberController {
             });
         }
     }
-
+    removeMemberFromOrg = async (req : express.Request , res : express.Response)=> {
+        try{
+            const memberToBeDeleted = req.params.userId;
+            const ownerRole = req.session.user?.userRole;
+            if(ownerRole === undefined || (ownerRole !== "OWNER")){
+                res.status(403).json({success : false , message : "Unauthorised"});
+                return;
+            }
+            const ownerId = req.session.user?.userId!;
+            if(!memberToBeDeleted){
+                res.status(400).json({success : false , message : "No User Found"});
+                return;
+            }
+            const organisationId = req.session.user?.userOrganisationId!;
+            const isUserUnderOwner = await this.prisma.owner_members.findUnique({
+                where : {
+                    owner_id_member_id: {
+                        member_id  : memberToBeDeleted,
+                        owner_id : ownerId
+                    }   
+                }
+            });
+            if(isUserUnderOwner){
+                res.status(403).json({success : false  , message : "Unauthorised"});
+                return;
+            }
+            await this.prisma.users.update({
+                where : {
+                    id : memberToBeDeleted
+                },
+                data : {
+                    is_active : false
+                }
+            });
+            await this.prisma.user_organizations.delete({
+                where : {
+                    organization_id : organisationId,
+                    user_id : memberToBeDeleted
+                }
+            });
+            res.status(200).json({success : true , message : "User removed from organisation"});
+        }
+        catch(e){
+            console.error(e);
+            res.status(500).json({
+                success: false,
+                message: "Internal Server Error"
+            });
+        }
+    }
     memberSignupSendInvitation = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation

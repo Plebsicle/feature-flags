@@ -15,7 +15,8 @@ class SigninController {
     private async validateUserCredentials(email: string, password: string) {
         const doesUserExist = await this.prisma.users.findUnique({
             where: {
-                email
+                email,
+                is_active : true
             },
             select: {
                 id: true,
@@ -106,12 +107,7 @@ class SigninController {
             req.body = parsedBody;
 
             const { email, password } = req.body;
-            const validation = await signinValidation(email, password);
-            if (!validation) {
-                res.status(400).json("Entered details do not match criteria");
-                return;
-            }
-
+            
             const userValidation = await this.validateUserCredentials(email, password);
             if (userValidation.error) {
                 res.status(userValidation.status!).json(userValidation.error);

@@ -30,6 +30,7 @@ router.post('/checkVerificationEmailForgetPassword', forgotPasswordController.ch
 // Member Signup
 router.post('/memberSignupVerification', memberController.memberSignupVerification);
 router.post('/memberSignupSendInvitation', verificationMiddleware, memberController.memberSignupSendInvitation);
+router.delete('/member/:userId',verificationMiddleware,memberController.removeMemberFromOrg);
 
 // Logout
 router.get('/logout', logoutController.logout);

@@ -69,17 +69,40 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
     }
   }
 
-  const handleMemberDelete = async (memberId: string) => {
-    const deleteAction = () => {
+  const handleMemberDelete = async (memberId: string, memberRole: UserRole) => {
+    // Don't allow deletion of OWNER users
+    if (memberRole === 'OWNER') {
+      toast.error('Cannot delete organization owner.')
+      return
+    }
+
+    const deleteAction = async () => {
       setIsUpdating(true)
       try {
-        // For now, just remove from local state
-        // You can implement the actual DELETE endpoint later
+        const response = await fetch(`/${BACKEND_URL}/auth/member/${memberId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data = await response.json()
+        
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to delete member')
+        }
+
+        // Remove from local state after successful API call
         setMembers(prevMembers =>
           prevMembers.filter(member => member.id !== memberId)
         )
         
-        toast.success('Member removed successfully (stub).')
+        toast.success('Member removed successfully.')
       } catch (error) {
         console.error('Error deleting member:', error)
         toast.error('Failed to remove member. Please try again.')
@@ -91,6 +114,7 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
     toast((t) => (
       <div className="flex flex-col items-start gap-3">
         <p className="font-semibold">Are you sure you want to remove this member?</p>
+        <p className="text-sm text-gray-600">This action cannot be undone.</p>
         <div className="flex gap-2">
           <Button variant="destructive" size="sm" onClick={() => {
             deleteAction()
@@ -132,8 +156,6 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
 
       console.log('Invitations sent successfully')
       
-      // Note: New members won't appear in the list until they accept the invitation
-      // You might want to refresh the page or refetch data here
     } catch (error) {
       console.error('Error sending invitations:', error)
       throw error // Re-throw so the modal can handle it
@@ -192,7 +214,7 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
               key={member.id}
               member={member}
               onRoleUpdate={handleRoleUpdate}
-              onDelete={handleMemberDelete}
+              onDelete={(memberId) => handleMemberDelete(memberId, member.role)}
               isUpdating={isUpdating}
             />
           ))
