@@ -165,8 +165,8 @@ export default function CreateMetricForm() {
             aggregation_method: formData.aggregation_method
         })
     }
-
-    const promise = fetch(`${backendUrl}/metrics`, {
+    console.log(`/${backendUrl}/metrics`);
+    const promise = fetch(`/${backendUrl}/metrics`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -242,7 +242,6 @@ export default function CreateMetricForm() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
   }
 
-  const MetricTypeIcon = getMetricTypeIcon(formData.metric_type)
 
   return (
     <div className="space-y-8">

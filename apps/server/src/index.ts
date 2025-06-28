@@ -34,9 +34,6 @@ const PORT : number = parseInt(process.env.PORT!) || 8000;
 
 app.set('trust proxy', 1);
 
-app.use(limiter);
-
-
 // Standard Starter Middlewares
 app.use(cors(corsConfiguration));
 app.use(helmet());

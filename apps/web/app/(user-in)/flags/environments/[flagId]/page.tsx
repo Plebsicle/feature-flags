@@ -212,7 +212,6 @@ const formatValueForDisplay = (value: any, flagType: FlagType): string => {
   
   switch (flagType) {
     case 'BOOLEAN':
-    case 'KILL_SWITCH':
       return typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value)
     
     case 'STRING':
@@ -222,15 +221,9 @@ const formatValueForDisplay = (value: any, flagType: FlagType): string => {
       return String(value)
     
     case 'JSON':
-    case 'MULTIVARIATE':
-      return typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)
-    
     case 'AB_TEST':
-      if (typeof value === 'boolean') {
-        return value ? 'true' : 'false'
-      }
-      return typeof value === 'string' ? `"${value}"` : String(value)
-    
+    case 'MULTIVARIATE':
+      return typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)    
     default:
       if (typeof value === 'object') {
         return JSON.stringify(value, null, 2)
@@ -251,9 +244,9 @@ const ValueDisplay = ({ valueObj, label, flagType }: {
   flagType: FlagType 
 }) => {
   const innerValue = extractValue(valueObj)
-  
+  console.log(innerValue);
   const formattedValue = formatValueForDisplay(innerValue, flagType)
-
+  console.log(formattedValue);
   return (
     <div>
       <label className="text-sm font-medium text-gray-700 mb-2 block">

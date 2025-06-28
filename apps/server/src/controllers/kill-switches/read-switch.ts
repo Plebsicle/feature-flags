@@ -115,7 +115,7 @@ class ReadKillSwitchController {
                     flag_mappings: true
                 }
             });
-            
+
             if (!killSwitch) {
                 res.status(404).json({
                     success: false,
@@ -123,6 +123,25 @@ class ReadKillSwitchController {
                 });
                 return;
             }
+            
+
+                if (killSwitch?.flag_mappings?.length) {
+                await Promise.all(
+                    killSwitch.flag_mappings.map(async (mapping) => {
+                    const flag = await this.prisma.feature_flags.findUnique({
+                        where: {
+                            id: mapping.flag_id
+                        },
+                        select: {
+                            key: true,
+                        },
+                    });
+                        (mapping as any).flagKey = flag?.key || null;
+                    })
+                );
+}
+
+            
             
             const flag = await this.buildKillSwitchFlags(killSwitch.flag_mappings);
 

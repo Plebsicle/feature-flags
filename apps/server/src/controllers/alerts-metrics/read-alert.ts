@@ -13,7 +13,7 @@ class AlertReadController {
     }
 
     private async getAlertWithMetric(metricId: string) {
-        return await this.prisma.alert_metric.findUnique({
+        const result =  await this.prisma.alert_metric.findUnique({
             where: {
                 metric_id: metricId
             },
@@ -27,6 +27,7 @@ class AlertReadController {
                 }
             }
         });
+        return result;
     }
 
     private validateOrganizationAccess(metricData: any, organisationId: string): boolean {
@@ -44,18 +45,19 @@ class AlertReadController {
             const organisationId = req.session.user?.userOrganisationId;
             const metricId = req.params.metricId;
 
-            const metricData = await this.getAlertWithMetric(metricId);
+            const alertData = await this.getAlertWithMetric(metricId);
 
-            if (!metricData) {
+            if (!alertData) {
                 res.status(404).json({ success: false, message: "Alert not found" });
                 return;
             }
 
             // Verify the alert belongs to the user's organization
-            if (!this.validateOrganizationAccess(metricData, organisationId!)) {
+            if (!this.validateOrganizationAccess(alertData, organisationId!)) {
                 res.status(403).json({ success: false, message: "Not authorized to access this alert" });
                 return;
             }
+            res.status(200).json({success : true , data : alertData })
         }
         catch (e) {
             console.error(e);

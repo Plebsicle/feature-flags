@@ -46,9 +46,8 @@ type KillSwitch = {
 }
 
 interface KillSwitchesResponse {
-  killSwitches: KillSwitch[]
+  data: KillSwitch[]
   success: boolean
-  message: string
 }
 
 // Kill Switch Card Component
@@ -231,18 +230,25 @@ export default function KillSwitchesClient() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data: KillSwitchesResponse = await response.json()
-      
+      let data: any = await response.json()
+  
       if (data.success) {
-        setKillSwitches(data.killSwitches || [])
+        console.log('✅ Kill switches data received:', data.data)
+        console.log('📊 Number of kill switches:', data.data?.length || 0)
+        
+        // Ensure we always set an array
+        const killSwitchesArray = Array.isArray(data.data.killSwitches) ? data.data.killSwitches : []
+        console.log('🔧 Setting kill switches array:', killSwitchesArray)
+        setKillSwitches(killSwitchesArray)
       } else {
-        throw new Error(data.message || 'Failed to fetch kill switches')
+        throw new Error('Failed to fetch kill switches')
       }
     } catch (err) {
       console.error('Error fetching kill switches:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch kill switches')
     } finally {
       setLoading(false)
+      console.log('🔄 Loading set to false')
     }
   }
 
@@ -251,14 +257,17 @@ export default function KillSwitchesClient() {
   }, [])
 
   // Filter kill switches based on search query
-  const filteredKillSwitches = killSwitches.filter(killSwitch =>
-    killSwitch.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (killSwitch.description && killSwitch.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  )
+  const filteredKillSwitches = Array.isArray(killSwitches) 
+    ? killSwitches.filter(killSwitch =>
+        killSwitch.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (killSwitch.description && killSwitch.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : []
 
   const activeKillSwitches = filteredKillSwitches.filter(ks => ks.is_active)
   const inactiveKillSwitches = filteredKillSwitches.filter(ks => !ks.is_active)
 
+  
   if (error) {
     return (
       <div className="text-center py-12">
@@ -359,7 +368,10 @@ export default function KillSwitchesClient() {
 
       {/* Kill Switches Grid */}
       {loading ? (
-        <KillSwitchesLoading />
+        <div>
+          <p className="text-gray-600 mb-4">Loading kill switches...</p>
+          <KillSwitchesLoading />
+        </div>
       ) : filteredKillSwitches.length === 0 ? (
         <div className="text-center py-12">
           <div className="bg-gray-50 rounded-lg p-8 max-w-md mx-auto">
@@ -384,17 +396,18 @@ export default function KillSwitchesClient() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-          {filteredKillSwitches.map((killSwitch) => (
-            <motion.div
-              key={killSwitch.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <KillSwitchCard killSwitch={killSwitch} />
-            </motion.div>
-          ))}
+        <div>
+          <p className="text-gray-600 mb-4">Rendering {filteredKillSwitches.length} kill switches...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            {filteredKillSwitches.map((killSwitch, index) => {
+              console.log(`🎯 Rendering kill switch ${index + 1}:`, killSwitch.name, killSwitch)
+              return (
+                <div key={killSwitch.id}>
+                  <KillSwitchCard killSwitch={killSwitch} />
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

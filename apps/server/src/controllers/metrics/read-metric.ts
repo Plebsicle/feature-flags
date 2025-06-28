@@ -1,16 +1,13 @@
 import prisma from '@repo/db';
 import express from 'express'
 import { metricIdParamsSchema, validateParams } from '../../util/zod';
-
-interface ReadMetricControllerDependencies {
-    prisma: typeof prisma;
-}
+import { PrismaClient } from '@repo/db/client';
 
 class ReadMetricController {
-    private prisma: typeof prisma;
+    private prisma: PrismaClient;
 
-    constructor(dependencies: ReadMetricControllerDependencies) {
-        this.prisma = dependencies.prisma;
+    constructor(prisma: PrismaClient) {
+        this.prisma = prisma;
     }
 
     private checkUserAuthorizationForAll = (req: express.Request, res: express.Response): boolean => {
@@ -79,11 +76,9 @@ class ReadMetricController {
 }
 
 // Instantiate and export the controller
-import dbInstance from '@repo/db';
 
-const readMetricController = new ReadMetricController({
-    prisma: dbInstance
-});
+
+const readMetricController = new ReadMetricController(prisma);
 
 export const getMetrics = readMetricController.getMetrics;
 export const getMetricbyId = readMetricController.getMetricbyId;

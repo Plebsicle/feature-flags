@@ -128,8 +128,8 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
             name: result.data?.name ?? '',
             description: result.data?.description || '',
             is_active: result.data?.is_active ?? false,
-            flags: result.data?.flag_mappings?.map((fm : {flag_id:string,environments:$Enums.environment_type[]}) => ({
-                flagKey: fm.flag_id,
+            flags: result.data?.flag_mappings?.map((fm : {flag_id:string,environments:$Enums.environment_type[],flagKey : string}) => ({
+                flagKey: fm.flagKey,
                 environments: fm.environments
               })) ?? []
           })
