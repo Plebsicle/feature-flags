@@ -117,7 +117,7 @@ async function getAuditLogs(page: number): Promise<AuditLogsResponse | null> {
       console.error('Backend returned error:', data);
       return null;
     }
-
+    console.log(data);
     return data;
   } catch (err) {
     console.error('Error fetching audit logs:', err);

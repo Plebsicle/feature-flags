@@ -8,7 +8,6 @@ import cors from 'cors'
 import helmet from 'helmet';
 import corsConfiguration from './config/cors';
 import { sessionMiddleware } from './middlewares/session';
-import { limiter } from './middlewares/rate-limit';
 
 // Route Imports
 import authRoutes from './routes/auth/auth'

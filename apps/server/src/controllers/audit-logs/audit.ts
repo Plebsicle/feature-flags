@@ -24,34 +24,40 @@ class AuditLogs{
         const skip = (page - 1) * pageSize;
 
         const [auditLogs, total] = await Promise.all([
-    this.prisma.audit_logs.findMany({
-        where: {
-            organisation_id: organisationId
-        },
-        skip,
-        take: pageSize,
-        orderBy: {
-            created_at: 'desc'
-        },
-        include: {
-            user: {
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    is_active : true,
-                    isVerified : true,
-                    role : true
+        this.prisma.audit_logs.findMany({
+            where: {
+                organisation_id: organisationId
+            },
+            skip,
+            take: pageSize,
+            orderBy: {
+                created_at: 'desc'
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        is_active : true,
+                        isVerified : true,
+                        role : true
+                    }
                 }
             }
-        }
-    }),
-    this.prisma.audit_logs.count({
-        where: {
-            organisation_id: organisationId
-        }
-    })
-]);
+        }),
+        this.prisma.audit_logs.count({
+            where: {
+                organisation_id: organisationId
+            }
+        })
+    ]);
+    let totalPages = total%10 ? Math.floor(total/10) +1 : total/10;
+    res.status(200).json({success : true , data : auditLogs , pagination: {
+            currentPage: page,
+            totalPages: totalPages,
+            totalItems: total
+    } });
 
     } catch (e) {
         console.error(e);
