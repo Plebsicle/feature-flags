@@ -58,27 +58,27 @@ export const getFrequencyUnitDisplay = (unit: FrequencyUnit): string => {
 
 export const getRoleColor = (role: user_role, isSelected?: boolean): string => {
   if (isSelected !== undefined) {
-    // For interactive components (buttons)
+    // For interactive components (buttons) - using WorkOS design system colors
     const baseColors = {
-      OWNER: isSelected ? "bg-purple-600 text-white border-purple-600" : "bg-purple-500/20 text-purple-400 border-purple-500/30",
-      ADMIN: isSelected ? "bg-red-600 text-white border-red-600" : "bg-red-500/20 text-red-400 border-red-500/30",
-      MEMBER: isSelected ? "bg-blue-600 text-white border-blue-600" : "bg-blue-500/20 text-blue-400 border-blue-500/30",
-      VIEWER: isSelected ? "bg-slate-600 text-white border-slate-600" : "bg-slate-500/20 text-slate-400 border-slate-500/30"
+      OWNER: isSelected ? "bg-violet-600 text-white border-violet-600 shadow-sm" : "bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100",
+      ADMIN: isSelected ? "bg-rose-600 text-white border-rose-600 shadow-sm" : "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100", 
+      MEMBER: isSelected ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
+      VIEWER: isSelected ? "bg-slate-600 text-white border-slate-600 shadow-sm" : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
     };
     return baseColors[role] || baseColors.VIEWER;
   } else {
-    // For display components (badges)
+    // For display components (badges) - vibrant but readable
     switch (role) {
       case "OWNER":
-        return "bg-purple-500/20 text-purple-400 border-purple-500/30";
+        return "bg-violet-100 text-violet-800 border-violet-200";
       case "ADMIN":
-        return "bg-red-500/20 text-red-400 border-red-500/30";
+        return "bg-rose-100 text-rose-800 border-rose-200";
       case "MEMBER":
-        return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+        return "bg-blue-100 text-blue-800 border-blue-200";
       case "VIEWER":
-        return "bg-slate-500/20 text-slate-400 border-slate-500/30";
+        return "bg-slate-100 text-slate-800 border-slate-200";
       default:
-        return "bg-slate-500/20 text-slate-400 border-slate-500/30";
+        return "bg-slate-100 text-slate-800 border-slate-200";
     }
   }
 }; 

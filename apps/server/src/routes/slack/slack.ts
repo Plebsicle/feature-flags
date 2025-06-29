@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.get('/auth/url',verificationMiddleware, slackOauthUrl);
 
-router.get('/oauth/callback',verificationMiddleware,slackOauthCallback);
+router.get('/oauth/callback',slackOauthCallback);
 
 router.get('/integration',verificationMiddleware,getIntegration);
 

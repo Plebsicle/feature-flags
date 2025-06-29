@@ -793,7 +793,7 @@ export async function sendMemberSignupMails(email: string, token: string) {
             </div>
             
             <div class="info-note">
-              <strong>ℹ️ Important:</strong> This signup link will expire in 7 days. Please complete your registration soon to ensure access to your account.
+              <strong>ℹ️ Important:</strong> This signup link will expire in 1 Hour. Please complete your registration soon to ensure access to your account.
             </div>
           </div>
           
@@ -819,7 +819,7 @@ export async function sendMemberSignupMails(email: string, token: string) {
       3. Set up your account preferences
       4. Start exploring your new member benefits!
       
-      This signup link will expire in 7 days. Please complete your registration soon to ensure access to your account.
+      This signup link will expire in 1 Hour. Please complete your registration soon to ensure access to your account.
     `;
     
     return await sendEmail(

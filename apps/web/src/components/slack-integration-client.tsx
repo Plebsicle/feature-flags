@@ -230,10 +230,10 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
 
     toast.promise(promise, {
         loading: 'Saving channels...',
-        success: async (response) => {
+        success: (response) => {
             if (response.ok) {
                 setShowChannelSetup(false);
-                await fetchIntegrationStatus(); // Refresh data
+                fetchIntegrationStatus(); // Refresh data without awaiting
                 return 'Channels saved successfully!';
             } else {
                 throw new Error('Failed to save');

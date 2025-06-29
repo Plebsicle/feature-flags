@@ -193,7 +193,9 @@ class MemberController {
         try{
             const memberToBeDeleted = req.params.userId;
             const ownerRole = req.session.user?.userRole;
+            console.log(ownerRole);
             if(ownerRole === undefined || (ownerRole !== "OWNER")){
+                console.log("403 Here");
                 res.status(403).json({success : false , message : "Unauthorised"});
                 return;
             }
@@ -211,7 +213,7 @@ class MemberController {
                     }   
                 }
             });
-            if(isUserUnderOwner){
+            if(!isUserUnderOwner){
                 res.status(403).json({success : false  , message : "Unauthorised"});
                 return;
             }
@@ -223,6 +225,15 @@ class MemberController {
                     is_active : false
                 }
             });
+            await this.prisma.owner_members.delete({
+                where : {
+                    owner_id_member_id : {
+                        owner_id : ownerId,
+                        member_id : memberToBeDeleted
+                    }
+                }
+            });
+            
             await this.prisma.user_organizations.delete({
                 where : {
                     organization_id : organisationId,

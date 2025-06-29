@@ -132,7 +132,7 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
 
   const handleInviteMembers = async (emails: string[], role: UserRole) => {
     try {
-      const response = await fetch(`${BACKEND_URL}/auth/memberSignupSendInvitation`, {
+      const response = await fetch(`/${BACKEND_URL}/auth/memberSignupSendInvitation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

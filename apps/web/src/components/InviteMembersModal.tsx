@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { UserPlus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { 
   Dialog, 
   DialogContent, 
@@ -141,9 +140,12 @@ export function InviteMembersModal({ isOpen, onClose, onInvite }: InviteMembersM
                 value={emailInput}
                 onChange={(e) => handleEmailInputChange(e.target.value)}
                 placeholder="Enter email addresses separated by commas or new lines&#10;example@domain.com, another@domain.com"
-                className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
+                className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none text-gray-900 placeholder-gray-500 bg-white"
                 disabled={isLoading}
               />
+              <p className="text-xs text-gray-600">
+                💡 Tip: Enter multiple email addresses separated by commas or on new lines
+              </p>
               
               {/* Email Preview */}
               {emailList.length > 0 && (

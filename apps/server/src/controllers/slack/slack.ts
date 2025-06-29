@@ -7,6 +7,8 @@ import {
     validateParams 
 } from '../../util/zod';
 import { slackService } from '../../services/slack-integration/slack';
+import { decryptState, encryptState } from '../../util/encrypt-url';
+import { user_role } from '@repo/db/client';
 
 interface SlackControllerDependencies {
     slackService: typeof slackService;
@@ -19,7 +21,7 @@ class SlackController {
         this.slackService = dependencies.slackService;
     }
 
-    private checkOwnerAuthorization = (req: express.Request, res: express.Response): boolean => {
+    private checkOwnerAuthorization =  (req: express.Request, res: express.Response): boolean => {
         const userRole = req.session.user?.userRole;
         if (userRole === undefined || (userRole !== "OWNER")) {
             res.status(403).json({ success: true, message: "Not Authorised" });
@@ -28,7 +30,7 @@ class SlackController {
         return true;
     };
 
-    private generateSlackAuthUrl = (organizationId: string): string => {
+    private generateSlackAuthUrl = (organizationId: string,userRole : user_role): string => {
         const scopes = [
             'chat:write',
             'chat:write.public',
@@ -37,8 +39,9 @@ class SlackController {
         ].join(',');
 
         const redirectUri = process.env.SLACK_REDIRECT_URI || 'http://localhost:8000/api/slack/oauth/callback';
+        const encryptedState =  encryptState({organizationId,userRole});
         
-        return `https://slack.com/oauth/v2/authorize?client_id=${process.env.SLACK_CLIENT_ID}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${organizationId}`;
+        return `https://slack.com/oauth/v2/authorize?client_id=${process.env.SLACK_CLIENT_ID}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${encodeURIComponent(encryptedState)}`;
     };
 
     // Generate Slack OAuth URL
@@ -47,13 +50,14 @@ class SlackController {
             if (!this.checkOwnerAuthorization(req, res)) return;
 
             const organisationId = req.session.user?.userOrganisationId;
+            const userRole = req.session.user?.userRole! as user_role;
             
             if (!organisationId) {
                 res.status(400).json({ error: 'Organisation ID is required' });
                 return;
             }
 
-            const slackAuthUrl = this.generateSlackAuthUrl(organisationId);
+            const slackAuthUrl = this.generateSlackAuthUrl(organisationId,userRole);
 
             res.status(200).json({ success: true, authUrl: slackAuthUrl });
         } catch (error) {
@@ -65,16 +69,34 @@ class SlackController {
     // Handle OAuth callback
     slackOauthCallback = async (req: express.Request, res: express.Response) => {
         try {
-            const { code, error } = req.query;
-            const organisationId = req.session.user?.userOrganisationId!;
+            const { code, error,state } = req.query;
+
+            if(!state){
+                res.status(403).json({success : false , message : "Unauthorised , Tampered URL"});
+                return;
+            }
+
+            if (typeof state !== 'string') {
+                res.status(403).json({success : false,message : "Unauthorised , Tampered URL"});
+                return
+            }
+
+            const decryptedState = decryptState(state);
+            const organisationId = decryptedState.organizationId;
+            const userRole = decryptedState.userRole;
+            console.log(userRole,organisationId);
+            if(userRole === undefined || (userRole !== "OWNER")){
+                res.status(403).json({success : false,message : "Unauthorised"});
+                return;
+            }
 
             if (error) {
-                res.redirect(`${process.env.FRONTEND_URL}/settings/integrations?error=${error}`);
+                res.redirect(`${process.env.FRONTEND_URL}/slack?error=${error}`);
                 return;
             }
 
             if (!code || !organisationId) {
-                res.redirect(`${process.env.FRONTEND_URL}/settings/integrations?error=missing_params`);
+                res.redirect(`${process.env.FRONTEND_URL}/slack?error=missing_params`);
                 return;
             }
 
@@ -85,10 +107,10 @@ class SlackController {
             await this.slackService.saveIntegration(oauthData, organisationId as string);
 
             // Redirect to success page
-            res.redirect(`${process.env.FRONTEND_URL}/settings/integrations?success=slack_connected`);
+            res.redirect(`${process.env.FRONTEND_URL}/slack?success=slack_connected`);
         } catch (error) {
             console.error('Slack OAuth callback error:', error);
-            res.redirect(`${process.env.FRONTEND_URL}/settings/integrations?error=auth_failed`);
+            res.redirect(`${process.env.FRONTEND_URL}/slack?error=auth_failed`);
         }
     };
 

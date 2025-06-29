@@ -159,27 +159,33 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
                     </div>
                     Notify User Roles *
                   </Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {Object.values(user_role).map((role) => (
-                      <label
-                        key={role}
-                        className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
-                          formData.email_roles_notification.includes(role)
-                            ? 'bg-indigo-50 border-indigo-300'
-                            : 'bg-white border-gray-200 hover:bg-gray-50'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.email_roles_notification.includes(role)}
-                          onChange={() => handleRoleToggle(role)}
-                          className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <span className={`text-sm font-medium ${getRoleColor(role)}`}>
-                          {role}
-                        </span>
-                      </label>
-                    ))}
+                  <div className="grid grid-cols-2 gap-3">
+                    {Object.values(user_role).map((role) => {
+                      const isSelected = formData.email_roles_notification.includes(role);
+                      return (
+                        <button
+                          key={role}
+                          type="button"
+                          onClick={() => handleRoleToggle(role)}
+                          className={`flex items-center gap-3 p-4 rounded-lg border-2 transition-all duration-200 ${getRoleColor(role, isSelected)}`}
+                        >
+                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                            isSelected 
+                              ? 'bg-white border-white' 
+                              : 'border-current'
+                          }`}>
+                            {isSelected && (
+                              <svg className="w-3 h-3 text-current" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </div>
+                          <span className="font-medium">
+                            {role}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
