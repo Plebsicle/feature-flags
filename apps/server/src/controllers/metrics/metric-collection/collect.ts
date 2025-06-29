@@ -12,10 +12,6 @@ interface MetricCollectionBody {
     conversion_step?: conversion_step_type;
 }
 
-interface MetricCollectionControllerDependencies {
-    prisma: PrismaClient;
-}
-
 class MetricCollectionController {
     constructor(private prisma: PrismaClient) {}
 
@@ -133,9 +129,8 @@ class MetricCollectionController {
     }
 }
 
-// Instantiate and export the controller
-import dbInstance from '@repo/db';
 
-const metricCollectionController = new MetricCollectionController(dbInstance);
+
+const metricCollectionController = new MetricCollectionController(prisma);
 
 export const collectMetric = metricCollectionController.collectOrganisationMetric;

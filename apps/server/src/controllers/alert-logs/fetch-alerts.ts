@@ -15,12 +15,12 @@ class FetchAlerts {
             return;
         }
 
-        const alertId = req.params.alertId;
-        const alertStatus = req.body.alertStatus;
+        const {id,status} = req.body;
 
+        console.log(req.body,id);
         const updatedAlert = await this.prisma.triggered_alerts.update({
-            where: { id: alertId },
-            data: { alert_status: alertStatus }
+            where: { id: id },
+            data: { alert_status: status }
         });
 
         res.status(200).json({success : true,message : "Alert status updated successfully",data : updatedAlert});
@@ -34,7 +34,11 @@ class FetchAlerts {
     fetchAlerts = async (req: express.Request, res: express.Response) => {
     try {
         // zod validation
-        const status = (req.query.status as string) || "TRIGGERED";
+        let status = [];
+        if(req.query.status){
+            status.push(req.query.status)
+        }
+        else status = ["TRIGGERED","ACKNOWLEDGED","RESOLVED"];
 
         const userRole = req.session.user?.userRole;
         if (userRole === undefined || userRole === "MEMBER" || userRole === "VIEWER") {
@@ -49,14 +53,18 @@ class FetchAlerts {
                 organization_id: organisation_id,
                 triggered_alerts: {
                     some: {
-                        alert_status: status as alert_status
+                        alert_status: {
+                            in: status as alert_status[]
+                        }
                     }
                 }
             },
             include: {
                 triggered_alerts: {
                     where: {
-                        alert_status: status as alert_status
+                        alert_status: {
+                            in: status as alert_status[]
+                        }
                     },
                     orderBy: {
                         created_at: 'desc'

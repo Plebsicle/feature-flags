@@ -107,7 +107,7 @@ export default function DashboardLayout({
       },
       {
         name: "Alerts",
-        href: "/alerts?status=TRIGGERED",
+        href: "/alerts",
         icon: Bell,
         color: "text-amber-600",
         bgColor: "bg-amber-50",

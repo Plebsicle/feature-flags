@@ -52,17 +52,29 @@ async function getAlertsData(status: string): Promise<AlertData[] | null> {
     const cookieHeader = cookieStore.getAll()
       .map((cookie: { name: string; value: string }) => `${cookie.name}=${cookie.value}`)
       .join('; ');
-
-    const response = await fetch(`${BACKEND_URL}/alertLogs?status=${status}`, {
-      method: 'GET',
-      headers: {
-        'Cookie': cookieHeader,
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      cache: 'no-store',
-    });
-
+      let response = null;
+    if(status !== undefined){
+        response = await fetch(`${BACKEND_URL}/alertLogs?status=${status}`, {
+        method: 'GET',
+        headers: {
+          'Cookie': cookieHeader,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        cache: 'no-store',
+      });
+    }
+    else{
+      response = await fetch(`${BACKEND_URL}/alertLogs`, {
+        method: 'GET',
+        headers: {
+          'Cookie': cookieHeader,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        cache: 'no-store',
+      });
+    }
     if (!response.ok) {
       console.error(`HTTP error! status: ${response.status}`);
       return null;
@@ -146,12 +158,6 @@ function EmptyState({ status }: { status: string }) {
 export default async function AlertsPage({ searchParams }: AlertsPageProps) {
   const params = await searchParams;
   const status = params.status?.toUpperCase() as AlertStatus;
-
-  // Redirect to TRIGGERED status if no status is provided
-  if (!status || !['TRIGGERED', 'ACKNOWLEDGED', 'RESOLVED'].includes(status)) {
-    redirect('/alerts?status=TRIGGERED');
-  }
-
   const alertsData = await getAlertsData(status);
   
   // Flatten the alerts data to get individual alerts
