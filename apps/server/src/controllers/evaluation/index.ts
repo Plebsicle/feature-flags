@@ -1,12 +1,13 @@
 import { DataType } from "@repo/types/attribute-config";
 import { Condition } from "@repo/types/rule-config";
 import { getFlagWithKillSwitches } from "../../services/redis/killSwitchCaching";
-import { environment_type, PrismaClient } from "@repo/db/client";
+import { environment_type, flag_type, PrismaClient } from "@repo/db/client";
 import { RolloutConfig } from "@repo/types/rollout-config";
 import { Redis_Value, RedisCacheRules } from "../../services/redis/redis-flag";
 import express from 'express'
 import * as semver from 'semver'
 import { evaluationRequestBodySchema, validateBody } from '../../util/zod';
+import MurmurHash3  from "imurmurhash";
 
 interface UserContext {
   // Base attributes (always expected)
@@ -340,14 +341,6 @@ class ConditionValidator {
     
     let result = false;
     switch (operator) {
-      case 'contains': 
-        result = value.includes(expected[0]);
-        console.log(`📋 ConditionValidator.evaluateArrayCondition - contains check: array includes ${expected[0]} = ${result}`);
-        break;
-      case 'not_contains': 
-        result = !value.includes(expected[0]);
-        console.log(`📋 ConditionValidator.evaluateArrayCondition - not_contains check: array not includes ${expected[0]} = ${result}`);
-        break;
       case 'contains_any': 
         result = expected.some(exp => value.includes(exp));
         console.log(`📋 ConditionValidator.evaluateArrayCondition - contains_any check: ${result}`);
@@ -380,7 +373,7 @@ class ConditionValidator {
 
 // 6. ROLLOUT EVALUATION LOGIC
 class RolloutEvaluator {
-  static evaluate(rolloutConfig: RolloutConfig, rolloutType: string, userContext: UserContext): boolean {
+  static evaluate(rolloutConfig: RolloutConfig, rolloutType: string, userContext: UserContext,flag_type : flag_type,value : Record<string,any>): boolean {
     console.log(`🎯 RolloutEvaluator.evaluate - Starting rollout evaluation:`, {
       rolloutType,
       rolloutConfig,
@@ -395,13 +388,13 @@ class RolloutEvaluator {
     let result = false;
     switch (rolloutType) {
       case 'PERCENTAGE':
-        result = this.evaluatePercentage(rolloutConfig, userContext);
+        result = this.evaluatePercentage(rolloutConfig, userContext,flag_type,value);
         break;
       case 'PROGRESSIVE_ROLLOUT':
-        result = this.evaluateProgressive(rolloutConfig, userContext);
+        result = this.evaluateProgressive(rolloutConfig, userContext,flag_type,value);
         break;
       case 'CUSTOM_PROGRESSIVE_ROLLOUT':
-        result = this.evaluateCustomProgressive(rolloutConfig, userContext);
+        result = this.evaluateCustomProgressive(rolloutConfig, userContext,flag_type,value);
         break;
       default:
         console.log(`🎯 RolloutEvaluator.evaluate - Unknown rollout type: ${rolloutType}, defaulting to true`);
@@ -412,7 +405,7 @@ class RolloutEvaluator {
     return result;
   }
   
-  private static evaluatePercentage(config: any, userContext: UserContext): boolean {
+  private static evaluatePercentage(config: any, userContext: UserContext,flag_type : flag_type,value : Record<string,any>): boolean | any {
     console.log(`🎯 RolloutEvaluator.evaluatePercentage - Config:`, config);
     
     const { percentage, startDate, endDate } = config;
@@ -432,51 +425,71 @@ class RolloutEvaluator {
     const identifier = userContext.userId || userContext.email || 'anonymous';
     const hash = this.getUserHash(identifier);
     const result = hash < percentage;
-    
+    console.log(value.value);
+    if (result && (flag_type === "AB_TEST" || flag_type === "MULTIVARIATE")) {
+      console.log("ME is HITTTT");
+      const entries = Object.entries(value.value);
+      console.log(entries);
+      const variantHashInput = identifier + JSON.stringify(value.value); 
+      const hashedNumber = this.getUserHash(variantHashInput);
+      const index = hashedNumber % entries.length;
+      console.log(index);
+      console.log(entries[index][1]);
+      return entries[index];
+    } 
     console.log(`🎯 RolloutEvaluator.evaluatePercentage - Hash calculation: identifier="${identifier}", hash=${hash}, percentage=${percentage}, result=${result}`);
     return result;
   }
   
-  private static evaluateProgressive(config: any, userContext: UserContext): boolean {
+  private static evaluateProgressive(config: any, userContext: UserContext,flag_type : flag_type,value : Record<string,any>): boolean | any {
     console.log(`🎯 RolloutEvaluator.evaluateProgressive - Config:`, config);
     
     const { currentStage } = config;
     const identifier = userContext.userId || userContext.email || 'anonymous';
     const hash = this.getUserHash(identifier);
     const result = hash < currentStage.percentage;
-    
+    if (result && (flag_type === "AB_TEST" || flag_type === "MULTIVARIATE")) {
+    const entries = Object.entries(value);
+    const variantHashInput = identifier + JSON.stringify(value); 
+    const hashedNumber = this.getUserHash(variantHashInput);
+    const index = hashedNumber % entries.length;
+
+    return entries[index][1];
+    } 
     console.log(`🎯 RolloutEvaluator.evaluateProgressive - Hash calculation: identifier="${identifier}", hash=${hash}, currentStage.percentage=${currentStage.percentage}, result=${result}`);
     return result;
   }
   
-  private static evaluateCustomProgressive(config: any, userContext: UserContext): boolean {
+  private static evaluateCustomProgressive(config: any, userContext: UserContext,flag_type : flag_type,value : Record<string,any>): boolean | any {
     console.log(`🎯 RolloutEvaluator.evaluateCustomProgressive - Config:`, config);
     
     const { currentStage } = config;
     const identifier = userContext.userId || userContext.email || 'anonymous';
     const hash = this.getUserHash(identifier);
     const result = hash < currentStage.percentage;
-    
+    if (result && (flag_type === "AB_TEST" || flag_type === "MULTIVARIATE")) {
+      const entries = Object.entries(value);
+      const variantHashInput = identifier + JSON.stringify(value); 
+      const hashedNumber = this.getUserHash(variantHashInput);
+      const index = hashedNumber % entries.length;
+
+      return entries[index][1];
+    } 
     console.log(`🎯 RolloutEvaluator.evaluateCustomProgressive - Hash calculation: identifier="${identifier}", hash=${hash}, currentStage.percentage=${currentStage.percentage}, result=${result}`);
     return result;
   }
   
   private static getUserHash(identifier: string): number {
     console.log(`🎯 RolloutEvaluator.getUserHash - Input identifier: "${identifier}"`);
-    
-    // Simple hash function that returns 0-100
-    let hash = 0;
-    for (let i = 0; i < identifier.length; i++) {
-      const char = identifier.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    const result = Math.abs(hash) % 100;
-    
-    console.log(`🎯 RolloutEvaluator.getUserHash - Hash result: ${result}`);
+
+    const hashInstance = MurmurHash3(identifier);
+    const hashValue = hashInstance.result();
+    const result = hashValue % 100;
+
+    console.log(`🎯 RolloutEvaluator.getUserHash - MurmurHash result: ${result}`);
     return result;
   }
-}
+} 
 
 // 7. MAIN EVALUATION LOGIC
 class FeatureFlagEvaluator {
@@ -540,7 +553,9 @@ class FeatureFlagEvaluator {
       const rolloutPassed = RolloutEvaluator.evaluate(
         flagData.rollout_config,
         rollout_type!,
-        request.userContext
+        request.userContext,
+        flagData.flag_type,
+        flagData.value
       );
       
       if (!rolloutPassed) {
@@ -550,11 +565,18 @@ class FeatureFlagEvaluator {
       
       console.log(`🚀 Step 3: Rollout passed`);
       
+      console.log(rolloutPassed);
       // Step 4: Return the flag value
       console.log(`🚀 Step 4: Processing flag value...`);
       const value = getValueStructure(flagData.flag_type, flagData.value);
-      const response = this.createResponse(request, value, 'Rules and rollout matched', matchedRule.name);
-      
+      let response = null;
+      if((flagData.flag_type !== "AB_TEST") &&( flagData.flag_type!== "MULTIVARIATE")){
+        response = this.createResponse(request, value, 'Rules and rollout matched', matchedRule.name);
+      }
+      else {
+        console.log(rolloutPassed);
+        response = this.createResponse(request,rolloutPassed,"Rules and Rollout matched",matchedRule.name);
+      }
       console.log(`🚀 Step 4: Final response:`, response);
       return response;
       

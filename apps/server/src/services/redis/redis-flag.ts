@@ -60,17 +60,9 @@ function generateFlagKey(orgSlug: string, environment: environment_type, flagKey
 async function setFlag(orgSlug: string, environment: environment_type, flagKey: string, value: Redis_Value, flagType: flag_type): Promise<boolean> {
   try {
     const key = generateFlagKey(orgSlug, environment, flagKey);
-    const ttl = FLAG_TTL[flagType] || FLAG_TTL[flag_type.BOOLEAN]; // Default TTL
+    const ttl = FLAG_TTL[flagType] || FLAG_TTL[flag_type.BOOLEAN]; 
     
-    // Serialize value for storage
-    const serializedValue = JSON.stringify({
-      value,
-      type: flagType,
-      timestamp: Date.now(),
-      environment
-    });
-    
-    await redisFlag.setex(key, ttl, serializedValue);
+    await redisFlag.setex(key, ttl, JSON.stringify(value));
     return true;
   } catch (error) {
     console.error('Error setting flag in cache:', error);
@@ -160,14 +152,9 @@ async function getFlag(orgSlug: string, environment: environment_type, flagKey: 
     }
     else{
       console.log("Cached Value Fetched From Get Flag Function");
-      let redisFetchedValue = JSON.parse(cachedValue as string);
-      console.log(redisFetchedValue);
-      console.log(redisFetchedValue.value);
-      flagData = redisFetchedValue.value;
-      console.log(flagData);
+      flagData = JSON.parse(cachedValue as string);
     }
     
-  
     return flagData;
   } catch (error) {
     console.error('Error getting flag from cache:', error);

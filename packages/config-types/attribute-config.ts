@@ -20,7 +20,7 @@ const OPERATORS_BY_TYPE = {
     'less_than', 'less_than_equal', 
   ],
   ARRAY: [
-    'contains', 'not_contains', 'contains_any', 'contains_all',
+    'contains_any', 'contains_all',
     'has_length', 'is_empty', 'is_not_empty'
   ]
 } as const;
