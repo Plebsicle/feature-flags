@@ -203,10 +203,10 @@ class UpdateFlagController {
     updateFlagRule = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            
+            console.log(req.body);
             const parsedBody = validateBody(updateFlagRuleBodySchema,req,res);
             req.body = parsedBody;
-            
+            console.log(req.body);
             if (!this.checkUserAuthorization(req, res)) return;
 
             const {
@@ -214,7 +214,7 @@ class UpdateFlagController {
                 description,  // FR
                 conditions,       // FR
                 name,         // FR
-                isEnabled,        // FR
+                is_enabled,        // FR
                 flag_environment_id,      // For audit logging
             } = req.body;
             console.log(req.body);
@@ -223,9 +223,9 @@ class UpdateFlagController {
             const flagRuleId = ruleId;
             const ruleDescription = description;
             const environment_id  = flag_environment_id;
-            // Get user_id and organisation_id from session
+            const isEnabled = is_enabled;
             const user_id = req.session?.user?.userId;
-            const organisationId = req.session?.user?.userOrganisationId!;
+            
             const { ip, userAgent } = extractAuditInfo(req);
 
             const env = await this.prisma.flag_environments.findUnique({
@@ -394,7 +394,7 @@ class UpdateFlagController {
             }
 
             // Prepare updates object
-            const flagRolloutUpdates: { type?: rollout_type, config?: Record<string, any> } = {};
+            const flagRolloutUpdates: { type?: rollout_type, config?: Record<string, any>,updated_at? : Date } = {};
             if (rollout_config !== undefined) flagRolloutUpdates['config'] = rollout_config;
             if (rollout_type !== undefined) flagRolloutUpdates['type'] = rollout_type;
 
@@ -427,7 +427,7 @@ class UpdateFlagController {
                 }
                 flagRolloutUpdates['config'] = rollout_config;
             }
-
+            flagRolloutUpdates['updated_at'] = new Date();
             const result = await this.prisma.$transaction(async (tx: any) => {
                 // Get current values before update
                 const currentFlagRollout = await tx.flag_rollout.findUnique({

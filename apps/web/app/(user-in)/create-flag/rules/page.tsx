@@ -10,13 +10,17 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { DateTimePicker } from "@/components/ui/datetime-picker"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
-import { ArrowRight, ArrowLeft, Plus, X, Target, Info, ChevronDown, Check } from "lucide-react"
+import { ArrowRight, ArrowLeft, Plus, X, Target, Info, ChevronDown, Check, Calendar as CalendarIcon, Clock } from "lucide-react"
 import { Toaster, toast } from 'react-hot-toast'
 import { format } from 'date-fns'
+import { DayPicker } from 'react-day-picker'
+import { cn } from "@/lib/utils"
+import * as semver from 'semver'
+import { LightDateTimePicker } from '@/components/LightDateTimePicker'
 
 const dataTypeOptions: { value: DataType; label: string }[] = [
   { value: 'STRING', label: 'String' },
@@ -179,9 +183,8 @@ export default function RulesPage() {
         return trimmedValue
       
       case 'SEMVER':
-        // Validate semantic version format
-        const semverRegex = /^\d+\.\d+\.\d+(-[a-zA-Z0-9-.]+)?(\+[a-zA-Z0-9-.]+)?$/
-        if (!semverRegex.test(trimmedValue)) {
+        // Validate semantic version format using semver library
+        if (!semver.valid(trimmedValue)) {
           toast.error('Please enter a valid semantic version (e.g., 1.0.0)')
           return null
         }
@@ -243,15 +246,12 @@ export default function RulesPage() {
     const condition = state.rules.conditions[conditionIndex]
     if (!condition) return
 
-    const dateString = format(date, "PPP HH:mm")
-    
-    // Check for duplicates
-    if (condition.attribute_values.includes(dateString)) {
-      toast.error('This date has already been added')
-      return
-    }
+    const dateString = date.toISOString()
+    console.log('Rules page - Date selected:', date)
+    console.log('Rules page - ISO string stored:', dateString)
 
-    const newValues = [...condition.attribute_values, dateString]
+    // For DATE, only allow one value (replace existing)
+    const newValues = [dateString]
     updateCondition(conditionIndex, { attribute_values: newValues })
   }
 
@@ -291,6 +291,7 @@ export default function RulesPage() {
 
   const handleNext = () => {
     if (validateForm()) {
+      console.log('Rules page - Validation passed, rules data:', JSON.stringify(state.rules, null, 2))
       // Preserve the flagKey parameter when navigating if in environment creation mode
       const flagKey = searchParams?.get('flagKey')
       if (state.isCreatingEnvironmentOnly && flagKey) {
@@ -593,9 +594,9 @@ export default function RulesPage() {
                             </Label>
                             <div className="space-y-2">
                               {condition.attribute_type === 'DATE' ? (
-                                <DateTimePicker
+                                <LightDateTimePicker
                                   value={undefined}
-                                  onChange={(date) => addDateValue(index, date)}
+                                  onChange={(date: Date | undefined) => addDateValue(index, date)}
                                   placeholder={getValuePlaceholder(condition.attribute_type)}
                                   className="w-full h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white rounded-md"
                                 />

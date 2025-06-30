@@ -81,7 +81,7 @@ export const updateFlagRuleBodySchema = z.object({
   description: z.string().optional(),
   conditions: z.array(z.any()).optional(),
   name: z.string().optional(),
-  isEnabled: z.boolean().optional(),
+  is_enabled: z.boolean().optional(),
   flag_environment_id: z.string().uuid("Invalid rule ID format")
 });
 

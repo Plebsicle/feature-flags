@@ -56,12 +56,16 @@ export default function CreateKillSwitchPage() {
 
   // Function to auto-generate killSwitchKey from name
   const generateKillSwitchKey = (name: string): string => {
-    return name
+    const baseKey = name
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, '') // Remove special characters except spaces
       .replace(/\s+/g, '-') // Replace spaces with hyphens
       .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
       .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+    
+    // Add 6-digit random suffix
+    const suffix = Math.floor(100000 + Math.random() * 900000);
+    return baseKey ? `${baseKey}-${suffix}` : `kill-switch-${suffix}`;
   };
 
   // Handlers
@@ -75,10 +79,6 @@ export default function CreateKillSwitchPage() {
       }
       return updated;
     });
-  };
-
-  const handleKillSwitchKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, killSwitchKey: e.target.value }));
   };
 
   const addFlag = () => {
@@ -193,18 +193,18 @@ export default function CreateKillSwitchPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="killSwitchKey">Kill Switch Key</Label>
+                <Label htmlFor="killSwitchKey">Kill Switch Key (auto-generated)</Label>
                 <Input
                   id="killSwitchKey"
                   name="killSwitchKey"
                   value={form.killSwitchKey}
-                  onChange={handleKillSwitchKeyChange}
-                  className="mt-1"
-                  placeholder="Auto-generated from name (editable)"
+                  readOnly
+                  className="mt-1 bg-gray-50 border-gray-300 text-gray-600 cursor-not-allowed"
+                  placeholder="Auto-generated from name with unique suffix"
                   required
                 />
                 <p className="text-xs text-gray-600 mt-1">
-                  Auto-generated from name. You can edit this key if needed.
+                  Auto-generated from name with a unique 6-digit suffix. This key cannot be edited.
                 </p>
               </div>
               <div>

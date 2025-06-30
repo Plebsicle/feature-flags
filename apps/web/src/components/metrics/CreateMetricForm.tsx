@@ -73,13 +73,17 @@ export default function CreateMetricForm() {
 
   // Function to generate metric key from metric name
   const generateMetricKey = (name: string): string => {
-    return name
+    const baseKey = name
       .toLowerCase()
       .replace(/[^a-z0-9\s]/g, '') // Remove special characters except spaces
       .trim()
-      .replace(/\s+/g, '-') // Replace spaces with underscores
-      .replace(/-+/g, '-') // Replace multiple underscores with single
-      .replace(/^_|_$/g, '') // Remove leading/trailing underscores
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+    
+    // Add 6-digit random suffix
+    const suffix = Math.floor(100000 + Math.random() * 900000);
+    return baseKey ? `${baseKey}-${suffix}` : `metric-${suffix}`;
   }
 
   const handleInputChange = (field: keyof FormData, value: any) => {
@@ -305,18 +309,18 @@ export default function CreateMetricForm() {
               
               <div className="space-y-2">
                 <Label htmlFor="metric_key" className="text-gray-900 font-medium">
-                  Metric Key *
+                  Metric Key (auto-generated)
                 </Label>
                 <Input
                   id="metric_key"
                   type="text"
                   value={formData.metric_key}
-                  onChange={(e) => handleInputChange('metric_key', e.target.value)}
-                  placeholder="e.g., user-signups"
-                  required
+                  readOnly
+                  placeholder="e.g., user-signups-123456"
+                  className="bg-gray-50 border-gray-300 text-gray-600 cursor-not-allowed"
                 />
                 <p className="text-xs text-gray-500">
-                  A unique identifier for tracking this metric
+                  A unique identifier automatically generated from the metric name with a unique suffix
                 </p>
               </div>
             </div>

@@ -158,9 +158,16 @@ async function getFlag(orgSlug: string, environment: environment_type, flagKey: 
         flagData = objectToPush;
         await setFlag(orgSlug,environment,flagKey,objectToPush,flagFromDB.flag_type);
     }
-    else
-    flagData = JSON.parse(cachedValue as string);
-
+    else{
+      console.log("Cached Value Fetched From Get Flag Function");
+      let redisFetchedValue = JSON.parse(cachedValue as string);
+      console.log(redisFetchedValue);
+      console.log(redisFetchedValue.value);
+      flagData = redisFetchedValue.value;
+      console.log(flagData);
+    }
+    
+  
     return flagData;
   } catch (error) {
     console.error('Error getting flag from cache:', error);

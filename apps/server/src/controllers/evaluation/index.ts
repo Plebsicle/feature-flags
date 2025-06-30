@@ -3,8 +3,9 @@ import { Condition } from "@repo/types/rule-config";
 import { getFlagWithKillSwitches } from "../../services/redis/killSwitchCaching";
 import { environment_type, PrismaClient } from "@repo/db/client";
 import { RolloutConfig } from "@repo/types/rollout-config";
-import { RedisCacheRules } from "../../services/redis/redis-flag";
+import { Redis_Value, RedisCacheRules } from "../../services/redis/redis-flag";
 import express from 'express'
+import * as semver from 'semver'
 import { evaluationRequestBodySchema, validateBody } from '../../util/zod';
 
 interface UserContext {
@@ -42,30 +43,43 @@ interface EvaluationResponse {
 
 // 4. VALUE STRUCTURE BASED ON FLAG TYPE
 function getValueStructure(flagType: string, storedValue: any): any {
+  console.log(`🔧 getValueStructure - flagType: ${flagType}, storedValue:`, storedValue);
+  
+  let result;
   switch (flagType) {
     case 'BOOLEAN':
-      return typeof storedValue === 'boolean' ? storedValue : false;
+      result = typeof storedValue === 'boolean' ? storedValue : false;
+      break;
     
     case 'STRING':
-      return typeof storedValue === 'string' ? storedValue : '';
+      result = typeof storedValue === 'string' ? storedValue : '';
+      break;
     
     case 'NUMBER':
-      return typeof storedValue === 'number' ? storedValue : 0;
+      result = typeof storedValue === 'number' ? storedValue : 0;
+      break;
     
     case 'JSON':
-      return storedValue || {};
+      result = storedValue || {};
+      break;
     
     case 'AB_TEST':
       // Expected format: { control: any, treatment: any }
-      return storedValue || { control: null, treatment: null };
+      result = storedValue || { control: null, treatment: null };
+      break;
     
     case 'MULTIVARIATE':
       // Expected format: { variation1: any, variation2: any, ... }
-      return storedValue || {};
+      result = storedValue || {};
+      break;
     
     default:
-      return storedValue;
+      result = storedValue;
+      break;
   }
+  
+  console.log(`🔧 getValueStructure - result:`, result);
+  return result;
 }
 
 // 5. CONDITION VALIDATION LOGIC
@@ -73,214 +87,383 @@ class ConditionValidator {
   static validate(condition: Condition, userContext: UserContext): boolean {
     const { attribute_name, attribute_type, attribute_values, operator_selected } = condition;
     
+    console.log(`📋 ConditionValidator.validate - Starting validation for condition:`, {
+      attribute_name,
+      attribute_type,
+      operator_selected,
+      attribute_values
+    });
+    
     // Get the actual value from user context
     const userValue = userContext[attribute_name];
+    console.log(`📋 ConditionValidator.validate - User value for '${attribute_name}':`, userValue);
     
     // Handle missing attribute
     if (userValue === undefined || userValue === null) {
-      return this.handleMissingValue(operator_selected);
+      console.log(`📋 ConditionValidator.validate - Missing value detected for '${attribute_name}'`);
+      const result = this.handleMissingValue(operator_selected);
+      console.log(`📋 ConditionValidator.validate - Missing value result: ${result}`);
+      return result;
     }
     
     // Validate based on attribute type and operator
-    return this.evaluateCondition(userValue, attribute_type, operator_selected, attribute_values);
+    const result = this.evaluateCondition(userValue, attribute_type, operator_selected, attribute_values);
+    console.log(`📋 ConditionValidator.validate - Final result: ${result}`);
+    return result;
   }
   
   private static handleMissingValue(operator: string): boolean {
+    console.log(`📋 ConditionValidator.handleMissingValue - operator: ${operator}`);
     // These operators should return true when value is missing
     const missingValueTrueOps = ['is_not_one_of', 'not_equals', 'not_contains', 'is_empty'];
-    return missingValueTrueOps.includes(operator);
+    const result = missingValueTrueOps.includes(operator);
+    console.log(`📋 ConditionValidator.handleMissingValue - result: ${result}`);
+    return result;
   }
   
   private static evaluateCondition(
     userValue: any, 
     attributeType: DataType, 
     operator: string, 
-    expectedValues: any[]
+    expectedValues: any
   ): boolean {
+    console.log(`📋 ConditionValidator.evaluateCondition - Input:`, {
+      userValue,
+      attributeType,
+      operator,
+      expectedValues
+    });
+    
+    let result = false;
     switch (attributeType) {
       case 'STRING':
-        return this.evaluateStringCondition(userValue, operator, expectedValues);
+        result = this.evaluateStringCondition(userValue, operator, expectedValues);
+        break;
       case 'NUMBER':
-        return this.evaluateNumberCondition(userValue, operator, expectedValues);
+        result = this.evaluateNumberCondition(userValue, operator, expectedValues);
+        break;
       case 'BOOLEAN':
-        return this.evaluateBooleanCondition(userValue, operator);
+        result = this.evaluateBooleanCondition(userValue, operator);
+        break;
       case 'DATE':
-        return this.evaluateDateCondition(userValue, operator, expectedValues);
+        result = this.evaluateDateCondition(userValue, operator, expectedValues);
+        break;
       case 'SEMVER':
-        return this.evaluateSemverCondition(userValue, operator, expectedValues);
+        result = this.evaluateSemverCondition(userValue, operator, expectedValues);
+        break;
       case 'ARRAY':
-        return this.evaluateArrayCondition(userValue, operator, expectedValues);
+        result = this.evaluateArrayCondition(userValue, operator, expectedValues);
+        break;
       default:
-        return false;
+        console.log(`📋 ConditionValidator.evaluateCondition - Unknown attribute type: ${attributeType}`);
+        result = false;
     }
+    
+    console.log(`📋 ConditionValidator.evaluateCondition - Result: ${result}`);
+    return result;
   }
   
-  private static evaluateStringCondition(value: string, operator: string, expected: any[]): boolean {
+  private static evaluateStringCondition(value: string, operator: string, expected: string): boolean {
     const str = String(value).toLowerCase();
-    const expectedStr = expected[0] ? String(expected[0]).toLowerCase() : '';
+    const expectedStr = expected ? String(expected).toLowerCase() : '';
     
+    console.log(`📋 ConditionValidator.evaluateStringCondition - str: "${str}", operator: ${operator}, expectedStr: "${expectedStr}"`);
+    
+    let result = false;
     switch (operator) {
-      case 'equals': return str === expectedStr;
-      case 'not_equals': return str !== expectedStr;
-      case 'contains': return str.includes(expectedStr);
-      case 'not_contains': return !str.includes(expectedStr);
-      case 'starts_with': return str.startsWith(expectedStr);
-      case 'ends_with': return str.endsWith(expectedStr);
-      case 'is_one_of': return expected.map(v => String(v).toLowerCase()).includes(str);
-      case 'is_not_one_of': return !expected.map(v => String(v).toLowerCase()).includes(str);
+      case 'equals': result = str === expectedStr; break;
+      case 'not_equals': result = str !== expectedStr; break;
+      case 'contains': result = str.includes(expectedStr); break;
+      case 'not_contains': result = !str.includes(expectedStr); break;
+      case 'starts_with': result = str.startsWith(expectedStr); break;
+      case 'ends_with': result = str.endsWith(expectedStr); break;
       case 'matches_regex': 
         try {
-          return new RegExp(expectedStr).test(str);
-        } catch {
-          return false;
+          result = new RegExp(expectedStr).test(str);
+          console.log(`📋 ConditionValidator.evaluateStringCondition - regex test: /${expectedStr}/.test("${str}") = ${result}`);
+        } catch (error) {
+          console.log(`📋 ConditionValidator.evaluateStringCondition - regex error:`, error);
+          result = false;
         }
-      default: return false;
+        break;
+      default: 
+        console.log(`📋 ConditionValidator.evaluateStringCondition - Unknown operator: ${operator}`);
+        result = false;
     }
+    
+    console.log(`📋 ConditionValidator.evaluateStringCondition - Final result: ${result}`);
+    return result;
   }
   
-  private static evaluateNumberCondition(value: any, operator: string, expected: any[]): boolean {
+  private static evaluateNumberCondition(value: any, operator: string, expected: number): boolean {
     const num = Number(value);
-    const expectedNum = Number(expected[0]);
+    const expectedNum = Number(expected);
     
-    if (isNaN(num) || isNaN(expectedNum)) return false;
+    console.log(`📋 ConditionValidator.evaluateNumberCondition - num: ${num}, operator: ${operator}, expectedNum: ${expectedNum}`);
     
-    switch (operator) {
-      case 'equals': return num === expectedNum;
-      case 'not_equals': return num !== expectedNum;
-      case 'greater_than': return num > expectedNum;
-      case 'greater_than_equal': return num >= expectedNum;
-      case 'less_than': return num < expectedNum;
-      case 'less_than_equal': return num <= expectedNum;
-      case 'is_one_of': return expected.map(Number).includes(num);
-      case 'is_not_one_of': return !expected.map(Number).includes(num);
-      default: return false;
-    }
-  }
-  
-  private static evaluateBooleanCondition(value: any, operator: string): boolean {
-    const bool = Boolean(value);
-    switch (operator) {
-      case 'is_true': return bool === true;
-      case 'is_false': return bool === false;
-      default: return false;
-    }
-  }
-  
-  private static evaluateDateCondition(value: any, operator: string, expected: any[]): boolean {
-    const date = new Date(value);
-    const expectedDate = new Date(expected[0]);
-    
-    if (isNaN(date.getTime()) || isNaN(expectedDate.getTime())) return false;
-    
-    switch (operator) {
-      case 'equals': return date.getTime() === expectedDate.getTime();
-      case 'not_equals': return date.getTime() !== expectedDate.getTime();
-      case 'before': return date < expectedDate;
-      case 'after': return date > expectedDate;
-      case 'before_or_equal': return date <= expectedDate;
-      case 'after_or_equal': return date >= expectedDate;
-      case 'between':
-        if (expected.length < 2) return false;
-        const startDate = new Date(expected[0]);
-        const endDate = new Date(expected[1]);
-        return date >= startDate && date <= endDate;
-      default: return false;
-    }
-  }
-  
-  private static evaluateSemverCondition(value: string, operator: string, expected: any[]): boolean {
-    // Basic semver comparison (you might want to use a proper semver library)
-    const parseVersion = (v: string) => v.split('.').map(Number);
-    const compareVersions = (a: number[], b: number[]): number => {
-      for (let i = 0; i < Math.max(a.length, b.length); i++) {
-        const aVal = a[i] || 0;
-        const bVal = b[i] || 0;
-        if (aVal !== bVal) return aVal - bVal;
-      }
-      return 0;
-    };
-    
-    try {
-      const userVersion = parseVersion(value);
-      const expectedVersion = parseVersion(expected[0]);
-      const comparison = compareVersions(userVersion, expectedVersion);
-      
-      switch (operator) {
-        case 'equals': return comparison === 0;
-        case 'not_equals': return comparison !== 0;
-        case 'greater_than': return comparison > 0;
-        case 'greater_than_equal': return comparison >= 0;
-        case 'less_than': return comparison < 0;
-        case 'less_than_equal': return comparison <= 0;
-        case 'is_one_of': return expected.some(exp => compareVersions(userVersion, parseVersion(exp)) === 0);
-        case 'is_not_one_of': return !expected.some(exp => compareVersions(userVersion, parseVersion(exp)) === 0);
-        default: return false;
-      }
-    } catch {
+    if (isNaN(num) || isNaN(expectedNum)) {
+      console.log(`📋 ConditionValidator.evaluateNumberCondition - NaN detected: num isNaN: ${isNaN(num)}, expectedNum isNaN: ${isNaN(expectedNum)}`);
       return false;
     }
+    
+    let result = false;
+    switch (operator) {
+      case 'equals': result = num === expectedNum; break;
+      case 'not_equals': result = num !== expectedNum; break;
+      case 'greater_than': result = num > expectedNum; break;
+      case 'greater_than_equal': result = num >= expectedNum; break;
+      case 'less_than': result = num < expectedNum; break;
+      case 'less_than_equal': result = num <= expectedNum; break;
+      default: 
+        console.log(`📋 ConditionValidator.evaluateNumberCondition - Unknown operator: ${operator}`);
+        result = false;
+    }
+    
+    console.log(`📋 ConditionValidator.evaluateNumberCondition - Final result: ${result}`);
+    return result;
   }
   
-  private static evaluateArrayCondition(value: any, operator: string, expected: any[]): boolean {
-    if (!Array.isArray(value)) return false;
+  private static evaluateBooleanCondition(value: boolean, operator: string): boolean {
+    const bool = Boolean(value);
+    console.log(`📋 ConditionValidator.evaluateBooleanCondition - bool: ${bool}, operator: ${operator}`);
     
+    let result = false;
     switch (operator) {
-      case 'contains': return value.includes(expected[0]);
-      case 'not_contains': return !value.includes(expected[0]);
-      case 'contains_any': return expected.some(exp => value.includes(exp));
-      case 'contains_all': return expected.every(exp => value.includes(exp));
-      case 'has_length': return value.length === Number(expected[0]);
-      case 'is_empty': return value.length === 0;
-      case 'is_not_empty': return value.length > 0;
-      default: return false;
+      case 'is_true': result = bool === true; break;
+      case 'is_false': result = bool === false; break;
+      default: 
+        console.log(`📋 ConditionValidator.evaluateBooleanCondition - Unknown operator: ${operator}`);
+        result = false;
     }
+    
+    console.log(`📋 ConditionValidator.evaluateBooleanCondition - Final result: ${result}`);
+    return result;
+  }
+  
+  private static evaluateDateCondition(value: any, operator: string, expected: string): boolean {
+  try {
+    const date = new Date(value);
+    const expectedDate = new Date(expected);
+
+    console.log(`📋 ConditionValidator.evaluateDateCondition - date: ${date.toISOString()}, operator: ${operator}, expectedDate: ${expectedDate.toISOString()}`);
+
+    if (isNaN(date.getTime()) || isNaN(expectedDate.getTime())) {
+      console.warn(`⚠️ Invalid date detected - value: ${value}, expected: ${expected}`);
+      return false;
+    }
+
+    let result = false;
+
+    switch (operator) {
+      case 'equals':
+        result = date.getTime() === expectedDate.getTime();
+        break;
+      case 'not_equals':
+        result = date.getTime() !== expectedDate.getTime();
+        break;
+      case 'before':
+        result = date.getTime() < expectedDate.getTime();
+        break;
+      case 'after':
+        result = date.getTime() > expectedDate.getTime();
+        break;
+      case 'before_or_equal':
+        result = date.getTime() <= expectedDate.getTime();
+        break;
+      case 'after_or_equal':
+        result = date.getTime() >= expectedDate.getTime();
+        break;
+      default:
+        console.warn(`⚠️ Unknown operator: '${operator}'`);
+        return false;
+    }
+
+    console.log(`✅ ConditionValidator.evaluateDateCondition - Final result: ${result}`);
+    return result;
+  } catch (err) {
+    console.error(`❌ ConditionValidator.evaluateDateCondition - Error occurred:`, err);
+    return false;
+  }
+}
+
+  
+  private static evaluateSemverCondition(value: string, operator: string, expected: string): boolean {
+  console.log(`📋 evaluateSemverCondition - value: ${value}, operator: ${operator}, expected: ${expected}`);
+  
+  try {
+    if (!semver.valid(value) || !semver.valid(expected)) {
+      console.warn(`⚠️ Invalid semver value(s): value='${value}', expected='${expected}'`);
+      return false;
+    }
+
+    let result = false;
+
+    switch (operator) {
+      case 'equals':
+        result = semver.eq(value, expected);
+        break;
+      case 'not_equals':
+        result = semver.neq(value, expected);
+        break;
+      case 'greater_than':
+        result = semver.gt(value, expected);
+        break;
+      case 'greater_than_equal':
+        result = semver.gte(value, expected);
+        break;
+      case 'less_than':
+        result = semver.lt(value, expected);
+        break;
+      case 'less_than_equal':
+        result = semver.lte(value, expected);
+        break;
+      default:
+        console.warn(`⚠️ Unknown operator: '${operator}'`);
+        return false;
+    }
+
+    console.log(`✅ evaluateSemverCondition - comparison result: ${result}`);
+    return result;
+  } catch (err) {
+    console.error(`❌ evaluateSemverCondition - error occurred:`, err);
+    return false;
+  }
+}
+  
+  private static evaluateArrayCondition(value: any, operator: string, expected: any[]): boolean {
+    console.log(`📋 ConditionValidator.evaluateArrayCondition - value:`, value, `operator: ${operator}, expected:`, expected);
+    
+    if (!Array.isArray(value)) {
+      console.log(`📋 ConditionValidator.evaluateArrayCondition - Value is not an array`);
+      return false;
+    }
+    
+    let result = false;
+    switch (operator) {
+      case 'contains': 
+        result = value.includes(expected[0]);
+        console.log(`📋 ConditionValidator.evaluateArrayCondition - contains check: array includes ${expected[0]} = ${result}`);
+        break;
+      case 'not_contains': 
+        result = !value.includes(expected[0]);
+        console.log(`📋 ConditionValidator.evaluateArrayCondition - not_contains check: array not includes ${expected[0]} = ${result}`);
+        break;
+      case 'contains_any': 
+        result = expected.some(exp => value.includes(exp));
+        console.log(`📋 ConditionValidator.evaluateArrayCondition - contains_any check: ${result}`);
+        break;
+      case 'contains_all': 
+        result = expected.every(exp => value.includes(exp));
+        console.log(`📋 ConditionValidator.evaluateArrayCondition - contains_all check: ${result}`);
+        break;
+      case 'has_length': 
+        result = value.length === Number(expected[0]);
+        console.log(`📋 ConditionValidator.evaluateArrayCondition - has_length check: ${value.length} === ${Number(expected[0])} = ${result}`);
+        break;
+      case 'is_empty': 
+        result = value.length === 0;
+        console.log(`📋 ConditionValidator.evaluateArrayCondition - is_empty check: length ${value.length} === 0 = ${result}`);
+        break;
+      case 'is_not_empty': 
+        result = value.length > 0;
+        console.log(`📋 ConditionValidator.evaluateArrayCondition - is_not_empty check: length ${value.length} > 0 = ${result}`);
+        break;
+      default: 
+        console.log(`📋 ConditionValidator.evaluateArrayCondition - Unknown operator: ${operator}`);
+        result = false;
+    }
+    
+    console.log(`📋 ConditionValidator.evaluateArrayCondition - Final result: ${result}`);
+    return result;
   }
 }
 
 // 6. ROLLOUT EVALUATION LOGIC
 class RolloutEvaluator {
   static evaluate(rolloutConfig: RolloutConfig, rolloutType: string, userContext: UserContext): boolean {
-    if (!rolloutConfig) return true; // No rollout = 100% enabled
+    console.log(`🎯 RolloutEvaluator.evaluate - Starting rollout evaluation:`, {
+      rolloutType,
+      rolloutConfig,
+      userContext: { userId: userContext.userId, email: userContext.email }
+    });
     
+    if (!rolloutConfig) {
+      console.log(`🎯 RolloutEvaluator.evaluate - No rollout config, returning true (100% enabled)`);
+      return true; // No rollout = 100% enabled
+    }
+    
+    let result = false;
     switch (rolloutType) {
       case 'PERCENTAGE':
-        return this.evaluatePercentage(rolloutConfig, userContext);
+        result = this.evaluatePercentage(rolloutConfig, userContext);
+        break;
       case 'PROGRESSIVE_ROLLOUT':
-        return this.evaluateProgressive(rolloutConfig, userContext);
+        result = this.evaluateProgressive(rolloutConfig, userContext);
+        break;
       case 'CUSTOM_PROGRESSIVE_ROLLOUT':
-        return this.evaluateCustomProgressive(rolloutConfig, userContext);
+        result = this.evaluateCustomProgressive(rolloutConfig, userContext);
+        break;
       default:
-        return true;
+        console.log(`🎯 RolloutEvaluator.evaluate - Unknown rollout type: ${rolloutType}, defaulting to true`);
+        result = true;
     }
+    
+    console.log(`🎯 RolloutEvaluator.evaluate - Final rollout result: ${result}`);
+    return result;
   }
   
   private static evaluatePercentage(config: any, userContext: UserContext): boolean {
+    console.log(`🎯 RolloutEvaluator.evaluatePercentage - Config:`, config);
+    
     const { percentage, startDate, endDate } = config;
     const now = new Date();
     const start = new Date(startDate);
     const end = new Date(endDate);
     
+    console.log(`🎯 RolloutEvaluator.evaluatePercentage - Date check: ${start} <= ${now} <= ${end}`);
+    
     // Check if we're within the date range
-    if (now < start || now > end) return false;
+    if (now < start || now > end) {
+      console.log(`🎯 RolloutEvaluator.evaluatePercentage - Outside date range, returning false`);
+      return false;
+    }
     
     // Use consistent hashing based on userId
-    const hash = this.getUserHash(userContext.userId || userContext.email || 'anonymous');
-    return hash < percentage;
+    const identifier = userContext.userId || userContext.email || 'anonymous';
+    const hash = this.getUserHash(identifier);
+    const result = hash < percentage;
+    
+    console.log(`🎯 RolloutEvaluator.evaluatePercentage - Hash calculation: identifier="${identifier}", hash=${hash}, percentage=${percentage}, result=${result}`);
+    return result;
   }
   
   private static evaluateProgressive(config: any, userContext: UserContext): boolean {
+    console.log(`🎯 RolloutEvaluator.evaluateProgressive - Config:`, config);
+    
     const { currentStage } = config;
-    const hash = this.getUserHash(userContext.userId || userContext.email || 'anonymous');
-    return hash < currentStage.percentage;
+    const identifier = userContext.userId || userContext.email || 'anonymous';
+    const hash = this.getUserHash(identifier);
+    const result = hash < currentStage.percentage;
+    
+    console.log(`🎯 RolloutEvaluator.evaluateProgressive - Hash calculation: identifier="${identifier}", hash=${hash}, currentStage.percentage=${currentStage.percentage}, result=${result}`);
+    return result;
   }
   
   private static evaluateCustomProgressive(config: any, userContext: UserContext): boolean {
+    console.log(`🎯 RolloutEvaluator.evaluateCustomProgressive - Config:`, config);
+    
     const { currentStage } = config;
-    const hash = this.getUserHash(userContext.userId || userContext.email || 'anonymous');
-    return hash < currentStage.percentage;
+    const identifier = userContext.userId || userContext.email || 'anonymous';
+    const hash = this.getUserHash(identifier);
+    const result = hash < currentStage.percentage;
+    
+    console.log(`🎯 RolloutEvaluator.evaluateCustomProgressive - Hash calculation: identifier="${identifier}", hash=${hash}, currentStage.percentage=${currentStage.percentage}, result=${result}`);
+    return result;
   }
   
   private static getUserHash(identifier: string): number {
+    console.log(`🎯 RolloutEvaluator.getUserHash - Input identifier: "${identifier}"`);
+    
     // Simple hash function that returns 0-100
     let hash = 0;
     for (let i = 0; i < identifier.length; i++) {
@@ -288,29 +471,60 @@ class RolloutEvaluator {
       hash = ((hash << 5) - hash) + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
-    return Math.abs(hash) % 100;
+    const result = Math.abs(hash) % 100;
+    
+    console.log(`🎯 RolloutEvaluator.getUserHash - Hash result: ${result}`);
+    return result;
   }
 }
 
 // 7. MAIN EVALUATION LOGIC
 class FeatureFlagEvaluator {
   static async evaluate(request: EvaluationRequest): Promise<EvaluationResponse> {
+    console.log(`🚀 FeatureFlagEvaluator.evaluate - Starting evaluation for request:`, {
+      flagKey: request.flagKey,
+      environment: request.environment,
+      orgSlug: request.orgSlug,
+      userContext: request.userContext
+    });
+    
     try {
       // Step 1: Get flag and environment data from database
+      console.log(`🚀 Step 1: Getting flag data from database...`);
       const flagData = await this.getFlagData(request.flagKey, request.environment, request.orgSlug);
       
+      console.log(`🚀 Step 1: Flag data retrieved:`, {
+        flagExists: !!flagData,
+        is_active: flagData?.is_active,
+        is_environment_active: flagData?.is_environment_active,
+        flag_type: flagData?.flag_type,
+        default_value: flagData?.default_value,
+        value: flagData?.value,
+        rulesCount: flagData?.rules?.length || 0
+      });
+      
       if (!flagData || !flagData.is_active || !flagData.is_environment_active) {
+        console.log(`🚀 Step 1: Flag disabled or not found, returning default`);
         return this.createResponse(request, flagData?.default_value, 'Flag disabled or not found');
       }
       
       // Step 2: Check rules (OR between rules, AND between conditions)
+      console.log(`🚀 Step 2: Evaluating rules...`);
       const matchedRule = await this.evaluateRules(flagData.rules, request.userContext);
       
       if (!matchedRule) {
+        console.log(`🚀 Step 2: No rules matched, returning default`);
         return this.createResponse(request, flagData.default_value, 'No rules matched');
       }
       
+      console.log(`🚀 Step 2: Rule matched:`, {
+        ruleName: matchedRule.name,
+        ruleId: matchedRule.rule_id,
+        isEnabled: matchedRule.is_enabled
+      });
+      
       // Step 3: Check rollout
+      console.log(`🚀 Step 3: Determining rollout type...`);
       let rollout_type;
       if("percentage" in flagData.rollout_config){
         rollout_type = 'PERCENTAGE'
@@ -320,6 +534,8 @@ class FeatureFlagEvaluator {
       }
       else rollout_type = 'PROGRESSIVE_ROLLOUT'
       
+      console.log(`🚀 Step 3: Rollout type determined: ${rollout_type}`);
+      console.log(`🚀 Step 3: Rollout config:`, flagData.rollout_config);
 
       const rolloutPassed = RolloutEvaluator.evaluate(
         flagData.rollout_config,
@@ -328,37 +544,80 @@ class FeatureFlagEvaluator {
       );
       
       if (!rolloutPassed) {
+        console.log(`🚀 Step 3: Rollout percentage not met, returning default`);
         return this.createResponse(request, flagData.default_value, 'Rollout percentage not met');
       }
       
+      console.log(`🚀 Step 3: Rollout passed`);
+      
       // Step 4: Return the flag value
+      console.log(`🚀 Step 4: Processing flag value...`);
       const value = getValueStructure(flagData.flag_type, flagData.value);
-      return this.createResponse(request, value, 'Rules and rollout matched', matchedRule.name);
+      const response = this.createResponse(request, value, 'Rules and rollout matched', matchedRule.name);
+      
+      console.log(`🚀 Step 4: Final response:`, response);
+      return response;
       
     } catch (error) {
-      console.error('Flag evaluation error:', error);
+      console.error('🚨 Flag evaluation error:', error);
+      console.error('🚨 Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       return this.createResponse(request, null, 'Evaluation error');
     }
   }
   
   private static async evaluateRules(rules: RedisCacheRules[], userContext: UserContext): Promise<RedisCacheRules | null> {
+    console.log(`🔍 FeatureFlagEvaluator.evaluateRules - Starting rule evaluation with ${rules.length} rules`);
+    
     // OR between rules - if any rule matches, return it
-    for (const rule of rules) {
-      if (!rule.is_enabled) continue;
+    for (let i = 0; i < rules.length; i++) {
+      const rule = rules[i];
+      console.log(`🔍 FeatureFlagEvaluator.evaluateRules - Evaluating rule ${i + 1}/${rules.length}:`, {
+        ruleName: rule.name,
+        ruleId: rule.rule_id,
+        is_enabled: rule.is_enabled,
+        conditionsCount: rule.conditions?.length || 0
+      });
+      
+      if (!rule.is_enabled) {
+        console.log(`🔍 FeatureFlagEvaluator.evaluateRules - Rule ${i + 1} is disabled, skipping`);
+        continue;
+      }
       
       const conditions = rule.conditions as Condition[];
-      if (!conditions || conditions.length === 0) continue;
+      if (!conditions || conditions.length === 0) {
+        console.log(`🔍 FeatureFlagEvaluator.evaluateRules - Rule ${i + 1} has no conditions, skipping`);
+        continue;
+      }
+      
+      console.log(`🔍 FeatureFlagEvaluator.evaluateRules - Rule ${i + 1} has ${conditions.length} conditions, evaluating...`);
       
       // AND between conditions within a rule
-      const allConditionsMet = conditions.every(condition => 
-        ConditionValidator.validate(condition, userContext)
-      );
+      const conditionResults = [];
+      for (let j = 0; j < conditions.length; j++) {
+        const condition = conditions[j];
+        console.log(`🔍 FeatureFlagEvaluator.evaluateRules - Evaluating condition ${j + 1}/${conditions.length} for rule ${i + 1}`);
+        
+        const conditionResult = ConditionValidator.validate(condition, userContext);
+        conditionResults.push(conditionResult);
+        
+        console.log(`🔍 FeatureFlagEvaluator.evaluateRules - Condition ${j + 1} result: ${conditionResult}`);
+        
+        if (!conditionResult) {
+          console.log(`🔍 FeatureFlagEvaluator.evaluateRules - Condition ${j + 1} failed, rule ${i + 1} will not match`);
+          break; // Early exit if any condition fails
+        }
+      }
+      
+      const allConditionsMet = conditionResults.every(result => result === true);
+      console.log(`🔍 FeatureFlagEvaluator.evaluateRules - Rule ${i + 1} all conditions met: ${allConditionsMet}`, conditionResults);
       
       if (allConditionsMet) {
+        console.log(`🔍 FeatureFlagEvaluator.evaluateRules - Rule ${i + 1} matched! Returning rule`);
         return rule; // First matching rule wins
       }
     }
     
+    console.log(`🔍 FeatureFlagEvaluator.evaluateRules - No rules matched`);
     return null; // No rules matched
   }
   
@@ -368,7 +627,16 @@ class FeatureFlagEvaluator {
     reason: string, 
     ruleName?: string
   ): EvaluationResponse {
-    return {
+    console.log(`📝 FeatureFlagEvaluator.createResponse - Creating response:`, {
+      flagKey: request.flagKey,
+      environment: request.environment,
+      value,
+      reason,
+      ruleName,
+      enabled: value !== null
+    });
+    
+    const response = {
       flagKey: request.flagKey,
       environment: request.environment,
       value: value,
@@ -377,33 +645,90 @@ class FeatureFlagEvaluator {
       ruleMatched: ruleName,
       reason: reason
     };
+    
+    console.log(`📝 FeatureFlagEvaluator.createResponse - Final response:`, response);
+    return response;
   }
   
-  private static async getFlagData(flagKey: string, environment: environment_type, orgSlug: string) {
-    const flagandKillSwitchData = await getFlagWithKillSwitches( orgSlug ,flagKey,environment)
-    return flagandKillSwitchData.flagData;
+  private static async getFlagData(flagKey: string, environment: environment_type, orgSlug: string) : Promise<Redis_Value | null> {
+    console.log(`🗄️ FeatureFlagEvaluator.getFlagData - Fetching flag data:`, {
+      flagKey,
+      environment,
+      orgSlug
+    });
+    
+    try {
+      const flagandKillSwitchData = await getFlagWithKillSwitches(orgSlug, flagKey, environment);
+      console.log(`🗄️ FeatureFlagEvaluator.getFlagData - Raw data retrieved:`, {
+        hasData: !!flagandKillSwitchData,
+        hasFlagData: !!flagandKillSwitchData?.flagData,
+        flagData: flagandKillSwitchData?.flagData
+      });
+      
+      return flagandKillSwitchData.flagData;
+    } catch (error) {
+      console.error(`🗄️ FeatureFlagEvaluator.getFlagData - Error fetching flag data:`, error);
+      throw error;
+    }
   }
 }
 
 
 class FeatureFlagController{
   evaluateFeatureFlag = async (req : express.Request,res : express.Response)=>{
+    console.log(`🎮 FeatureFlagController.evaluateFeatureFlag - Request received:`, {
+      method: req.method,
+      url: req.url,
+      headers: {
+        'content-type': req.headers['content-type'],
+        'user-agent': req.headers['user-agent']
+      },
+      body: req.body
+    });
+    
     try{
       // Zod validation
+      console.log(`🎮 FeatureFlagController.evaluateFeatureFlag - Starting validation...`);
       const validatedBody = validateBody(evaluationRequestBodySchema, req, res);
-      if (!validatedBody) return;
+      if (!validatedBody) {
+        console.log(`🎮 FeatureFlagController.evaluateFeatureFlag - Validation failed, response already sent`);
+        return;
+      }
+      
+      console.log(`🎮 FeatureFlagController.evaluateFeatureFlag - Validation passed`);
 
       // Some sort of authentication to verify it is the actual ORG
       const {flagKey,environment,userContext,orgSlug} = req.body as EvaluationRequest;
+      
+      console.log(`🎮 FeatureFlagController.evaluateFeatureFlag - Extracted request data:`, {
+        flagKey,
+        environment,
+        orgSlug,
+        userContext
+      });
+      
       const evaluationRequest = {
         flagKey,environment,userContext,orgSlug
       }
+      
+      console.log(`🎮 FeatureFlagController.evaluateFeatureFlag - Starting flag evaluation...`);
       const result = await FeatureFlagEvaluator.evaluate(evaluationRequest);
-      res.status(200).json({success : true , result});
+      
+      console.log(`🎮 FeatureFlagController.evaluateFeatureFlag - Evaluation completed successfully:`, result);
+      
+      const response = {success : true , result};
+      console.log(`🎮 FeatureFlagController.evaluateFeatureFlag - Sending response:`, response);
+      
+      res.status(200).json(response);
     }
     catch(e){
-      console.error(e);
-      res.status(500).json({success : false,message : "Internal Server Error"});
+      console.error(`🎮 FeatureFlagController.evaluateFeatureFlag - Error occurred:`, e);
+      console.error(`🎮 FeatureFlagController.evaluateFeatureFlag - Error stack:`, e instanceof Error ? e.stack : 'No stack trace');
+      
+      const errorResponse = {success : false,message : "Internal Server Error"};
+      console.log(`🎮 FeatureFlagController.evaluateFeatureFlag - Sending error response:`, errorResponse);
+      
+      res.status(500).json(errorResponse);
     }
   }
 }

@@ -15,6 +15,9 @@ import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
 import { Plus, X, Target, Info, Edit, Save, Loader2, ChevronDown } from "lucide-react"
 import { Toaster, toast } from 'react-hot-toast'
+import { format } from 'date-fns'
+import * as semver from 'semver'
+import { LightDateTimePicker } from './LightDateTimePicker'
 
 interface RuleData {
   name: string;
@@ -222,9 +225,8 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
         return trimmedValue
       
       case 'SEMVER':
-        // Validate semantic version format
-        const semverRegex = /^\d+\.\d+\.\d+(-[a-zA-Z0-9-.]+)?(\+[a-zA-Z0-9-.]+)?$/
-        if (!semverRegex.test(trimmedValue)) {
+        // Validate semantic version format using semver library
+        if (!semver.valid(trimmedValue)) {
           toast.error('Please enter a valid semantic version (e.g., 1.0.0)')
           return null
         }
@@ -283,6 +285,28 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
     }
     
     // Update the condition with new values
+    updateCondition(conditionIndex, { attribute_values: newValues })
+    
+    // Clear validation error immediately after adding values
+    if (newValues.length > 0 && errors[`condition_${conditionIndex}_values`]) {
+      const newErrors = { ...errors }
+      delete newErrors[`condition_${conditionIndex}_values`]
+      setErrors(newErrors)
+    }
+  }
+
+  const addDateValue = (conditionIndex: number, date: Date | undefined) => {
+    if (!date) return
+    
+    const condition = conditions[conditionIndex]
+    if (!condition) return
+
+    const dateString = date.toISOString()
+    console.log('RuleModal - Date selected:', date)
+    console.log('RuleModal - ISO string stored:', dateString)
+
+    // For DATE, only allow one value (replace existing)
+    const newValues = [dateString]
     updateCondition(conditionIndex, { attribute_values: newValues })
     
     // Clear validation error immediately after adding values
@@ -358,6 +382,7 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
 
     console.log('Making request to:', url)
     console.log('Request body:', body)
+    console.log('Conditions being sent:', JSON.stringify(conditions, null, 2))
 
     try {
       const response = await fetch(url, {
@@ -669,27 +694,35 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                           <div className="space-y-2">
                             <Label className="text-gray-900 font-medium">Values</Label>
                             <div className="space-y-2">
-                              <Input
-                                placeholder={getValuePlaceholder(condition.attribute_type)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault()
+                              {condition.attribute_type === 'DATE' ? (
+                                <LightDateTimePicker
+                                  value={undefined}
+                                  onChange={(date: Date | undefined) => addDateValue(index, date)}
+                                  placeholder={getValuePlaceholder(condition.attribute_type)}
+                                />
+                              ) : (
+                                <Input
+                                  placeholder={getValuePlaceholder(condition.attribute_type)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault()
+                                      const input = e.target as HTMLInputElement
+                                      if (input.value.trim()) {
+                                        addValue(index, input.value)
+                                        input.value = ''
+                                      }
+                                    }
+                                  }}
+                                  onBlur={(e) => {
+                                    // Also add value on blur (when user clicks away)
                                     const input = e.target as HTMLInputElement
                                     if (input.value.trim()) {
                                       addValue(index, input.value)
                                       input.value = ''
                                     }
-                                  }
-                                }}
-                                onBlur={(e) => {
-                                  // Also add value on blur (when user clicks away)
-                                  const input = e.target as HTMLInputElement
-                                  if (input.value.trim()) {
-                                    addValue(index, input.value)
-                                    input.value = ''
-                                  }
-                                }}
-                              />
+                                  }}
+                                />
+                              )}
                               {condition.attribute_type === 'ARRAY' ? (
                                 <div className="flex items-center space-x-2 text-sm text-indigo-600 bg-indigo-50 p-2 rounded">
                                   <Info className="w-4 h-4" />

@@ -26,13 +26,17 @@ const flagTypeOptions = [
 
 // Helper function to generate key from name
 function generateKey(name: string): string {
-  return name
+  const baseKey = name
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
     .replace(/\s+/g, '-') // Replace spaces with hyphens
     .replace(/-+/g, '-') // Replace multiple hyphens with single
     .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+  
+  // Add 6-digit random suffix
+  const suffix = Math.floor(100000 + Math.random() * 900000);
+  return baseKey ? `${baseKey}-${suffix}` : `flag-${suffix}`;
 }
 
 export default function DetailsPage() {
@@ -157,7 +161,7 @@ export default function DetailsPage() {
                   className="h-10 bg-gray-50 border-gray-300 text-gray-600 cursor-not-allowed"
                 />
                 <p className="text-xs text-gray-500">
-                  This key is automatically generated from the name and will be used in your code
+                  This key is automatically generated from the name with a unique suffix and will be used in your code
                 </p>
               </div>
 

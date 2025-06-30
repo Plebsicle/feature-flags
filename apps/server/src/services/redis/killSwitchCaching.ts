@@ -292,7 +292,8 @@ export const getFlagWithKillSwitches = async (
   try {
     // Get flag data (your existing getFlag function)
     const flagData = await getFlag(orgSlug, environment, flagKey);
-    
+    console.log("Loggin flag data from getFlagWithKillSwitches");
+    console.log(flagData);
     // Get active kill switches for this flag
     const killSwitches = await getActiveKillSwitchesForFlag(orgSlug, flagKey, environment);
     

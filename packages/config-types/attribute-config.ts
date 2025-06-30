@@ -1,23 +1,23 @@
 const OPERATORS_BY_TYPE = {
   STRING: [
     'equals', 'not_equals', 'contains', 'not_contains', 
-    'starts_with', 'ends_with', 'is_one_of', 'is_not_one_of',
+    'starts_with', 'ends_with',
     'matches_regex'
   ],
   NUMBER: [
     'equals', 'not_equals', 'greater_than', 'greater_than_equal',
-    'less_than', 'less_than_equal', 'is_one_of', 'is_not_one_of'
+    'less_than', 'less_than_equal', 
   ],
   BOOLEAN: [
     'is_true', 'is_false'
   ],
   DATE: [
     'equals', 'not_equals', 'before', 'after', 
-    'before_or_equal', 'after_or_equal', 'between'
+    'before_or_equal', 'after_or_equal'
   ],
   SEMVER: [
     'equals', 'not_equals', 'greater_than', 'greater_than_equal',
-    'less_than', 'less_than_equal', 'is_one_of', 'is_not_one_of'
+    'less_than', 'less_than_equal', 
   ],
   ARRAY: [
     'contains', 'not_contains', 'contains_any', 'contains_all',
