@@ -449,12 +449,15 @@ class RolloutEvaluator {
     const hash = this.getUserHash(identifier);
     const result = hash < currentStage.percentage;
     if (result && (flag_type === "AB_TEST" || flag_type === "MULTIVARIATE")) {
-    const entries = Object.entries(value);
-    const variantHashInput = identifier + JSON.stringify(value); 
-    const hashedNumber = this.getUserHash(variantHashInput);
-    const index = hashedNumber % entries.length;
-
-    return entries[index][1];
+      console.log("ME is HITTTT");
+      const entries = Object.entries(value.value);
+      console.log(entries);
+      const variantHashInput = identifier + JSON.stringify(value.value); 
+      const hashedNumber = this.getUserHash(variantHashInput);
+      const index = hashedNumber % entries.length;
+      console.log(index);
+      console.log(entries[index][1]);
+      return entries[index];
     } 
     console.log(`🎯 RolloutEvaluator.evaluateProgressive - Hash calculation: identifier="${identifier}", hash=${hash}, currentStage.percentage=${currentStage.percentage}, result=${result}`);
     return result;
@@ -467,13 +470,16 @@ class RolloutEvaluator {
     const identifier = userContext.userId || userContext.email || 'anonymous';
     const hash = this.getUserHash(identifier);
     const result = hash < currentStage.percentage;
-    if (result && (flag_type === "AB_TEST" || flag_type === "MULTIVARIATE")) {
-      const entries = Object.entries(value);
-      const variantHashInput = identifier + JSON.stringify(value); 
+     if (result && (flag_type === "AB_TEST" || flag_type === "MULTIVARIATE")) {
+      console.log("ME is HITTTT");
+      const entries = Object.entries(value.value);
+      console.log(entries);
+      const variantHashInput = identifier + JSON.stringify(value.value); 
       const hashedNumber = this.getUserHash(variantHashInput);
       const index = hashedNumber % entries.length;
-
-      return entries[index][1];
+      console.log(index);
+      console.log(entries[index][1]);
+      return entries[index];
     } 
     console.log(`🎯 RolloutEvaluator.evaluateCustomProgressive - Hash calculation: identifier="${identifier}", hash=${hash}, currentStage.percentage=${currentStage.percentage}, result=${result}`);
     return result;
