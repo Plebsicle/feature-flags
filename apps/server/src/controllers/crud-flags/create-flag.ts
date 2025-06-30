@@ -81,18 +81,18 @@ class CreateFlagController {
                     new Date(rollout_config.startDate).getTime() + frequencyMs * (rollout_config.currentStage.stage + 1)
                 );
             } else {
-                
-                const nextStage = rollout_config.stages.find(
-                    //@ts-ignore
-                    s => s.stage === rollout_config.currentStage.stage + 1
-                );
-                if (nextStage) {
-                    rollout_config.currentStage.nextProgressAt = new Date(nextStage.stageDate);
-                } else {
-                    rollout_config.currentStage.nextProgressAt = undefined; // No further stages
+                                                                
+                    const nextStage = rollout_config.stages.find(
+                        //@ts-ignore
+                        s => s.stage === rollout_config.currentStage.stage + 1
+                    );
+                    if (nextStage) {
+                        rollout_config.currentStage.nextProgressAt = new Date(nextStage.stageDate);
+                    } else {
+                        rollout_config.currentStage.nextProgressAt = undefined; // No further stages
+                    }
                 }
             }
-}
 
             const result = await this.prisma.$transaction(async (tx) => {
                 // Insert custom attributes first
@@ -257,7 +257,6 @@ class CreateFlagController {
             if (!this.checkUserAuthorization(req, res)) return;
 
             const userId = req.session.user?.userId!;
-            const organisationId = req.session.user?.userOrganisationId!;
             
             const { ip, userAgent } = this.extractIpAndUserAgent(req);
 
@@ -276,9 +275,27 @@ class CreateFlagController {
             const ruleName = rules.name;
             const conditions = rules.conditions;
             const ruleDescription = description;
-            const rollout_config = rollout.config;
+            let rollout_config = rollout.config;
             const rollout_type = rollout.type;
-            // Input validation/sanitization here (add as needed)
+
+             if (rollout_config.currentStage) {
+            if (!rollout_config.stages) {
+                const frequencyMs = convertToMilliseconds(rollout_config.frequency);
+                rollout_config.currentStage.nextProgressAt = new Date(
+                    new Date(rollout_config.startDate).getTime() + frequencyMs * (rollout_config.currentStage.stage + 1)
+                );
+            }else{                                          
+                    const nextStage = rollout_config.stages.find(
+                        //@ts-ignore
+                        s => s.stage === rollout_config.currentStage.stage + 1
+                    );
+                    if (nextStage) {
+                        rollout_config.currentStage.nextProgressAt = new Date(nextStage.stageDate);
+                    } else {
+                        rollout_config.currentStage.nextProgressAt = undefined;
+                    }
+                }
+            }
 
             const flagData = await this.prisma.feature_flags.findUnique({
                 where : {

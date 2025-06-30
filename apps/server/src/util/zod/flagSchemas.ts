@@ -86,11 +86,9 @@ export const updateFlagRuleBodySchema = z.object({
 });
 
 export const updateFlagRolloutBodySchema = z.object({
-  flag_id: z.string().uuid("Invalid flag ID format"),
-  rollout_id: z.string().uuid("Invalid rollout ID format"),
   rollout_type: rolloutTypeSchema.optional(),
   rollout_config: z.record(z.any()).optional(),
-  environment: z.string().optional()
+  environment_id : z.string().optional()
 });
 
 export const updateEnvironmentBodySchema = z.object({

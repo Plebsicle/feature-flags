@@ -363,7 +363,7 @@ class UpdateFlagController {
     updateFlagRollout = async (req: express.Request, res: express.Response) => {
         try {
             // Zod validation
-            const parsedBody = updateFlagRolloutBodySchema.parse(req.body);
+            const parsedBody = validateBody(updateFlagRolloutBodySchema,req,res);
             req.body = parsedBody;
             
             if (!this.checkUserAuthorization(req, res)) return;
@@ -447,9 +447,6 @@ class UpdateFlagController {
                 if (!currentFlagRollout) {
                     throw new Error('Flag rollout not found');
                 }
-
-                // Use flagId from the rollout relation
-                const actualFlagId = currentFlagRollout.flag_rollout_environment.flag_id;
 
                 // Create attributes_changed structure
                 const attributesChanged: Record<string, { newValue: any, oldValue: any }> = {};
