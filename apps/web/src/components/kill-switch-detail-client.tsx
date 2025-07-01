@@ -17,7 +17,8 @@ import {
   Layers,
   Plus,
   Minus,
-  Loader2
+  Loader2,
+  Key
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,6 +27,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
+import { EnhancedCopyButton } from "@/components/enhanced-copy-button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   AlertDialog,
@@ -51,6 +53,7 @@ export interface killSwitchFlagConfig {
 type KillSwitch = {
   flag_mappings: {
     id: string;
+    flagKey : string
     created_at: Date;
     environments: $Enums.environment_type[];
     kill_switch_id: string;
@@ -128,11 +131,12 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
             name: result.data?.name ?? '',
             description: result.data?.description || '',
             is_active: result.data?.is_active ?? false,
-            flags: result.data?.flag_mappings?.map((fm : {flag_id:string,environments:$Enums.environment_type[],flagKey : string}) => ({
+            flags: result.data?.flag_mappings?.map((fm : {flag_id:string,environments:$Enums.environment_type[],flagKey : string,created_at : Date,kill_switch_id : string}) => ({
                 flagKey: fm.flagKey,
                 environments: fm.environments
               })) ?? []
           })
+          console.log(editForm);
         } else {
           throw new Error(result.message || 'Failed to fetch kill switch')  
         }
@@ -186,7 +190,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
         description: killSwitch.description || '',
         is_active: killSwitch.is_active,
         flags: killSwitch.flag_mappings.map(fm => ({
-          flagKey: fm.flag_id,
+          flagKey: fm.flagKey,
           environments: fm.environments
         }))
       })
@@ -413,11 +417,6 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
               <Badge variant={killSwitch.is_active ? "destructive" : "secondary"}>
                 {killSwitch.is_active ? 'ACTIVE' : 'INACTIVE'}
               </Badge>
-              {killSwitch.killSwitchKey && (
-                <Badge variant="outline" className="font-mono text-xs">
-                  {killSwitch.killSwitchKey}
-                </Badge>
-              )}
             </div>
           </div>
         </div>
@@ -602,6 +601,24 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {killSwitch.killSwitchKey && (
+              <div className="mb-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <Label className="text-gray-500 text-sm mb-2 block">Kill Switch Key</Label>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Key className="w-4 h-4 text-indigo-600" />
+                    <code className="font-mono text-sm bg-gray-100 px-2 py-1 rounded text-gray-800">
+                      {killSwitch.killSwitchKey}
+                    </code>
+                  </div>
+                  <EnhancedCopyButton 
+                    text={killSwitch.killSwitchKey} 
+                    successMessage="Key copied!" 
+                  />
+                </div>
+              </div>
+            )}
+            
             <div>
               <Label className="text-gray-500 text-sm">Created</Label>
               <p className="text-gray-900">{formatDate(killSwitch.created_at)}</p>
@@ -617,10 +634,6 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
               <p className="text-gray-900">{formatDate(killSwitch.activated_at)}</p>
             </div>
             
-            <div>
-              <Label className="text-gray-500 text-sm">Organization ID</Label>
-              <p className="text-gray-900 font-mono text-sm">{killSwitch.organization_id}</p>
-            </div>
           </CardContent>
         </Card>
 

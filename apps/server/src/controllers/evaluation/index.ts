@@ -8,6 +8,7 @@ import express from 'express'
 import * as semver from 'semver'
 import { evaluationRequestBodySchema, validateBody } from '../../util/zod';
 import MurmurHash3  from "imurmurhash";
+import { killSwitchValue } from "../../services/redis/killSwitchCaching";
 
 interface UserContext {
   // Base attributes (always expected)
@@ -510,8 +511,10 @@ class FeatureFlagEvaluator {
     try {
       // Step 1: Get flag and environment data from database
       console.log(`🚀 Step 1: Getting flag data from database...`);
-      const flagData = await this.getFlagData(request.flagKey, request.environment, request.orgSlug);
+      const flagAndKillSwitchData = await this.getFlagData(request.flagKey, request.environment, request.orgSlug);
       
+      const flagData = flagAndKillSwitchData.flagData;
+
       console.log(`🚀 Step 1: Flag data retrieved:`, {
         flagExists: !!flagData,
         is_active: flagData?.is_active,
@@ -525,6 +528,14 @@ class FeatureFlagEvaluator {
       if (!flagData || !flagData.is_active || !flagData.is_environment_active) {
         console.log(`🚀 Step 1: Flag disabled or not found, returning default`);
         return this.createResponse(request, flagData?.default_value, 'Flag disabled or not found');
+      }
+
+      // step 1.5 Check if any kill Switches block this flag
+      const killSwitchData = flagAndKillSwitchData.killSwitches;
+      if(killSwitchData.length !== 0){
+          // one or the other kill switch is affecting this flag and this environment
+          console.log(`🚀 Step 1.5: Kill Switch On, returning default`);
+         return this.createResponse(request, flagData.default_value, 'Kill Switch Activated');
       }
       
       // Step 2: Check rules (OR between rules, AND between conditions)
@@ -678,7 +689,7 @@ class FeatureFlagEvaluator {
     return response;
   }
   
-  private static async getFlagData(flagKey: string, environment: environment_type, orgSlug: string) : Promise<Redis_Value | null> {
+  private static async getFlagData(flagKey: string, environment: environment_type, orgSlug: string) : Promise<{ flagData: Redis_Value | null; killSwitches: killSwitchValue[] }> {
     console.log(`🗄️ FeatureFlagEvaluator.getFlagData - Fetching flag data:`, {
       flagKey,
       environment,
@@ -693,7 +704,7 @@ class FeatureFlagEvaluator {
         flagData: flagandKillSwitchData?.flagData
       });
       
-      return flagandKillSwitchData.flagData;
+      return flagandKillSwitchData;
     } catch (error) {
       console.error(`🗄️ FeatureFlagEvaluator.getFlagData - Error fetching flag data:`, error);
       throw error;

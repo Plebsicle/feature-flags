@@ -11,7 +11,7 @@ router.post('/',createKillSwitch);
 router.get('/:killSwitchId',getKillSwitchById);
 router.get('/',getAllKillSwitches);
 
-router.put('/',updateKillSwitch);
+router.put('/:killSwitchId',updateKillSwitch);
 
 router.delete('/:killSwitchId',deleteKillSwitch);
 

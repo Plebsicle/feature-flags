@@ -28,7 +28,6 @@ export const killSwitchParamsSchema = z.object({
 
 // Update kill switch schemas
 export const updateKillSwitchBodySchema = z.object({
-  killSwitchId: z.string().uuid("Invalid kill switch ID format"),
   name: z.string().min(1, "Kill switch name is required").optional(),
   description: z.string().optional(),
   is_active: z.boolean().optional(),

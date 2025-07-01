@@ -41,8 +41,8 @@ class UpdateKillSwitchController {
             if (!validatedBody) return;
 
             if (!this.checkUserAuthorization(req, res)) return;
-
-            const { killSwitchId, name, description, is_active, flags } = req.body as UpdateBodyType;
+            const killSwitchId = req.params.killSwitchId;
+            const {name, description, is_active, flags } = req.body as UpdateBodyType;
             console.log(req.body);
             
             if (!killSwitchId) {
