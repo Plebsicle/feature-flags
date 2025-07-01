@@ -10,6 +10,7 @@ import { DeleteMetricButton } from "@/components/delete-metric-button"
 import { CreateAlertModal } from "@/components/create-alert-modal"
 import { UpdateAlertModal } from "@/components/update-alert-modal"
 import { DeleteAlertButton } from "@/components/delete-alert-button"
+import { EnhancedCopyButton } from "@/components/enhanced-copy-button"
 import { alert_operator, metric_aggregation_method, metric_type } from "@repo/db/client"
 
 // Types based on the API response structure
@@ -202,7 +203,15 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                   </div>
                   <div>
                     <h1 className="text-3xl font-semibold text-gray-900 mb-2">{metric.metric_name}</h1>
-                    <p className="text-lg text-gray-600 font-mono">{metric.metric_key}</p>
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 flex-1 max-w-md">
+                        <code className="text-lg text-gray-700 font-mono">{metric.metric_key}</code>
+                      </div>
+                      <EnhancedCopyButton 
+                        text={metric.metric_key}
+                        successMessage="Metric key copied to clipboard"
+                      />
+                    </div>
                     <div className="flex items-center gap-3 mt-3">
                       <Badge 
                         variant={metric.is_active ? "default" : "secondary"} 
@@ -239,6 +248,19 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                      <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Metric Key</h4>
+                        <div className="flex items-center justify-between">
+                          <code className="text-sm font-medium text-indigo-700 font-mono bg-white px-3 py-1.5 rounded border border-indigo-100">
+                            {metric.metric_key}
+                          </code>
+                          <EnhancedCopyButton 
+                            text={metric.metric_key}
+                            successMessage="Metric key copied to clipboard"
+                          />
+                        </div>
+                      </div>
+                      
                       {metric.description && (
                         <div>
                           <h4 className="text-sm font-medium text-gray-700 mb-2">Description</h4>
@@ -269,14 +291,6 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                           </Badge>
                         </div>
                       )}
-
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">Aggregation Window</h4>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Clock className="w-4 h-4" />
-                          {metric.aggregation_window} seconds
-                        </div>
-                      </div>
                     </CardContent>
                   </Card>
 
@@ -325,14 +339,6 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                             <Activity className="w-4 h-4" />
                             {new Date(metric.updated_at).toLocaleDateString()}
                           </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Metric ID</span>
-                          <span className="text-gray-700 font-mono text-sm">{metric.id}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Environment ID</span>
-                          <span className="text-gray-700 font-mono text-sm">{metric.flag_environment_id}</span>
                         </div>
                       </div>
                     </CardContent>

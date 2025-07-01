@@ -35,7 +35,7 @@ class UserController {
                     email: req.session.user?.userEmail,
                     role: req.session.user?.userRole,
                     organisationName: orgData.name,
-                    ownerName: orgData?.owner.name,
+                    ownerName: orgData?.owner.name
                 }
             });
         }

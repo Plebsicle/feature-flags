@@ -363,28 +363,25 @@ const EnvironmentCard = ({ environment, flag_id, flag_type }: { environment: Fla
         <div className="flex flex-wrap gap-3">
           <Link href={`/flags/rules/${flag_id}?environmentId=${environment.id}`}>
             <Button 
-              size="sm" 
-              variant="outline"
+              className="bg-[#6366F1] hover:bg-[#4F46E5] text-white h-10 font-medium transition-all duration-200"
             >
-              <Target className="w-4 h-4 mr-2" />
+              <Target className="w-5 h-5 mr-2" />
               View Rules
             </Button>
           </Link>
           <Link href={`/flags/rollout/${flag_id}?environmentId=${environment.id}`}>
             <Button 
-              size="sm" 
-              variant="outline"
+              className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white h-10 font-medium transition-all duration-200"
             >
-              <BarChart3 className="w-4 h-4 mr-2" />
+              <BarChart3 className="w-5 h-5 mr-2" />
               View Rollout
             </Button>
           </Link>
           <Link href={`/create-metrics/${environment.id}`}>
             <Button 
-              size="sm" 
-              variant="outline"
+              className="bg-[#06B6D4] hover:bg-[#0891B2] text-white h-10 font-medium transition-all duration-200"
             >
-              <BarChart3 className="w-4 h-4 mr-2" />
+              <BarChart3 className="w-5 h-5 mr-2" />
               Add Metric
             </Button>
           </Link>
@@ -392,12 +389,7 @@ const EnvironmentCard = ({ environment, flag_id, flag_type }: { environment: Fla
         
         <Separator />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div>
-            <label className="text-sm font-medium text-gray-700">Environment ID</label>
-            <code className="block text-xs text-gray-600 bg-gray-100 p-2 rounded mt-1 font-mono break-all">
-              {environment.id}
-            </code>
-          </div>
+          
           <div>
             <label className="text-sm font-medium text-gray-700">Created</label>
             <div className="flex items-center space-x-1 mt-1">

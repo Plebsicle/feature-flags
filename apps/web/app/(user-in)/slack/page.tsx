@@ -177,38 +177,10 @@ export default async function SlackIntegrationPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <h4 className="text-sm font-medium text-gray-900">Real-time Notifications</h4>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li className="flex items-center space-x-2">
-                      <CheckCircle className="w-3 h-3 text-emerald-600" />
-                      <span>Feature flag status changes</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <CheckCircle className="w-3 h-3 text-emerald-600" />
-                      <span>Kill switch activations</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <CheckCircle className="w-3 h-3 text-emerald-600" />
-                      <span>Metric threshold alerts</span>
-                    </li>
-                  </ul>
                 </div>
                 
                 <div className="space-y-4">
                   <h4 className="text-sm font-medium text-gray-900">Team Collaboration</h4>
-                  <ul className="space-y-2 text-sm text-gray-600">
-                    <li className="flex items-center space-x-2">
-                      <CheckCircle className="w-3 h-3 text-emerald-600" />
-                      <span>Automated rollout updates</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <CheckCircle className="w-3 h-3 text-emerald-600" />
-                      <span>Performance insights</span>
-                    </li>
-                    <li className="flex items-center space-x-2">
-                      <CheckCircle className="w-3 h-3 text-emerald-600" />
-                      <span>Issue notifications</span>
-                    </li>
-                  </ul>
                 </div>
               </div>
             </CardContent>

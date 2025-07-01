@@ -285,13 +285,7 @@ const RolloutCard = ({ rollout, environmentId }: { rollout: RolloutData; environ
         
         <Separator />
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="text-sm font-medium text-gray-700">Rollout ID</label>
-            <code className="block text-xs text-gray-600 bg-gray-100 p-2 rounded mt-1 font-mono break-all">
-              {rollout.id}
-            </code>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-gray-700">Created</label>
             <div className="flex items-center space-x-1 mt-1">

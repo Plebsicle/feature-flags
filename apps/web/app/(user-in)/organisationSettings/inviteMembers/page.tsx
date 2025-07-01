@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers'
-import { Users, UserPlus, Bell } from 'lucide-react'
+import { Users, UserPlus, Bell, Building, Copy } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { OrganisationMembersClient } from './OrganisationMembersClient'
+import { EnhancedCopyButton } from "@/components/enhanced-copy-button"
 import Link from 'next/link'
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000"
@@ -15,7 +16,15 @@ interface MemberDetails {
   role: UserRole
 }
 
-async function getMembersData(): Promise<MemberDetails[] | null> {
+interface MembersResponse {
+  data: MemberDetails[]
+  orgSlug: string | {
+    slug: string
+  }
+  success: boolean
+}
+
+async function getMembersData(): Promise<MembersResponse | null> {
   try {
     const cookieStore = await cookies()
     
@@ -43,12 +52,14 @@ async function getMembersData(): Promise<MemberDetails[] | null> {
 
     const data = await response.json()
     
+    console.log('Response data structure:', JSON.stringify(data, null, 2))
+    
     if (!data.success) {
       console.error('Backend returned error:', data)
       return null
     }
 
-    return data.data as MemberDetails[]
+    return data as MembersResponse
   } catch (err) {
     console.error('Error fetching members data:', err)
     return null
@@ -56,9 +67,9 @@ async function getMembersData(): Promise<MemberDetails[] | null> {
 }
 
 export default async function OrganisationMembersPage() {
-  const membersData = await getMembersData()
+  const response = await getMembersData()
 
-  if (!membersData) {
+  if (!response) {
     return (
       <div className="space-y-8">
         <div className="max-w-7xl mx-auto">
@@ -106,6 +117,37 @@ export default async function OrganisationMembersPage() {
           </div>
         </div>
 
+        {/* Organization Slug Card */}
+        <Card className="hover:shadow-md transition-shadow duration-200 mb-8 border-indigo-200 bg-indigo-50">
+          <CardHeader>
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <Building className="w-5 h-5 text-indigo-600" />
+              Organization Details
+            </CardTitle>
+            <CardDescription>
+              Your organization's unique identifier
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-indigo-200">
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-1">Organization Slug</h3>
+                <code className="text-lg font-mono text-indigo-700">
+                  {typeof response.orgSlug === 'string' 
+                    ? response.orgSlug 
+                    : response.orgSlug?.slug || 'Not available'}
+                </code>
+              </div>
+              <EnhancedCopyButton 
+                text={typeof response.orgSlug === 'string' 
+                  ? response.orgSlug 
+                  : response.orgSlug?.slug || ''}
+                successMessage="Organization slug copied to clipboard"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Stats Card */}
         <Card className="hover:shadow-md transition-shadow duration-200 mb-8">
           <CardHeader>
@@ -121,25 +163,25 @@ export default async function OrganisationMembersPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-900">
-                  {membersData.length}
+                  {response.data.length}
                 </div>
                 <div className="text-sm text-gray-600">Total Members</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">
-                  {membersData.filter(m => m.role === "OWNER").length}
+                  {response.data.filter(m => m.role === "OWNER").length}
                 </div>
                 <div className="text-sm text-gray-600">Owners</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-indigo-600">
-                  {membersData.filter(m => m.role === "ADMIN").length}
+                  {response.data.filter(m => m.role === "ADMIN").length}
                 </div>
                 <div className="text-sm text-gray-600">Admins</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-emerald-600">
-                  {membersData.filter(m => m.role === "MEMBER").length + membersData.filter(m => m.role === "VIEWER").length}
+                  {response.data.filter(m => m.role === "MEMBER").length + response.data.filter(m => m.role === "VIEWER").length}
                 </div>
                 <div className="text-sm text-gray-600">Members & Viewers</div>
               </div>
@@ -148,7 +190,7 @@ export default async function OrganisationMembersPage() {
         </Card>
 
         {/* Client-side Interactive Component */}
-        <OrganisationMembersClient initialMembers={membersData} />
+        <OrganisationMembersClient initialMembers={response.data} />
       </div>
     </div>
   )

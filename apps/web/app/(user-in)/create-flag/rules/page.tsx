@@ -387,6 +387,41 @@ export default function RulesPage() {
             </div>
           </div>
 
+          {/* Evaluation Logic Info */}
+          <Card className="bg-blue-50 border border-blue-200 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg text-gray-900 flex items-center">
+                <Target className="w-5 h-5 mr-2 text-blue-600" />
+                Rule Evaluation Logic
+              </CardTitle>
+              <CardDescription className="text-gray-600 text-sm">
+                Understanding how targeting rules are evaluated
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center text-sm">
+                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 mr-2 text-xs">AND</Badge>
+                    Within Rules
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    All conditions within a single rule must be true for that rule to match
+                  </p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center text-sm">
+                    <Badge className="bg-blue-100 text-blue-800 border-blue-200 mr-2 text-xs">OR</Badge>
+                    Between Rules
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    If any rule matches, the feature flag will be enabled for that user
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Form */}
           <Card className="shadow-md border-gray-200 bg-white rounded-lg">
             <CardHeader className="pb-3">

@@ -18,6 +18,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AuditLogsPagination } from "./AuditLogsPagination";
+import { AttributeChangesViewer } from "@/components/attribute-changes-viewer";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
@@ -374,14 +375,7 @@ function AuditLogCard({ log }: { log: AuditLog }) {
 
         {/* Attribute Changes */}
         {hasAttributeChanges && (
-          <div className="pt-4 border-t border-gray-200">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">Attributes Changed</h4>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <pre className="text-xs text-gray-700 overflow-x-auto">
-                {JSON.stringify(log.attributes_changed, null, 2)}
-              </pre>
-            </div>
-          </div>
+          <AttributeChangesViewer attributes={log.attributes_changed} />
         )}
       </CardContent>
     </Card>

@@ -162,14 +162,34 @@ export default function EnvironmentsPage() {
         return { isValid: true, parsedValue: trimmedValue.toLowerCase() === 'true' }
       
       case 'JSON':
-      case 'AB_TEST':
-      case 'MULTIVARIATE':
         if (trimmedValue === '') return { isValid: false, error: 'JSON value is required' }
         try {
           const parsed = JSON.parse(trimmedValue)
           return { isValid: true, parsedValue: parsed }
         } catch {
           return { isValid: false, error: 'Please enter valid JSON format' }
+        }
+      
+      case 'AB_TEST':
+      case 'MULTIVARIATE':
+        if (trimmedValue === '') return { isValid: false, error: 'Value is required' }
+        // Allow any value type for AB_TEST and MULTIVARIATE
+        try {
+          // Try to parse as JSON first
+          const parsed = JSON.parse(trimmedValue)
+          return { isValid: true, parsedValue: parsed }
+        } catch {
+          // If not valid JSON, try to parse as number or boolean
+          if (trimmedValue.toLowerCase() === 'true') {
+            return { isValid: true, parsedValue: true }
+          } else if (trimmedValue.toLowerCase() === 'false') {
+            return { isValid: true, parsedValue: false }
+          } else if (!isNaN(Number(trimmedValue))) {
+            return { isValid: true, parsedValue: Number(trimmedValue) }
+          } else {
+            // Otherwise treat as string
+            return { isValid: true, parsedValue: trimmedValue }
+          }
         }
       
       case 'STRING':
@@ -191,18 +211,27 @@ export default function EnvironmentsPage() {
     }
     setVariants(updatedVariants)
     
-    // Update the context based on flag type - for AB/Multivariate, treat values as JSON
+    // Update the context based on flag type - for AB/Multivariate, accept any value type
     if (state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') {
       const abValue: ABValue = {}
       updatedVariants.forEach(variant => {
         if (variant.name && variant.value !== undefined && variant.value !== '') {
-          // For AB/Multivariate, parse as JSON to allow complex values
+          // Try to parse as JSON first to allow complex values
           try {
             const parsedValue = JSON.parse(variant.value)
             abValue[variant.name] = parsedValue
           } catch {
-            // If not valid JSON, treat as string
-            abValue[variant.name] = variant.value
+            // If not valid JSON, try to parse as number or boolean
+            if (variant.value.toLowerCase() === 'true') {
+              abValue[variant.name] = true
+            } else if (variant.value.toLowerCase() === 'false') {
+              abValue[variant.name] = false
+            } else if (!isNaN(Number(variant.value))) {
+              abValue[variant.name] = Number(variant.value)
+            } else {
+              // Otherwise treat as string
+              abValue[variant.name] = variant.value
+            }
           }
         }
       })
@@ -237,13 +266,22 @@ export default function EnvironmentsPage() {
         const abValue: ABValue = {}
         newVariants.forEach(variant => {
           if (variant.name && variant.value !== undefined && variant.value !== '') {
-            // For AB/Multivariate, parse as JSON to allow complex values
+            // Try to parse as JSON first to allow complex values
             try {
               const parsedValue = JSON.parse(variant.value)
               abValue[variant.name] = parsedValue
             } catch {
-              // If not valid JSON, treat as string
-              abValue[variant.name] = variant.value
+              // If not valid JSON, try to parse as number or boolean
+              if (variant.value.toLowerCase() === 'true') {
+                abValue[variant.name] = true
+              } else if (variant.value.toLowerCase() === 'false') {
+                abValue[variant.name] = false
+              } else if (!isNaN(Number(variant.value))) {
+                abValue[variant.name] = Number(variant.value)
+              } else {
+                // Otherwise treat as string
+                abValue[variant.name] = variant.value
+              }
             }
           }
         })
@@ -342,7 +380,7 @@ export default function EnvironmentsPage() {
                   <Textarea
                     value={variant.value}
                     onChange={(e) => handleVariantChange(index, 'value', e.target.value)}
-                    placeholder='{"key": "value"} or "string" or 123 or true'
+                    placeholder='Enter any value: "string", 123, true, or {"key": "value"}'
                     className="h-16 font-mono text-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 resize-none"
                   />
                 ) : (
@@ -355,7 +393,7 @@ export default function EnvironmentsPage() {
                 )}
                 {(state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') && (
                   <p className="text-xs text-gray-500">
-                    Enter JSON values for complex data structures or simple values like "string", 123, true
+                    Enter any value - strings, numbers, booleans, or JSON for complex data structures
                   </p>
                 )}
               </div>
@@ -458,15 +496,11 @@ export default function EnvironmentsPage() {
         return false
       }
       
-      // Validate variant values as JSON
+      // Variants can have any value type, no validation needed
       for (const variant of variants) {
-        if (variant.value.trim()) {
-          try {
-            JSON.parse(variant.value)
-          } catch {
-            toast.error(`Variant "${variant.name}" has invalid JSON value. Please enter valid JSON.`)
-            return false
-          }
+        if (!variant.value.trim()) {
+          toast.error(`Variant "${variant.name}" must have a value.`)
+          return false
         }
       }
       

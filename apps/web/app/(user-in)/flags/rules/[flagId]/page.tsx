@@ -74,23 +74,94 @@ async function getRulesData(environmentId: string): Promise<RuleData[] | null> {
   }
 }
 
-// Helper function to format conditions for display
-const formatConditionsForDisplay = (conditions: any): string => {
-  if (!conditions || typeof conditions !== 'object') {
-    return 'No conditions'
+// Helper component to display conditions
+const ConditionsDisplay = ({ conditions }: { conditions: Condition[] }) => {
+  if (!conditions || !Array.isArray(conditions) || conditions.length === 0) {
+    return (
+      <div className="text-sm text-gray-500 italic">
+        No conditions defined
+      </div>
+    )
   }
-  
-  // Handle if conditions is an array
-  if (Array.isArray(conditions)) {
-    return `${conditions.length} condition${conditions.length !== 1 ? 's' : ''}`
-  }
-  
-  // Handle if conditions is a single object
-  return '1 condition'
+
+  return (
+    <div className="space-y-4">
+      {conditions.map((condition, index) => (
+        <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          {/* Condition Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <Badge variant="outline" className="bg-white text-gray-600 border-gray-300 font-medium">
+                Condition {index + 1}
+              </Badge>
+              {index < conditions.length - 1 && (
+                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 font-medium text-xs">
+                  AND
+                </Badge>
+              )}
+            </div>
+            <Badge variant="secondary" className="bg-gray-100 text-gray-600 text-xs">
+              {condition.attribute_type}
+            </Badge>
+          </div>
+          
+          {/* Condition Details */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Attribute Name */}
+            <div>
+              <label className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                Attribute Name
+              </label>
+              <div className="mt-1">
+                <span className="text-sm font-medium text-gray-900 bg-white px-2 py-1 rounded border border-gray-200">
+                  {condition.attribute_name}
+                </span>
+              </div>
+            </div>
+            
+            {/* Operator */}
+            <div>
+              <label className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                Operator
+              </label>
+              <div className="mt-1">
+                <Badge variant="outline" className="bg-white text-gray-700 border-gray-300">
+                  {condition.operator_selected.replace(/_/g, ' ')}
+                </Badge>
+              </div>
+            </div>
+            
+            {/* Values */}
+            <div>
+              <label className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                {condition.attribute_values && condition.attribute_values.length > 1 ? 'Values' : 'Value'}
+              </label>
+              <div className="mt-1">
+                {condition.attribute_values && condition.attribute_values.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {condition.attribute_values.map((value, valueIndex) => (
+                      <Badge 
+                        key={valueIndex}
+                        className="bg-indigo-100 text-indigo-800 border-indigo-200"
+                      >
+                        {String(value)}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-gray-500 italic text-xs">No values defined</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 // Rule Card Component
-const RuleCard = ({ rule, environmentId }: { rule: RuleData; environmentId: string }) => {
+const RuleCard = ({ rule, environmentId, ruleNumber }: { rule: RuleData; environmentId: string; ruleNumber: number }) => {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -107,7 +178,7 @@ const RuleCard = ({ rule, environmentId }: { rule: RuleData; environmentId: stri
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-              <Target className="w-5 h-5 text-orange-600" />
+              <span className="text-sm font-bold text-orange-600">{ruleNumber}</span>
             </div>
             <div>
               <CardTitle className="text-lg text-gray-900">{rule.name}</CardTitle>
@@ -129,10 +200,10 @@ const RuleCard = ({ rule, environmentId }: { rule: RuleData; environmentId: stri
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6">
           <div>
-            <label className="text-sm font-medium text-gray-700">Conditions</label>
-            <p className="text-gray-900 mt-1">{formatConditionsForDisplay(rule.conditions)}</p>
+            <label className="text-sm font-medium text-gray-700 mb-3 block">Conditions</label>
+            <ConditionsDisplay conditions={rule.conditions} />
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Status</label>
@@ -145,13 +216,7 @@ const RuleCard = ({ rule, environmentId }: { rule: RuleData; environmentId: stri
           </div>
         </div>
         <Separator />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div>
-            <label className="text-sm font-medium text-gray-700">Rule ID</label>
-            <code className="block text-xs text-gray-600 bg-gray-100 p-2 rounded mt-1 font-mono break-all">
-              {rule.id}
-            </code>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
             <label className="text-sm font-medium text-gray-700">Created</label>
             <div className="flex items-center space-x-1 mt-1">
@@ -233,6 +298,41 @@ export default async function FlagRulesPage({
             />
           </div>
 
+          {/* Evaluation Logic Info */}
+          <Card className="bg-blue-50 border border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-lg text-gray-900 flex items-center">
+                <Target className="w-5 h-5 mr-2 text-blue-600" />
+                Rule Evaluation Logic
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Understanding how targeting rules are evaluated
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 mr-2">AND</Badge>
+                    Within Rules
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    All conditions within a single rule must be true for that rule to match
+                  </p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <Badge className="bg-blue-100 text-blue-800 border-blue-200 mr-2">OR</Badge>
+                    Between Rules
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    If any rule matches, the feature flag will be enabled for that user
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card className="bg-white border border-gray-200 shadow-sm">
@@ -285,12 +385,21 @@ export default async function FlagRulesPage({
           {/* Rules List */}
           {rules.length > 0 ? (
             <div className="space-y-6">
-              {rules.map((rule) => (
-                <RuleCard
-                  key={rule.id}
-                  rule={rule}
-                  environmentId={environmentId}
-                />
+              {rules.map((rule, index) => (
+                <div key={rule.id}>
+                  <RuleCard
+                    rule={rule}
+                    environmentId={environmentId}
+                    ruleNumber={index + 1}
+                  />
+                  {index < rules.length - 1 && (
+                    <div className="flex justify-center my-4">
+                      <Badge className="bg-blue-100 text-blue-800 border-blue-200 font-medium">
+                        OR
+                      </Badge>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           ) : (
@@ -321,17 +430,11 @@ export default async function FlagRulesPage({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-900 mb-2">User Attributes</h4>
                   <p className="text-sm text-gray-600">
                     Target users based on attributes like email, plan type, or custom properties
-                  </p>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">Rule Priority</h4>
-                  <p className="text-sm text-gray-600">
-                    Rules are evaluated in order - place more specific rules higher in the list
                   </p>
                 </div>
               </div>

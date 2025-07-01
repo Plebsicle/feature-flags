@@ -87,86 +87,99 @@ const FlagCard = ({ flag }: { flag: FeatureFlag }) => {
 
   return (
     <Link href={`/flags/${flag.id}`}>
-      <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group h-full">
-        <CardHeader className="pb-3 sm:pb-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-2 sm:space-x-3 min-w-0 flex-1">
-              <div className={`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${flag.is_active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+      <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group h-full">
+        <CardHeader className="pb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-start space-x-4 min-w-0 flex-1">
+              <div className={`w-4 h-4 rounded-full mt-1 flex-shrink-0 ${flag.is_active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
               <div className="min-w-0 flex-1">
-                <CardTitle className="text-base sm:text-lg text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
+                <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors mb-3">
                   {flag.name}
                 </CardTitle>
-                <div className="flex items-center space-x-2 mt-1">
-                  <code className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                <div className="flex items-center space-x-3 mb-4">
+                  <code className="text-sm text-gray-600 bg-gray-100 px-3 py-1.5 rounded-md font-mono">
                     {flag.key}
                   </code>
-                  <Badge className={`text-xs ${getFlagTypeColor(flag.flag_type)}`}>
+                  <Badge className={`text-sm px-3 py-1 font-medium ${getFlagTypeColor(flag.flag_type)}`}>
                     {flag.flag_type}
                   </Badge>
                 </div>
                 {flag.description && (
-                  <CardDescription className="text-gray-600 mt-2 text-sm leading-relaxed line-clamp-2">
+                  <CardDescription className="text-gray-600 text-sm leading-relaxed line-clamp-2">
                     {flag.description}
                   </CardDescription>
                 )}
               </div>
             </div>
-            <button className="text-gray-400 hover:text-gray-600 transition-colors duration-200 flex-shrink-0 ml-2">
-              <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5" />
+            <button className="text-gray-400 hover:text-gray-600 transition-colors duration-200 flex-shrink-0 ml-4">
+              <MoreHorizontal className="w-5 h-5" />
             </button>
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm text-gray-600">Status</span>
-              <div className="flex items-center space-x-2">
-                {flag.is_active ? (
-                  <ToggleRight className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500" />
-                ) : (
-                  <ToggleLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
-                )}
-                <span className={`text-xs sm:text-sm font-medium ${flag.is_active ? 'text-emerald-600' : 'text-gray-600'}`}>
-                  {flag.is_active ? 'Active' : 'Inactive'}
-                </span>
-              </div>
+        <CardContent className="pt-0 space-y-6">
+          {/* Status Section */}
+          <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
+            <span className="text-sm font-medium text-gray-700">Status</span>
+            <div className="flex items-center space-x-3">
+              {flag.is_active ? (
+                <ToggleRight className="w-6 h-6 text-emerald-500" />
+              ) : (
+                <ToggleLeft className="w-6 h-6 text-gray-400" />
+              )}
+              <span className={`text-sm font-semibold ${flag.is_active ? 'text-emerald-600' : 'text-gray-600'}`}>
+                {flag.is_active ? 'Active' : 'Inactive'}
+              </span>
             </div>
-            
-            {flag.tags && flag.tags.length > 0 && (
-              <div className="flex items-start justify-between">
-                <span className="text-xs sm:text-sm text-gray-600">Tags</span>
-                <div className="flex flex-wrap gap-1 max-w-32">
-                  {flag.tags.slice(0, 2).map((tag, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
+          </div>
+          
+          {/* Tags Section */}
+          {flag.tags && flag.tags.length > 0 && (
+            <div className="space-y-3">
+              <span className="text-sm font-medium text-gray-700">Tags</span>
+              <div className="flex flex-wrap gap-2">
+                {flag.tags.slice(0, 2).map((tag, index) => {
+                  const colors = [
+                    "bg-blue-100 text-blue-800 border-blue-200",
+                    "bg-green-100 text-green-800 border-green-200", 
+                    "bg-purple-100 text-purple-800 border-purple-200",
+                    "bg-orange-100 text-orange-800 border-orange-200",
+                  ]
+                  const colorClass = colors[index % colors.length]
+                  
+                  return (
+                    <Badge key={index} className={`${colorClass} text-sm px-3 py-1 font-medium border`}>
                       {tag}
                     </Badge>
-                  ))}
-                  {flag.tags.length > 2 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{flag.tags.length - 2}
-                    </Badge>
-                  )}
+                  )
+                })}
+                {flag.tags.length > 2 && (
+                  <Badge className="bg-gray-100 text-gray-700 border-gray-200 text-sm px-3 py-1 font-medium border">
+                    +{flag.tags.length - 2} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Metadata Section */}
+          <div className="pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700">Created</span>
+                </div>
+                <div className="text-sm text-gray-900 font-medium ml-6">
+                  {formatDate(flag.created_at)}
                 </div>
               </div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-2 border-t border-gray-200">
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-xs sm:text-sm text-gray-600">Created</span>
-                  <div className="text-xs sm:text-sm text-gray-900 font-medium truncate">
-                    {formatDate(flag.created_at)}
-                  </div>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Activity className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700">Last Updated</span>
                 </div>
-              </div>
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-xs sm:text-sm text-gray-600">Updated</span>
-                  <div className="text-xs sm:text-sm text-gray-900 font-medium truncate">
-                    {formatDate(flag.updated_at)}
-                  </div>
+                <div className="text-sm text-gray-900 font-medium ml-6">
+                  {formatDate(flag.updated_at)}
                 </div>
               </div>
             </div>

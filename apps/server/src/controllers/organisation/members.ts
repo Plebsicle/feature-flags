@@ -46,11 +46,19 @@ class OrganisationMembersController {
                     organization_id: req.session.user?.userOrganisationId
                 }
             });
+            const orgSlug = await this.prisma.organizations.findUnique({
+                where: {
+                    id: req.session.user?.userOrganisationId
+                },
+                select: {
+                    slug: true
+                }
+            });
 
             const memberIds = memberOrgData.map(data => data.user_id);
             const memberDetails = await this.fetchMemberDetails(memberIds);
 
-            res.status(200).json({ success: true, data: memberDetails });
+            res.status(200).json({ success: true, data: memberDetails, orgSlug: orgSlug });
         }
         catch (e) {
             console.error(e);

@@ -5,6 +5,7 @@ import { DeleteFlagButton } from "@/components/delete-flag-button";
 import { EditFeatureFlagModal } from "@/components/edit-flag-buton";
 import { CopyButton } from "@/components/copy-button";
 import { ExternalLinkButton } from "@/components/external-link-button";
+import { EnhancedCopyButton } from "@/components/enhanced-copy-button";
 import {
   Flag,
   Calendar,
@@ -250,17 +251,17 @@ export default async function FlagDetailPage(props: {
                 {/* Navigation Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Link href={`/flags/environments/${flag.id}`}>
-                    <Card className="hover:shadow-md transition-all duration-200 cursor-pointer group">
+                    <Card className="bg-white border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer group">
                       <CardContent className="p-6">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
-                            <Database className="w-5 h-5 text-indigo-600" />
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-[#6366F1] rounded-xl flex items-center justify-center group-hover:shadow-lg transition-all duration-200">
+                            <Database className="w-6 h-6 text-white" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                            <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors text-lg">
                               Environments
                             </h3>
-                            <p className="text-sm text-gray-600">Manage configurations</p>
+                            <p className="text-sm text-gray-600 group-hover:text-gray-700">Manage configurations</p>
                           </div>
                         </div>
                       </CardContent>
@@ -269,36 +270,61 @@ export default async function FlagDetailPage(props: {
                 </div>
 
                 {/* API Integration */}
-                <Card>
+                <Card className="bg-white border-gray-200">
                   <CardHeader>
                     <CardTitle className="text-xl text-gray-900 flex items-center">
-                      <Code className="w-5 h-5 mr-2 text-indigo-600" />
+                      <Code className="w-5 h-5 mr-2 text-[#6366F1]" />
                       API Integration
                     </CardTitle>
                     <CardDescription className="text-gray-600">
                       Use this flag in your application
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-6">
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      <label className="text-sm font-bold text-gray-900 mb-3 block">
                         Flag Key
                       </label>
-                      <div className="flex items-center space-x-2">
-                        <code className="flex-1 text-sm bg-gray-100 border border-gray-300 rounded px-3 py-2 font-mono">
-                          {flag.key}
-                        </code>
-                        <CopyButton text={flag.key} />
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-white border border-gray-300 rounded-lg px-4 py-3 flex-1">
+                          <code className="text-lg font-mono text-gray-800 font-medium">
+                            {flag.key}
+                          </code>
+                        </div>
+                        <EnhancedCopyButton 
+                          text={flag.key}
+                          successMessage="Flag key has been copied"
+                        />
                       </div>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-gray-700 mb-2 block">
                         JavaScript SDK Example
                       </label>
-                      <div className="bg-gray-100 border border-gray-300 rounded p-3">
+                      <div className="bg-white border border-gray-300 rounded-lg p-4">
                         <code className="text-sm font-mono text-gray-800">
                           {`const isEnabled = await client.isEnabled('${flag.key}');`}
                         </code>
+                      </div>
+                    </div>
+                    
+                    {/* Quick Actions moved here */}
+                    <div className="border-t border-gray-200 pt-4">
+                      <h4 className="text-sm font-bold text-gray-900 mb-3">Quick Actions</h4>
+                      <div className="grid grid-cols-1 gap-3">
+                        <Link href={`/create-flag/environments?flagKey=${flag.id}`}>
+                          <Button
+                            variant="outline"
+                            className="w-full bg-white hover:bg-gray-50 border-gray-200"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Environment
+                          </Button>
+                        </Link>
+                        <ExternalLinkButton url={`/api/flags/${flag.id}`}>
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          View API
+                        </ExternalLinkButton>
                       </div>
                     </div>
                   </CardContent>
@@ -351,60 +377,46 @@ export default async function FlagDetailPage(props: {
                         </span>
                       </div>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Flag ID</label>
-                      <code className="block text-xs text-gray-600 bg-gray-100 p-2 rounded mt-1 font-mono break-all">
-                        {flag.id}
-                      </code>
-                    </div>
                   </CardContent>
                 </Card>
 
                 {/* Tags */}
                 {flag.tags && flag.tags.length > 0 && (
-                  <Card>
+                  <Card className="bg-white border-gray-200">
                     <CardHeader>
                       <CardTitle className="text-lg text-gray-900 flex items-center">
-                        <Tag className="w-4 h-4 mr-2" />
+                        <Tag className="w-4 h-4 mr-2 text-[#6366F1]" />
                         Tags
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {flag.tags.map((tag, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
+                        {flag.tags.map((tag, index) => {
+                          const colors = [
+                            "bg-blue-100 text-blue-800 border-blue-200",
+                            "bg-green-100 text-green-800 border-green-200", 
+                            "bg-purple-100 text-purple-800 border-purple-200",
+                            "bg-orange-100 text-orange-800 border-orange-200",
+                            "bg-pink-100 text-pink-800 border-pink-200",
+                            "bg-teal-100 text-teal-800 border-teal-200"
+                          ]
+                          const colorClass = colors[index % colors.length]
+                          
+                          return (
+                            <Badge
+                              key={index}
+                              className={`${colorClass} font-medium px-3 py-1`}
+                            >
+                              {tag}
+                            </Badge>
+                          )
+                        })}
                       </div>
                     </CardContent>
                   </Card>
                 )}
 
-                {/* Quick Actions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg text-gray-900">Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Link href={`/create-flag/environments?flagKey=${flag.id}`}>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Environment
-                      </Button>
-                    </Link>
-                    <ExternalLinkButton url={`/api/flags/${flag.id}`}>
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      View API
-                    </ExternalLinkButton>
-                  </CardContent>
-                </Card>
+
               </div>
             </div>
           </div>
