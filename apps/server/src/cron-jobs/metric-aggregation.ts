@@ -15,6 +15,7 @@ interface AggregationData {
     aggregation_method : metric_aggregation_method | null
     description : string | null
     tags : string[],
+    last_event_at : Date | null,
     created_at : Date,
     updated_at : Date
 }
@@ -102,8 +103,26 @@ class MetricAggregations {
         const windowStart = new Date();
         for (const metric of metricData) {
             if (!metric.metric_events || metric.metric_events.length === 0) continue;
-            const { metric_events, id: metric_id, metric_key, metric_type: type, aggregation_window } = metric;
-            
+            const { metric_events, id: metric_id, metric_key, metric_type: type , last_event_at} = metric;
+            console.log(metric_id);
+            const latestAggregation = await this.prisma.metric_aggregations.findMany({
+                where : {
+                    metric_id : metric_id
+                },
+                orderBy : {
+                    created_at: 'desc'
+                },
+                take : 1
+            });
+            // console.log(latestAggregation);
+            // console.log(last_event_at);
+            if((latestAggregation.length === 1) && (last_event_at)){
+                // console.log(latestAggregation[0].created_at , last_event_at);
+                if(last_event_at < latestAggregation[0].created_at){
+                    // console.log("Event has not been collected recently");
+                    continue;
+                }
+            }
 
             // Base aggregation object
             const aggregationData: any = {

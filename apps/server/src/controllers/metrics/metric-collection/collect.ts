@@ -73,6 +73,14 @@ class MetricCollectionController {
                     id: true
                 }
             });
+            const updateMetric = await this.prisma.metrics.update({
+                where : {
+                    id : metricId
+                },
+                data : {
+                    last_event_at : new Date()
+                }
+            });
             if (result) return true;
             return false;
         }

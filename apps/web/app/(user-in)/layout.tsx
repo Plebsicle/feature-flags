@@ -47,7 +47,7 @@ export default function DashboardLayout({
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/auth/me`, {
+        const response = await fetch(`/${BACKEND_URL}/auth/me`, {
           method: "GET",
           credentials: "include",
         })
@@ -73,7 +73,7 @@ export default function DashboardLayout({
 
   const handleLogout = async () => {
     try {
-      await fetch(`${BACKEND_URL}/auth/logout`, {
+      await fetch(`/${BACKEND_URL}/auth/logout`, {
         method: "GET",
         credentials: "include",
       })

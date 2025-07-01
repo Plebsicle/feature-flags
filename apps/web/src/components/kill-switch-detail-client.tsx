@@ -238,8 +238,8 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
         result.then(data => {
           if (data.success) {
             setIsEditing(false)
-            // Refresh the data
-            window.location.reload()
+            // refresh
+            window.location.reload();
           } else {
             throw new Error(data.message || 'Failed to update kill switch')
           }
