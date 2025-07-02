@@ -1,0 +1,20 @@
+{
+  "name": "bitswitch-sdk",
+  "version": "1.0.2",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "SDK for Bit Switch feature flag system",
+  "keywords": [
+    "feature-flags",
+    "sdk"
+  ]
+}

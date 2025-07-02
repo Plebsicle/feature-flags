@@ -11,15 +11,12 @@ import MurmurHash3  from "imurmurhash";
 import { killSwitchValue } from "../../services/redis/killSwitchCaching";
 
 interface UserContext {
-  // Base attributes (always expected)
   email?: string;
   country?: string;
   region?: string;
   ip?: string;
   userId?: string;
-  timestamp?: string; // ISO string
-  
-  // Custom attributes (dynamic based on your rules)
+  timestamp?: string;
   [key: string]: any;
 }
 
