@@ -10,15 +10,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
-import { ArrowRight, ArrowLeft, Plus, X, Target, Info, ChevronDown, Check, Calendar as CalendarIcon, Clock } from "lucide-react"
+import { ArrowRight, ArrowLeft, Plus, X, Target, Info, ChevronDown, Check} from "lucide-react"
 import { Toaster, toast } from 'react-hot-toast'
-import { format } from 'date-fns'
-import { DayPicker } from 'react-day-picker'
-import { cn } from "@/lib/utils"
 import * as semver from 'semver'
 import { LightDateTimePicker } from '@/components/LightDateTimePicker'
 
@@ -34,8 +30,7 @@ const dataTypeOptions: { value: DataType; label: string }[] = [
 export default function RulesPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { state, updateRules, setEnvironmentCreationMode } = useFlagCreation()
-  const [customAttributeInputs, setCustomAttributeInputs] = useState<{ [key: number]: string }>({})
+  const { state, updateRules} = useFlagCreation()
   const [showAttributeDropdowns, setShowAttributeDropdowns] = useState<{ [key: number]: boolean }>({})
   const dropdownRefs = useRef<{ [key: number]: HTMLDivElement | null }>({})
 
@@ -108,7 +103,6 @@ export default function RulesPage() {
     
     // Hide dropdown after selection
     setShowAttributeDropdowns(prev => ({ ...prev, [index]: false }))
-    setCustomAttributeInputs(prev => ({ ...prev, [index]: '' }))
   }
 
   const handleAttributeTypeChange = (index: number, value: DataType) => {
@@ -125,18 +119,6 @@ export default function RulesPage() {
     }
   }
 
-  const handleCustomAttributeAdd = (index: number) => {
-    const customValue = customAttributeInputs[index]?.trim()
-    if (customValue) {
-      // Check if it conflicts with base attributes
-      if (Object.keys(BASE_ATTRIBUTES).includes(customValue)) {
-        toast.error('Please use a different name. This attribute already exists as a base attribute.')
-        return
-      }
-      handleAttributeNameChange(index, customValue)
-    }
-  }
-
   const toggleAttributeDropdown = (index: number) => {
     setShowAttributeDropdowns(prev => ({ ...prev, [index]: !prev[index] }))
   }
@@ -147,10 +129,6 @@ export default function RulesPage() {
 
   const handleOperatorChange = (index: number, value: string) => {
     updateCondition(index, { operator_selected: value })
-  }
-
-  const handleValuesChange = (index: number, values: string[]) => {
-    updateCondition(index, { attribute_values: values })
   }
 
   const validateAndFormatValue = (value: string, dataType: DataType): string | null => {
@@ -517,7 +495,6 @@ export default function RulesPage() {
                                   value={condition.attribute_name}
                                   onChange={(e) => {
                                     handleAttributeNameChange(index, e.target.value)
-                                    setCustomAttributeInputs(prev => ({ ...prev, [index]: e.target.value }))
                                   }}
                                   placeholder="Type custom attribute or select from dropdown"
                                   className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"

@@ -80,7 +80,7 @@ export default function DeleteRuleButton({ ruleId, ruleName }: DeleteRuleButtonP
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Rule</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the rule "{ruleName}"? This action cannot be undone.
+              Are you sure you want to delete the rule &quot;{ruleName}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

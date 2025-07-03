@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { motion } from "framer-motion"
 import {
   BarChart3,
   Save,
@@ -204,18 +203,6 @@ export default function CreateMetricForm() {
     });
   }
 
-  const getMetricTypeColor = (type: metric_type) => {
-    switch (type) {
-      case metric_type.CONVERSION:
-        return 'bg-emerald-100 text-emerald-700'
-      case metric_type.COUNT:
-        return 'bg-blue-100 text-blue-700'
-      case metric_type.NUMERIC:
-        return 'bg-purple-100 text-purple-700'
-      default:
-        return 'bg-gray-100 text-gray-700'
-    }
-  }
 
   const getMetricTypeIcon = (type: metric_type) => {
     switch (type) {
@@ -228,22 +215,6 @@ export default function CreateMetricForm() {
       default:
         return Activity
     }
-  }
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        duration: 0.5,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
   }
 
 
@@ -259,7 +230,7 @@ export default function CreateMetricForm() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Create Metric</h1>
-            <p className="text-gray-600">Define a new metric to track your application's performance</p>
+            <p className="text-gray-600">Define a new metric to track your application&apos;s performance</p>
           </div>
         </div>
         

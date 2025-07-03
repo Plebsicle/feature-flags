@@ -56,7 +56,7 @@ export default function SignUpPage() {
       } else {
         toast.error('Failed to save account details. Please try again.');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to create account. Please try again.');
     }
   }
@@ -71,7 +71,7 @@ export default function SignUpPage() {
       } else {
         toast.error('Failed to save Google account details. Please try again.');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Google signup failed. Please try again.');
     }
   }
@@ -96,6 +96,8 @@ export default function SignUpPage() {
     hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0 },
   }
+
+
 
   return (
     <>

@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { environment_type } from '@repo/db/client'
-import { ABValue, ABMultiVariate } from '@repo/types/value-config'
+import { ABValue} from '@repo/types/value-config'
 import { ArrowRight, ArrowLeft, Server, Plus, Minus, Info, Check } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 

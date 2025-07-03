@@ -82,8 +82,7 @@ export function DeleteKillSwitchButton({ killSwitchId, killSwitchName }: DeleteK
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Kill Switch</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the <span className="font-medium text-gray-900">"{killSwitchName}"</span> kill switch? 
-              This action cannot be undone and will permanently remove all configuration data for this kill switch.
+              Are you sure you want to delete the &quot;{killSwitchName}&quot; kill switch? This action cannot be undone and will permanently remove the kill switch and all its associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

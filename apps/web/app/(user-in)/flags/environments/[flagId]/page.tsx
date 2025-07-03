@@ -8,15 +8,13 @@ import {
   Plus,
   ToggleLeft,
   ToggleRight,
-  Edit,
-  Trash2,
   Copy,
   Settings,
   Code,
   Target,
   BarChart3,
 } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -519,7 +517,7 @@ export default async function FlagEnvironmentPage({
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">No Environments Found</h3>
                   <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    This flag doesn't have any environment configurations yet. Create your first environment to get started.
+                    This flag doesn&apos;t have any environment configurations yet. Create your first environment to get started.
                   </p>
                   <Button>
                     <Plus className="w-4 h-4 mr-2" />

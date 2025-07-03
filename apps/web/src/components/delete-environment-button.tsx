@@ -81,8 +81,7 @@ export function DeleteEnvironmentButton({ environmentId, environmentName }: Dele
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Environment</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the <span className="font-medium text-gray-900">"{environmentName}"</span> environment? 
-              This action cannot be undone and will permanently remove all configuration data for this environment.
+              Are you sure you want to delete the &quot;{environmentName}&quot; environment? This action cannot be undone and will permanently remove all flag configurations for this environment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

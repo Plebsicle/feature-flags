@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,10 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { rollout_type } from '@repo/db/client'
-import { ArrowLeft, Rocket, Check, Calendar as CalendarIcon, Clock } from "lucide-react"
+import { ArrowLeft, Rocket, Check } from "lucide-react"
 import { Toaster, toast } from 'react-hot-toast'
 import { LightDateTimePicker } from '@/components/LightDateTimePicker'
 
@@ -42,8 +40,7 @@ const rolloutTypeOptions = [
 export default function RolloutPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { state, updateRollout, submitFlag, setEnvironmentCreationMode } = useFlagCreation()
-  const { hydrateFromExistingFlag } = useFlagCreation()
+  const { state, updateRollout } = useFlagCreation()
 
   const handleRolloutTypeChange = (value: string) => {
     const type = value as rollout_type

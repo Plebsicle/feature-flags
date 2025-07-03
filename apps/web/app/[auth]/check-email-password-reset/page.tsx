@@ -40,17 +40,17 @@ export default function CheckEmailPasswordResetPage() {
               Check Your Email
             </CardTitle>
             <CardDescription className="text-gray-600 mt-3 text-base">
-              We've sent a password reset link to your email address.
+              We&apos;ve sent a password reset link to your email address.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-6">
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <p className="text-gray-700 text-sm">
-                If an account exists for this email, you'll receive instructions to reset your password shortly.
+                If an account exists for this email, you&apos;ll receive instructions to reset your password shortly.
               </p>
             </div>
             <p className="text-gray-600 text-sm">
-              Didn't receive an email? Check your spam folder or contact support if the issue persists.
+              Didn&apos;t receive an email? Check your spam folder or contact support if the issue persists.
             </p>
             <Link href="/auth/signin">
               <Button

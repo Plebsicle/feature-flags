@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, CheckCircle, ExternalLink, Settings, X, Loader2 } from 'lucide-react';
+import { MessageSquare, CheckCircle, Settings, X, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster, toast } from 'react-hot-toast';
@@ -135,7 +135,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
 
     try {
         await promise;
-    } catch (error) {
+    } catch (_error) {
         // User cancelled
         return;
     }

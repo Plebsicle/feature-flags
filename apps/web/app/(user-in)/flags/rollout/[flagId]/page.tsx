@@ -1,4 +1,3 @@
-import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import { cookies } from "next/headers"
 import {
@@ -6,13 +5,7 @@ import {
   Calendar,
   ArrowLeft,
   Plus,
-  ToggleLeft,
-  ToggleRight,
-  Edit,
-  Trash2,
-  Copy,
   Settings,
-  Code,
   BarChart3,
   Clock,
 } from "lucide-react"
@@ -73,29 +66,6 @@ async function getRolloutData(environmentId: string): Promise<RolloutData | null
     return null
   }
 }
-
-// Loading component
-const RolloutLoading = () => (
-  <div className="space-y-6">
-    <div className="animate-pulse">
-      <div className="h-8 bg-gray-600 rounded w-1/3 mb-4" />
-      <div className="h-4 bg-gray-700 rounded w-2/3" />
-    </div>
-    <div className="grid gap-6">
-      <Card className="bg-slate-800/40 backdrop-blur-xl border-slate-700/30 animate-pulse">
-        <CardHeader>
-          <div className="h-6 bg-gray-600 rounded w-1/3" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-700 rounded w-full" />
-            <div className="h-4 bg-gray-700 rounded w-3/4" />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  </div>
-)
 
 // Helper function to get rollout type display info
 const getRolloutTypeInfo = (type: rollout_type) => {

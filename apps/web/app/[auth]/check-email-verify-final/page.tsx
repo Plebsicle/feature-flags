@@ -153,7 +153,7 @@ export default function CheckEmailVerifyFinalPage() {
               {status === "error" && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <p className="text-red-700 text-sm mb-4">
-                    We couldn't verify your email. This could be due to an expired or invalid verification link.
+                    We couldn&apos;t verify your email. This could be due to an expired or invalid verification link.
                   </p>
                   <Link href="/auth/request-verification-email">
                     <Button

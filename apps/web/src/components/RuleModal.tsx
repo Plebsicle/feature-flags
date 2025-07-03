@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,7 +15,6 @@ import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
 import { Plus, X, Target, Info, Edit, Save, Loader2, ChevronDown } from "lucide-react"
 import { Toaster, toast } from 'react-hot-toast'
-import { format } from 'date-fns'
 import * as semver from 'semver'
 import { LightDateTimePicker } from './LightDateTimePicker'
 
@@ -544,7 +543,7 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
                 <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
                   <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                   <p className="text-gray-600 mb-2">No conditions added yet.</p>
-                  <p className="text-sm text-gray-500">Click "Add Condition" to define targeting rules.</p>
+                  <p className="text-sm text-gray-500">Click &quot;Add Condition&quot; to define targeting rules.</p>
                 </div>
               ) : (
                 <div className="space-y-4">

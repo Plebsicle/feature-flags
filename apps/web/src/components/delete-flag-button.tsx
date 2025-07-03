@@ -81,8 +81,7 @@ export function DeleteFlagButton({ flagId, flagName }: DeleteFlagButtonProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Flag</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the <span className="font-medium text-gray-900">"{flagName}"</span> Feature Flag? 
-              This action cannot be undone and will permanently remove all configuration data for this environment.
+              Are you sure you want to delete the &quot;{flagName}&quot; flag? This action cannot be undone and will permanently remove the flag and all its associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

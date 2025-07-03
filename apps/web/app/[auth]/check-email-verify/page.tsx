@@ -40,7 +40,7 @@ export default function VerifyEmailPage() {
               Verify Your Email
             </CardTitle>
             <CardDescription className="text-gray-600 mt-3 text-base">
-              We've sent a verification link to your email address.
+              We&apos;ve sent a verification link to your email address.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-6">
@@ -50,7 +50,7 @@ export default function VerifyEmailPage() {
               </p>
             </div>
             <p className="text-gray-600 text-sm">
-              Didn't receive an email? You can request a new verification link or contact support for assistance.
+              Didn&apos;t receive an email? You can request a new verification link or contact support for assistance.
             </p>
             <Link href="/auth/signin">
               <Button

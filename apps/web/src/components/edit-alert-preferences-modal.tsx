@@ -12,17 +12,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRouter } from 'next/navigation'
 import { Toaster, toast } from 'react-hot-toast'
-import { FrequencyUnit, user_role } from '@repo/db/client'
+import { user_role } from '@repo/db/client'
 import { 
   AlertPreferences, 
   AlertPreferencesFormData, 
-  getFrequencyUnitDisplay, 
   getRoleColor 
 } from '@/lib/alert-preferences-types'
 
@@ -127,7 +124,7 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
               Edit Alert Preferences
             </DialogTitle>
             <DialogDescription>
-              Update your organisation's alert notification settings.
+              Update your organisation&apos;s alert notification settings.
             </DialogDescription>
           </DialogHeader>
 

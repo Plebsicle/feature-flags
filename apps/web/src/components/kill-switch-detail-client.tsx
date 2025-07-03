@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 import {
   Skull,
   Edit3,
@@ -10,11 +9,9 @@ import {
   Save,
   X,
   Calendar,
-  User,
   Activity,
   AlertTriangle,
   Flag,
-  Layers,
   Plus,
   Minus,
   Loader2,
@@ -28,7 +25,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { EnhancedCopyButton } from "@/components/enhanced-copy-button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,13 +68,6 @@ type KillSwitch = {
   activated_by: string | null;
   killSwitchKey?: string;
 }
-
-interface KillSwitchResponse {
-  killSwitch: KillSwitch
-  success: boolean
-  message: string
-}
-
 type EditFormData = {
   name: string
   description: string
@@ -389,7 +378,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
           <Skull className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Kill Switch Not Found</h3>
-          <p className="text-gray-600 mb-4">The kill switch you're looking for doesn't exist or has been deleted.</p>
+          <p className="text-gray-600 mb-4">The kill switch you&apos;re looking for doesn&apos;t exist or has been deleted.</p>
           <Button 
             onClick={() => router.push('/killSwitch')}
             className="bg-indigo-600 hover:bg-indigo-700 text-white"

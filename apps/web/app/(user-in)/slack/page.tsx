@@ -170,7 +170,7 @@ export default async function SlackIntegrationPage() {
             <CardHeader>
               <CardTitle className="text-lg text-gray-900">Integration Benefits</CardTitle>
               <CardDescription>
-                Maximize your team's productivity with Slack notifications
+                Maximize your team&apos;s productivity with Slack notifications
               </CardDescription>
             </CardHeader>
             <CardContent>

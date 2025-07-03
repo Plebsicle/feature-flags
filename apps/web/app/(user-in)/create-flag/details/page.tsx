@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MultipleSelector } from "@/components/ui/multiple-selector"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { flag_type } from '@repo/db/client'
-import { ArrowRight, Flag, Check } from "lucide-react"
+import { ArrowRight, Flag } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
 
 const flagTypeOptions = [

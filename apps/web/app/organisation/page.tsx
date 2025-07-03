@@ -89,7 +89,7 @@ export default function OrganizationPage() {
                 Almost There!
               </CardTitle>
               <CardDescription className="text-gray-600">
-                What's the name of your organization?
+                What&apos;s the name of your organization?
               </CardDescription>
             </CardHeader>
 
@@ -116,7 +116,7 @@ export default function OrganizationPage() {
                   </div>
                   <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
                     <p className="text-xs text-indigo-700">
-                      This helps us personalize your feature flag management experience and organize your team's projects.
+                      This helps us personalize your feature flag management experience and organize your team&apos;s projects.
                     </p>
                   </div>
                 </motion.div>
@@ -158,7 +158,7 @@ export default function OrganizationPage() {
               Welcome to the team, <span className="font-semibold text-indigo-600">{partialSignupDetails.name}</span>! 🎉
             </p>
             <p className="text-gray-500 text-xs mt-1">
-              You're just one step away from managing your feature flags professionally.
+              You&apos;re just one step away from managing your feature flags professionally.
             </p>
           </div>
         </motion.div>

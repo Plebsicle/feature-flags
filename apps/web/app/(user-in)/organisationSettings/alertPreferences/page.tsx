@@ -1,16 +1,13 @@
 import Link from "next/link"
-import { cookies } from 'next/headers'
+import { cookies } from "next/headers"
 import { ArrowLeft, Bell, Settings, Mail, MessageSquare, Users, Calendar } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent,  CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { CreateAlertPreferencesModal } from "@/components/create-alert-preferences-modal"
 import { EditAlertPreferencesModal } from "@/components/edit-alert-preferences-modal"
-import { FrequencyUnit, user_role } from "@repo/db/client"
 import { 
   AlertPreferences, 
   AlertPreferencesResponse, 
-  formatFrequency, 
   getRoleColor 
 } from "@/lib/alert-preferences-types"
 
@@ -22,7 +19,7 @@ export default async function AlertPreferencesPage() {
 
   try {
     const cookieStore = await cookies()
-    const sessionId = cookieStore.get('sessionId')?.value
+    const sessionId = cookieStore.get("sessionId")?.value
 
     const response = await fetch(`${BACKEND_URL}/organisation/preferences`, {
       method: "GET",
@@ -191,7 +188,7 @@ export default async function AlertPreferencesPage() {
                   <div className="w-20 h-20 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-6">
                     <Bell className="w-10 h-10 text-amber-600" />
                   </div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Setup Your Organisation's Alert Preferences</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Setup Your Organisation&apos;s Alert Preferences</h2>
                   <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
                     Configure how and when your team receives notifications about metric alerts. 
                     Set up email and Slack notifications, choose notification frequencies, and specify which roles should receive alerts.

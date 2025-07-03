@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Minus, Loader2 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 
@@ -52,7 +51,7 @@ export default function CreateKillSwitchPage() {
     killSwitchKey: "",
     flags: [],
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting] = useState(false);
 
   // Function to auto-generate killSwitchKey from name
   const generateKillSwitchKey = (name: string): string => {
@@ -151,14 +150,13 @@ export default function CreateKillSwitchPage() {
         const result = await res.json();
         if (result.success) {
             return result;
-        } else {
-            throw new Error(result.message || "Failed to create kill switch");
-        }
+        } 
+        throw new Error(result.message || "Failed to create kill switch");
     })();
 
     toast.promise(promise, {
       loading: 'Creating kill switch...',
-      success: (result) => {
+      success: () => {
         router.push("/killSwitch");
         return 'Kill Switch created successfully!';
       },
@@ -230,7 +228,7 @@ export default function CreateKillSwitchPage() {
                 <div className="space-y-4">
                   {form.flags.length === 0 && (
                     <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                      <p className="text-gray-600">No flags added. Click "Add Flag" to get started.</p>
+                      <p className="text-gray-600">No flags added. Click &quot;Add Flag&quot; to get started.</p>
                     </div>
                   )}
                   {form.flags.map((flag, idx) => (

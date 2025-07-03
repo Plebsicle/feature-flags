@@ -113,7 +113,7 @@ export function MultipleSelector({
                     }}
                     className="cursor-pointer"
                   >
-                    Add "{item}"
+                    Add &quot;{item}&quot;
                   </CommandItem>
                 ))}
               </CommandGroup>

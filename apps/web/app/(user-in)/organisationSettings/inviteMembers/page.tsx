@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { Users, UserPlus, Bell, Building, Copy } from 'lucide-react'
+import { Users, Bell, Building } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { OrganisationMembersClient } from './OrganisationMembersClient'
 import { EnhancedCopyButton } from "@/components/enhanced-copy-button"
@@ -125,7 +125,7 @@ export default async function OrganisationMembersPage() {
               Organization Details
             </CardTitle>
             <CardDescription>
-              Your organization's unique identifier
+              Your organization&apos;s unique identifier
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { redirect, useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft, CheckCircle, XCircle, Flag } from "lucide-react"
@@ -49,7 +49,7 @@ export default function ResetPasswordPage() {
         router.push('/auth/forgot-password');
       },3000);
     }
-  }, [token])
+  }, [token, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

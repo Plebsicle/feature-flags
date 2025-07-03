@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   Eye
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AuditLogsPagination } from "./AuditLogsPagination";
 import { AttributeChangesViewer } from "@/components/attribute-changes-viewer";
@@ -60,6 +60,13 @@ interface User {
   isVerified: boolean;
 }
 
+interface AttributeChanges {
+  [key: string]: {
+    old_value?: unknown;
+    new_value?: unknown;
+  };
+}
+
 interface AuditLog {
   id: string;
   organisation_id?: string;
@@ -67,7 +74,7 @@ interface AuditLog {
   action: AuditAction;
   resource_type: AuditResourceType;
   resource_id?: string;
-  attributes_changed?: any;
+  attributes_changed?: AttributeChanges;
   environment?: EnvironmentType;
   ip_address?: string;
   user_agent?: string;
@@ -238,8 +245,6 @@ function getRoleColor(role: UserRole): string {
       return 'bg-gray-100 text-gray-800';
   }
 }
-
-
 
 function EmptyState() {
   return (

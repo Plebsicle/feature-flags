@@ -18,11 +18,10 @@ import { useRouter } from 'next/navigation'
 import { Toaster, toast } from 'react-hot-toast'
 
 interface DeleteAlertButtonProps {
-  alertId: string
   metricId: string
 }
 
-export function DeleteAlertButton({ alertId, metricId }: DeleteAlertButtonProps) {
+export function DeleteAlertButton({ metricId }: DeleteAlertButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()

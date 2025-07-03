@@ -82,8 +82,7 @@ export function DeleteMetricButton({ metricId, metricName }: DeleteMetricButtonP
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Metric</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the <span className="font-medium text-gray-900">"{metricName}"</span> metric? 
-              This action cannot be undone and will permanently remove all data and analytics for this metric.
+              Are you sure you want to delete the &quot;{metricName}&quot; metric? This action cannot be undone and will permanently remove the metric and all its associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

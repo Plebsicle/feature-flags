@@ -1,16 +1,11 @@
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { 
   AlertTriangle, 
   CheckCircle, 
   Clock,
-  Filter,
   BarChart3,
-  Calendar,
-  Target,
-  TrendingUp
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { AlertStatusFilter } from "./AlertStatusFilter";
 import { AlertCard } from "./AlertCard";
 
@@ -91,42 +86,6 @@ async function getAlertsData(status: string): Promise<AlertData[] | null> {
   } catch (err) {
     console.error('Error fetching alerts data:', err);
     return null;
-  }
-}
-
-function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-function getStatusIcon(status: AlertStatus) {
-  switch (status) {
-    case 'TRIGGERED':
-      return <AlertTriangle className="w-5 h-5 text-red-600" />;
-    case 'ACKNOWLEDGED':
-      return <Clock className="w-5 h-5 text-amber-600" />;
-    case 'RESOLVED':
-      return <CheckCircle className="w-5 h-5 text-emerald-600" />;
-    default:
-      return <AlertTriangle className="w-5 h-5 text-gray-600" />;
-  }
-}
-
-function getStatusColor(status: AlertStatus): string {
-  switch (status) {
-    case 'TRIGGERED':
-      return 'bg-red-50 text-red-700 border-red-200';
-    case 'ACKNOWLEDGED':
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    case 'RESOLVED':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    default:
-      return 'bg-gray-50 text-gray-700 border-gray-200';
   }
 }
 

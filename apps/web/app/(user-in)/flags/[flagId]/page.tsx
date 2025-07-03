@@ -3,26 +3,18 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { DeleteFlagButton } from "@/components/delete-flag-button";
 import { EditFeatureFlagModal } from "@/components/edit-flag-buton";
-import { CopyButton } from "@/components/copy-button";
 import { ExternalLinkButton } from "@/components/external-link-button";
 import { EnhancedCopyButton } from "@/components/enhanced-copy-button";
-import {
-  Flag,
-  Calendar,
-  User,
+  import {
+  Calendar, 
   Code,
   Tag,
   Activity,
   ToggleLeft,
   ToggleRight,
   ArrowLeft,
-  Edit,
-  Trash2,
-  Copy,
   ExternalLink,
-  Settings,
   Database,
-  Users,
   Plus,
 } from "lucide-react";
 import {

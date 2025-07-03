@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers';
 import { 
   Flag, 
-  BarChart3, 
   Users, 
   Activity, 
   AlertCircle,
@@ -150,7 +149,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome back! Here's what's happening with your feature flags.</p>
+        <p className="text-gray-600 mt-1">Welcome back! Here&apos;s what&apos;s happening with your feature flags.</p>
       </div>
 
       {dashboardData ? (
@@ -214,7 +213,7 @@ export default async function DashboardPage() {
                 <div className="p-8 text-center">
                   <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No recent activity</h3>
-                  <p className="text-gray-600">When you start using feature flags, you'll see recent activity here.</p>
+                  <p className="text-gray-600">When you start using feature flags, you&apos;ll see recent activity here.</p>
                 </div>
               )}
             </CardContent>

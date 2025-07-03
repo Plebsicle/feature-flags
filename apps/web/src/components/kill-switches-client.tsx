@@ -1,18 +1,14 @@
 'use client'
 
-import { Suspense, useEffect, useState } from "react"
-import { motion } from "framer-motion"
+import { useEffect, useState } from "react"
 import { 
   Skull, 
   Plus, 
   Search, 
-  Filter, 
   MoreHorizontal, 
   ToggleLeft, 
-  ToggleRight, 
   Activity, 
   Calendar, 
-  Flag, 
   Layers,
   AlertTriangle 
 } from "lucide-react"
@@ -43,11 +39,6 @@ type KillSwitch = {
   created_by: string;
   activated_at: Date | null;
   activated_by: string | null;
-}
-
-interface KillSwitchesResponse {
-  data: KillSwitch[]
-  success: boolean
 }
 
 // Kill Switch Card Component

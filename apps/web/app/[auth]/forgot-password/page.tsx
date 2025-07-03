@@ -90,7 +90,7 @@ export default function ForgotPasswordPage() {
                   Forgot Password?
                 </CardTitle>
                 <CardDescription className="text-gray-600 mt-2">
-                  No worries, we'll send you reset instructions.
+                  No worries, we&apos;ll send you reset instructions.
                 </CardDescription>
               </motion.div>
             </CardHeader>
