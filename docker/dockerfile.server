@@ -1,0 +1,55 @@
+FROM node:20-alpine  AS builder
+
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
+RUN echo "DATABASE_URL is: $DATABASE_URL"
+
+RUN corepack enable
+
+WORKDIR /app
+
+COPY ./packages/db ./packages/db
+COPY ./packages/config-types ./packages/config-types
+
+COPY ./package.json ./package.json
+COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
+COPY ./turbo.json ./turbo.json
+
+COPY ./apps/server ./apps/server
+
+
+RUN pnpm install
+RUN cd packages/db && pnpm prisma generate
+RUN cd packages/db && pnpm run build
+RUN cd packages/config-types && pnpm run build
+RUN pnpm run build --filter server
+
+FROM node:20-alpine AS production
+ARG DATABASE_URL
+ENV DATABASE_URL=${DATABASE_URL}
+RUN echo "DATABASE_URL is: $DATABASE_URL"
+RUN corepack enable
+WORKDIR /app
+
+COPY ./package.json ./package.json
+COPY ./pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY ./pnpm-lock.yaml ./pnpm-lock.yaml
+
+COPY --from=builder /app/apps/server/dist ./apps/server/dist
+COPY --from=builder /app/packages/db/dist ./packages/db/dist
+COPY --from=builder /app/packages/config-types/dist ./packages/config-types/dist
+COPY --from=builder /app/packages/db/schema.prisma ./packages/db/schema.prisma
+COPY --from=builder /app/packages/db/node_modules ./packages/db/node_modules
+COPY --from=builder /app/apps/server/node_modules ./apps/server/node_modules
+COPY --from=builder /app/packages/db/package.json ./packages/db/package.json
+COPY --from=builder /app/packages/config-types/package.json ./packages/config-types/package.json
+COPY --from=builder /app/apps/server/package.json ./apps/server/package.json
+
+RUN pnpm install --prod --frozen-lockfile
+RUN cd packages/db && pnpm prisma generate
+EXPOSE 8000
+
+CMD [ "node","apps/server/dist/index.js"]
+
+
