@@ -1,4 +1,9 @@
-module.exports = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'standalone',
+  experimental: {
+    outputFileTracingRoot: process.cwd(),
+  },
   async headers() {
     return [
       {
@@ -24,4 +29,6 @@ module.exports = {
       }
     ]
   }
-}
+};
+
+export default nextConfig;

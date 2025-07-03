@@ -45,6 +45,48 @@ alertMonitor.start();
 rolloutJob.start();
 
 //Routes
+// Health check endpoint
+app.get('/health', (req, res) => {
+  try {
+    // Test that all critical dependencies resolve
+    require('express');
+    require('@repo/db');
+    require('@repo/types/attribute-config');
+    
+    const healthCheck = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      service: 'bitswitch-server',
+      version: process.env.npm_package_version || '1.0.0',
+      node_version: process.version,
+      memory: {
+        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024 * 100) / 100,
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024 * 100) / 100,
+        external: Math.round(process.memoryUsage().external / 1024 / 1024 * 100) / 100,
+        unit: 'MB'
+      },
+      environment: {
+        node_env: process.env.NODE_ENV || 'development',
+        database_connected: process.env.DATABASE_URL ? 'configured' : 'not-configured',
+        redis_session: process.env.REDIS_SESSION_URL ? 'configured' : 'not-configured',
+        redis_flag: process.env.REDIS_FLAG_URL ? 'configured' : 'not-configured'
+      },
+      dependencies: 'resolved'
+    };
+    
+    res.status(200).json(healthCheck);
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(503).json({ 
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      service: 'bitswitch-server',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 app.use('/auth',authRoutes);
 app.use('/flag',flagRoutes);
 app.use('/killswitch',killSwitchRoutes);

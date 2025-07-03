@@ -1,4 +1,4 @@
-import {environment_type} from "../db/client"
+type environment_type = "STAGING" | "PROD" | "DEV" | "TEST"
 
 export interface killSwitchFlagConfig {
     flagKey : string,

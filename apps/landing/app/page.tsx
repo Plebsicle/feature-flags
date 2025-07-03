@@ -162,14 +162,14 @@ export default function LandingPage() {
               <span className="text-xl font-bold text-gray-900">Bitswitch</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link href="/auth/signin">
+              <Link href="https://app.bitswitch.tech/auth/signin">
                 <Button 
                   className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 font-medium rounded-lg"
                 >
                   Sign In
                 </Button>
               </Link>
-              <Link href="/auth/signup">
+              <Link href="https://app.bitswitch.tech/auth/signin/auth/signup">
                 <Button 
                   className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 font-medium rounded-lg"
                 >
@@ -217,7 +217,7 @@ export default function LandingPage() {
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signup">
+            <Link href="https://app.bitswitch.tech/auth/signup">
               <Button
                 size="lg"
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-lg font-medium rounded-lg"
@@ -226,14 +226,16 @@ export default function LandingPage() {
                 <Rocket className="ml-3 w-5 h-5" />
               </Button>
             </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 px-8 py-3 text-lg font-medium rounded-lg"
-            >
-              <Code2 className="mr-3 w-5 h-5" />
-              Documentation
-            </Button>
+            <Link href="https://www.npmjs.com/package/bitswitch-sdk">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 px-8 py-3 text-lg font-medium rounded-lg"
+              >
+                <Code2 className="mr-3 w-5 h-5" />
+                SDK Documentation
+              </Button>
+            </Link>
           </motion.div>
         </motion.div>
       </section>
@@ -316,9 +318,9 @@ export default function LandingPage() {
               <ul className="space-y-4">
                 <BenefitItem text="Deploy features without fear of breaking production environments" />
                 <BenefitItem text="Test new ideas with real users before committing to full rollout" />
-                <BenefitItem text="Instant rollbacks and kill switches for immediate issue resolution" />
+                <BenefitItem text="Kill switches for immediate issue resolution" />
                 <BenefitItem text="Granular control over feature visibility and user targeting" />
-                <BenefitItem text="Real-time monitoring with intelligent alerting systems" />
+                <BenefitItem text="Real-time monitoring with alerting systems" />
                 <BenefitItem text="Seamless integration with your existing development workflow" />
               </ul>
             </motion.div>
@@ -376,7 +378,7 @@ export default function LandingPage() {
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
               Join development teams who trust Flagship Feat to deliver better software, faster and safer.
             </p>
-            <Link href="/signup">
+            <Link href="https://app.bitswitch.tech/auth/signup">
               <Button
                 size="lg"
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 text-xl font-medium rounded-lg"

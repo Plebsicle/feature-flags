@@ -1,12 +1,19 @@
 {
     "$schema": "https://json.schemastore.org/package.json",
-    "name" : "@repo/types",
-    "version" : "1.0.0",
-    "exports" : {
-        "./attribute-config" : "./attribute-config.ts",
-        "./rollout-config" : "./rollout-config.ts",
-        "./rule-config" : "./rule-config.ts",
-        "./kill-switch-flag-config" : "./kill-switch-flag-config.ts",
-        "./value-config" : "./value-config.ts"
+    "name": "@repo/types",
+    "version": "1.0.0",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -b",
+        "clean": "rm -rf dist"
+    },
+    "exports": {
+        ".": "./dist/index.js",
+        "./attribute-config": "./dist/attribute-config.js",
+        "./rollout-config": "./dist/rollout-config.js",
+        "./rule-config": "./dist/rule-config.js",
+        "./kill-switch-flag-config": "./dist/kill-switch-flag-config.js",
+        "./value-config": "./dist/value-config.js"
     }
 }

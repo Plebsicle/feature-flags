@@ -2,9 +2,15 @@
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@repo/db",
   "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist"
+  },
   "exports": {
-    ".": "./index.ts",
-     "./client": "./client.ts"
+    ".": "./dist/index.js",
+    "./client": "./dist/client.js"
   },
   "devDependencies": {
     "@types/node": "^22.15.29"
