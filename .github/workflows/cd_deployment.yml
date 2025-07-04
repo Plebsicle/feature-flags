@@ -31,10 +31,10 @@ jobs:
                     git pull
                     pnpm install
                     cd packages/db && pnpm run build && pnpm prisma generate
-                    cd packages/config-types && pnpm run build
-                    cd apps/server && pnpm run build
-                    cd apps/web && pnpm run build
-                    cd apps/landing && pnpm run build
+                    cd ../config-types && pnpm run build
+                    cd ../../apps/server && pnpm run build
+                    cd ../apps/web && pnpm run build
+                    cd ../apps/landing && pnpm run build
                     pm2 restart server
                     pm2 restart web
                     pm2 restart landing

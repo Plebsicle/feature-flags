@@ -2,6 +2,7 @@ import prisma from '@repo/db';
 import express from 'express';
 import { Redis_Value, RedisCacheRules, setFlag } from '../../services/redis/redis-flag';
 import { RolloutConfig } from '@repo/types/rollout-config';
+import { Prisma } from '@repo/db/client';
 import { convertToMilliseconds } from '../../util/convertToMs';
 import { 
     createFlagBodySchema, 
@@ -94,7 +95,7 @@ class CreateFlagController {
                 }
             }
 
-            const result = await this.prisma.$transaction(async (tx) => {
+            const result = await this.prisma.$transaction(async (tx : Prisma.TransactionClient) => {
                 // Insert custom attributes first
 
                 // Create feature flag
@@ -308,7 +309,7 @@ class CreateFlagController {
                 return;
             }
 
-            const result = await this.prisma.$transaction(async (tx) => {
+            const result = await this.prisma.$transaction(async (tx : Prisma.TransactionClient) => {
                 // Parallel execution of independent operations
                 const environmentFlagResponse = await tx.flag_environments.create({
                         data: {
