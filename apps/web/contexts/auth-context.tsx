@@ -30,6 +30,7 @@ interface AuthContextType {
   isLoading: boolean
   updateOrganization: (organizationName: string) => void
   partialSignupDetails: PartialSignupDetails | null
+  clearPartialSignup: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -38,6 +39,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [partialSignupDetails, setPartialSignupDetails] = useState<PartialSignupDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  const clearPartialSignup = () => {
+    setPartialSignupDetails(null);
+  }
 
   // Load user on mount
   useEffect(() => {
@@ -157,6 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         updateOrganization,
         partialSignupDetails,
+        clearPartialSignup
       }}
     >
       {children}

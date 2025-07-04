@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { MemberCard } from "@/components/MemberCard"
 import { InviteMembersModal } from "@/components/InviteMembersModal"
 import { Toaster, toast } from "react-hot-toast"
+import { useRouter } from "next/navigation"
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
 
@@ -27,11 +28,12 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
   const [members, setMembers] = useState<MemberDetails[]>(initialMembers)
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
+  const router = useRouter()
 
   const handleRoleUpdate = async (memberId: string, newRole: UserRole) => {
     setIsUpdating(true)
     try {
-      const response = await fetch(`${BACKEND_URL}/organisation/role`, {
+      const response = await fetch(`/${BACKEND_URL}/organisation/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +103,8 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
         setMembers(prevMembers =>
           prevMembers.filter(member => member.id !== memberId)
         )
-        
+        // refresh the page 
+        router.refresh()
         toast.success('Member removed successfully.')
       } catch (error) {
         // console.error('Error deleting member:', error)

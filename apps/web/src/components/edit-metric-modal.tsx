@@ -213,9 +213,9 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
             <Edit className="w-4 h-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
+            <DialogTitle className="flex items-center gap-3 text-xl text-gray-900 font-semibold">
               <div className={`w-10 h-10 rounded-lg ${getMetricTypeIconBackground(formData.metric_type)} flex items-center justify-center`}>
                 {(() => {
                   const Icon = getMetricTypeIcon(formData.metric_type)
@@ -224,7 +224,7 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
               </div>
               Edit Metric
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-gray-500">
               Update metric details and configuration. Changes will be applied immediately.
             </DialogDescription>
           </DialogHeader>
@@ -232,14 +232,14 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Metric Name */}
             <div className="space-y-2">
-              <Label htmlFor="metric_name" className="text-neutral-300">
+              <Label htmlFor="metric_name" className="text-gray-700 font-medium text-sm">
                 Metric Name *
               </Label>
               <Input
                 id="metric_name"
                 value={formData.metric_name}
                 onChange={(e) => handleInputChange('metric_name', e.target.value)}
-                className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
+                className="bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500/10"
                 placeholder="Enter metric name"
                 required
               />
@@ -247,21 +247,21 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
 
             {/* Metric Type */}
             <div className="space-y-2">
-              <Label className="text-neutral-300">
+              <Label className="text-gray-700 font-medium text-sm">
                 Metric Type *
               </Label>
               <Select 
                 value={formData.metric_type} 
                 onValueChange={(value: metric_type) => handleInputChange('metric_type', value)}
               >
-                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                <SelectTrigger className="bg-white border-gray-300 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500/10">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectContent className="bg-white border-gray-200 shadow-md">
                   {(["CONVERSION", "COUNT", "NUMERIC"] as metric_type[]).map((type) => {
                     const Icon = getMetricTypeIcon(type)
                     return (
-                      <SelectItem key={type} value={type} className="text-white hover:bg-slate-700">
+                      <SelectItem key={type} value={type} className="text-gray-900 hover:bg-gray-100">
                         <div className="flex items-center gap-2">
                           <div className={`w-6 h-6 rounded bg-gradient-to-r ${getMetricTypeColor(type)} flex items-center justify-center`}>
                             <Icon className="w-3 h-3 text-white" />
@@ -276,32 +276,32 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
             </div>
 
             {/* Active Status */}
-            <div className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div>
-                <Label className="text-neutral-300 font-medium">
+                <Label className="text-gray-700 font-medium text-sm">
                   Active Status
                 </Label>
-                <p className="text-sm text-neutral-400">
+                <p className="text-sm text-gray-500">
                   Enable or disable this metric
                 </p>
               </div>
               <Switch
                 checked={formData.is_active}
                 onCheckedChange={(checked) => handleInputChange('is_active', checked)}
-                className="data-[state=checked]:bg-emerald-600"
+                className="data-[state=checked]:bg-indigo-600"
               />
             </div>
 
             {/* Unit of Measurement */}
             <div className="space-y-2">
-              <Label htmlFor="unit_measurement" className="text-neutral-300">
+              <Label htmlFor="unit_measurement" className="text-gray-700 font-medium text-sm">
                 Unit of Measurement *
               </Label>
               <Input
                 id="unit_measurement"
                 value={formData.unit_measurement}
                 onChange={(e) => handleInputChange('unit_measurement', e.target.value)}
-                className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
+                className="bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500/10"
                 placeholder="e.g., clicks, conversions, ms"
                 required
               />
@@ -309,19 +309,19 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
 
             {/* Aggregation Method */}
             <div className="space-y-2">
-              <Label className="text-neutral-300">
+              <Label className="text-gray-700 font-medium text-sm">
                 Aggregation Method *
               </Label>
               <Select 
                 value={formData.aggregation_method} 
                 onValueChange={(value: metric_aggregation_method) => handleInputChange('aggregation_method', value)}
               >
-                <SelectTrigger className="bg-slate-700/50 border-slate-600 text-white">
+                <SelectTrigger className="bg-white border-gray-300 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500/10">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectContent className="bg-white border-gray-200 shadow-md">
                   {(["SUM", "AVERAGE", "P99", "P90", "P95", "P75", "P50"] as metric_aggregation_method[]).map((method) => (
-                    <SelectItem key={method} value={method} className="text-white hover:bg-slate-700">
+                    <SelectItem key={method} value={method} className="text-gray-900 hover:bg-gray-100">
                       {method}
                     </SelectItem>
                   ))}
@@ -331,14 +331,14 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-neutral-300">
+              <Label htmlFor="description" className="text-gray-700 font-medium text-sm">
                 Description *
               </Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
-                className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400 min-h-[100px]"
+                className="bg-white border-gray-300 text-gray-900 placeholder-gray-400 min-h-[100px] focus:border-indigo-500 focus:ring-indigo-500/10"
                 placeholder="Describe what this metric measures and how it's used"
                 required
               />
@@ -346,7 +346,7 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
 
             {/* Tags */}
             <div className="space-y-3">
-              <Label className="text-neutral-300">
+              <Label className="text-gray-700 font-medium text-sm">
                 Tags
               </Label>
               
@@ -356,7 +356,7 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleTagInputKeyDown}
-                  className="bg-slate-700/50 border-slate-600 text-white placeholder-slate-400"
+                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500/10"
                   placeholder="Add a tag and press Enter"
                 />
                 <Button
@@ -364,7 +364,7 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
                   onClick={addTag}
                   size="sm"
                   variant="outline"
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -376,14 +376,14 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
                   {formData.tags.map((tag, index) => (
                     <Badge
                       key={index}
-                      className="bg-slate-700/50 text-slate-300 border-slate-600 flex items-center gap-1"
+                      className="bg-gray-100 text-gray-700 border border-gray-300 flex items-center gap-1 py-1 px-2"
                     >
                       <Tag className="w-3 h-3" />
                       {tag}
                       <button
                         type="button"
                         onClick={() => removeTag(tag)}
-                        className="ml-1 hover:text-red-400"
+                        className="ml-1 hover:text-red-600"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -393,20 +393,20 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
               )}
             </div>
 
-            <DialogFooter className="gap-2">
+            <DialogFooter className="gap-2 pt-4 border-t border-gray-200">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsOpen(false)}
                 disabled={isSubmitting}
-                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
               >
                 {isSubmitting ? (
                   <>

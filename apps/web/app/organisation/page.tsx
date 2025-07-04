@@ -15,7 +15,7 @@ import { useAuth } from "../../contexts/auth-context"
 
 export default function OrganizationPage() {
   const [organizationName, setOrganizationName] = useState("")
-  const { partialSignupDetails, completeSignup, isLoading } = useAuth()
+  const { partialSignupDetails, completeSignup, isLoading, clearPartialSignup } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -33,16 +33,19 @@ export default function OrganizationPage() {
     console.log("Before signup", partialSignupDetails);
     const { googleToken } = partialSignupDetails;
     console.log(googleToken);
+    // Store whether this is a Google signup before partialSignupDetails is cleared
+    const isGoogleSignup = !!googleToken;
     const response = await completeSignup(organizationName);
     console.log("After signup", partialSignupDetails);
     console.log(response);
     if (response) {
-      if (partialSignupDetails.googleToken) {
+      if (isGoogleSignup) {
         router.push("/dashboard");
       }
       else {
         router.push('/auth/check-email-verify');
       }
+      clearPartialSignup()
     }
     else {
       // add toast here 

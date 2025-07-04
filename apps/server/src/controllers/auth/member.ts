@@ -109,8 +109,9 @@ class MemberController {
         const existingUsers = await this.prisma.users.findMany({
             where: {
                 email: {
-                    in: emails
-                }
+                    in: emails,
+                },
+                is_active : true
             },
             select: {
                 email: true
@@ -263,7 +264,8 @@ class MemberController {
             }
 
             const { emails, memberRole } = req.body;
-
+            console.log(emails);
+            console.log(memberRole);
             if (!Array.isArray(emails)) {
                 res.status(401).json("Invalid Inputs");
                 return;
@@ -275,15 +277,7 @@ class MemberController {
                 return;
             }
 
-            console.log(userId);
-
-            const org = await this.getUserOrganization(userId);
-            console.log(org);
-
-            if (!org?.organization_id) {
-                res.status(400).json("Organization not found");
-                return;
-            }
+            const organisationId = req.session.user?.userOrganisationId!;            
 
             const { ineligibleEmails, eligibleEmails } = await this.checkExistingUsers(emails);
 
@@ -293,7 +287,7 @@ class MemberController {
                 const expiration = new Date();
                 expiration.setHours(expiration.getHours() + 1);
 
-                await this.createInvitation(email, token, expiration, userId, org.organization_id, memberRole);
+                await this.createInvitation(email, token, expiration, userId, organisationId, memberRole);
                 await sendMemberSignupMails(email, token);
             }
 

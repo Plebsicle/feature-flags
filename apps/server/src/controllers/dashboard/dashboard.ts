@@ -173,7 +173,6 @@ class DashboardController {
             });
 
             const flagIds = orgFlags.map((flag: { id: string }) => flag.id);
-            
             let flagEvaluations;
             if (flagIds.length === 0) {
                 flagEvaluations = "No Flags Evaluated";
@@ -185,7 +184,7 @@ class DashboardController {
                         }
                     }
                 });
-
+                console.log(flagEvaluations);
                 flagEvaluations = this.formatFlagEvaluations(evaluationCount);
             }
 

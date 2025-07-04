@@ -5,7 +5,7 @@ import { z } from 'zod';
 // ============================================================================
 
 // Enums for metrics
-export const metricTypeSchema = z.enum(['COUNT', 'SUM', 'AVERAGE', 'CONVERSION']);
+export const metricTypeSchema = z.enum(['COUNT', 'NUMERIC', 'CONVERSION']);
 export const metricAggregationMethodSchema = z.enum(['SUM', 'COUNT', 'AVERAGE', 'MIN', 'MAX']);
 export const metricEventTypeSchema = z.enum(['CLICK', 'VIEW', 'CONVERSION', 'CUSTOM']);
 export const conversionStepTypeSchema = z.enum(['STARTED', 'COMPLETED', 'ABANDONED']);

@@ -78,7 +78,6 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
           "Content-Type": "application/json",
           ...(sessionId && { "Cookie": `sessionId=${sessionId}` })
         },
-        next: { revalidate: 30 }
       }),
       fetch(`${BACKEND_URL}/alerts/${metricId}`, {
         method: "GET",
@@ -87,7 +86,6 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
           "Content-Type": "application/json",
           ...(sessionId && { "Cookie": `sessionId=${sessionId}` })
         },
-        next: { revalidate: 30 }
       })
     ])
 

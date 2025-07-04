@@ -49,7 +49,8 @@ export const memberSignupVerificationBodySchema = z.object({
 });
 
 export const memberSignupSendInvitationBodySchema = z.object({
-  emails: z.array(z.string().email("Invalid email format")).min(1, "At least one email is required")
+  emails: z.array(z.string().email("Invalid email format")).min(1, "At least one email is required"),
+  memberRole: z.enum(["ADMIN", "MEMBER", "VIEWER", "OWNER"])
 });
 
 // Forgot password schemas

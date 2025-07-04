@@ -438,6 +438,15 @@ class RolloutEvaluator {
     console.log(`🎯 RolloutEvaluator.evaluatePercentage - Hash calculation: identifier="${identifier}", hash=${hash}, percentage=${percentage}, result=${result}`);
     return result;
   }
+
+  private static createEvaluationEntry() {
+    try{
+
+    }
+    catch(e){
+      console.error(e);
+    }
+  }
   
   private static evaluateProgressive(config: any, userContext: UserContext,flag_type : flag_type,value : Record<string,any>): boolean | any {
     console.log(`🎯 RolloutEvaluator.evaluateProgressive - Config:`, config);
@@ -578,7 +587,16 @@ class FeatureFlagEvaluator {
       }
       
       console.log(`🚀 Step 3: Rollout passed`);
-      
+
+      console.log('step 3.5 add feature-flag eval entry')
+      await this.createEvaluationEntry(
+        flagData.flagId,
+        request.environment as environment_type,
+        flagData.flag_type === "AB_TEST" || flagData.flag_type === "MULTIVARIATE" ? rolloutPassed : flagData.value,
+        request.userContext,
+        matchedRule
+      );
+
       console.log(rolloutPassed);
       // Step 4: Return the flag value
       console.log(`🚀 Step 4: Processing flag value...`);
@@ -705,6 +723,36 @@ class FeatureFlagEvaluator {
     } catch (error) {
       console.error(`🗄️ FeatureFlagEvaluator.getFlagData - Error fetching flag data:`, error);
       throw error;
+    }
+  }
+
+  private static async createEvaluationEntry(
+    flagId: string, 
+    environment: environment_type, 
+    value: any, 
+    userContext: UserContext, 
+    matchedRule: RedisCacheRules | null
+  ) {
+    try {
+      console.log(`FeatureFlagEvaluator.createEvaluationEntry - Recording evaluation data`);
+      
+      const prisma = new PrismaClient();
+      
+      await prisma.flag_evaluations.create({
+        data: {
+          flag_id: flagId,
+          environment: environment,
+          value: value,
+          user_context: userContext,
+          rules_matched: matchedRule ? { rule_id: matchedRule.rule_id, name: matchedRule.name } : {}
+        }
+      });
+      
+      console.log(`FeatureFlagEvaluator.createEvaluationEntry - Evaluation data recorded successfully`);
+      
+      await prisma.$disconnect();
+    } catch (e) {
+      console.error(`FeatureFlagEvaluator.createEvaluationEntry - Error recording evaluation data:`, e);
     }
   }
 }

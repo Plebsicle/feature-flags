@@ -313,9 +313,9 @@ export default async function FlagDetailPage(props: {
                             Add Environment
                           </Button>
                         </Link>
-                        <ExternalLinkButton url={`/api/flags/${flag.id}`}>
+                        <ExternalLinkButton url={`https://www.npmjs.com/package/bitswitch-sdk`}>
                           <ExternalLink className="w-4 h-4 mr-2" />
-                          View API
+                          View SDK
                         </ExternalLinkButton>
                       </div>
                     </div>
