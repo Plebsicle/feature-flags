@@ -53,7 +53,7 @@ class ReadFlagController {
         const finalData : Redis_Value[] = [];
         for(const environment of environments){
             const rules : RedisCacheRules[] = [];
-            environment.rules.forEach((rule)=>{
+            environment.rules.forEach((rule: { name: string; id: string; conditions: any; is_enabled: boolean; })=>{
                 rules.push({
                     name : rule.name,
                     rule_id : rule.id,
@@ -195,7 +195,7 @@ class ReadFlagController {
 
             // Return only environment data
             const flag_type = flag.flag_type;
-            const environmentData = flag.environments.map(env => ({
+            const environmentData = flag.environments.map((env: { id: string; environment: environment_type; value: any; default_value: any; is_enabled: boolean; created_at: Date; updated_at: Date; }) => ({
                 id: env.id,
                 environment: env.environment,
                 value: env.value,
@@ -255,7 +255,7 @@ class ReadFlagController {
                 is_environment_active: environmentData.is_enabled,
                 value: environmentData.value as Record<string, any>,
                 default_value: environmentData.default_value as Record<string, any>,
-                rules: environmentData.rules.map(rule => ({
+                rules: environmentData.rules.map((rule: { id: string; name: string; conditions: any; is_enabled: boolean; description: string | null; }) => ({
                     name: rule.name,
                     rule_id: rule.id,
                     conditions: rule.conditions as unknown as Conditions,
@@ -275,7 +275,7 @@ class ReadFlagController {
             );
 
             // Return only rules data in the expected format
-            const rulesResponse = environmentData.rules.map(rule => ({
+            const rulesResponse = environmentData.rules.map((rule: { id: string; name: string; conditions: any; is_enabled: boolean; description: string | null; }) => ({
                 ...rule
             }));
 
@@ -323,7 +323,7 @@ class ReadFlagController {
                 is_environment_active: environmentData.is_enabled,
                 value: environmentData.value as Record<string, any>,
                 default_value: environmentData.default_value as Record<string, any>,
-                rules: environmentData.rules.map(rule => ({
+                rules: environmentData.rules.map((rule: { id: string; name: string; conditions: any; is_enabled: boolean; description: string | null; }) => ({
                     name: rule.name,
                     rule_id: rule.id,
                     conditions: rule.conditions as unknown as Conditions,

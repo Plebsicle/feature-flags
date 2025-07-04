@@ -153,7 +153,7 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
             return 'Metric updated successfully!'
         },
         error: (err) => {
-            console.error('Error updating metric:', err)
+            // console.error('Error updating metric:', err)
             return 'Failed to update metric. Please try again.'
         }
     }).finally(() => {

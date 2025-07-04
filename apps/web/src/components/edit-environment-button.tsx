@@ -176,7 +176,7 @@ export function EditEnvironmentModal({
             return 'Environment updated successfully'
         },
         error: (err) => {
-            console.error('Error updating environment:', err)
+            // console.error('Error updating environment:', err)
             return 'Failed to update environment. Please check your values and try again.'
         }
     }).finally(() => {

@@ -183,7 +183,7 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
         return 'Rollout updated successfully!'
       },
       error: (err) => {
-        console.error('Error updating rollout:', err)
+        // console.error('Error updating rollout:', err)
         setErrors({ submit: 'Failed to update rollout. Please try again.' })
         return 'Failed to update rollout. Please try again.'
       }

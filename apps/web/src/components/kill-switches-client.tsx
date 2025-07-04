@@ -224,22 +224,22 @@ export default function KillSwitchesClient() {
       const data: any = await response.json()
   
       if (data.success) {
-        console.log('✅ Kill switches data received:', data.data)
-        console.log('📊 Number of kill switches:', data.data?.length || 0)
+        // console.log('✅ Kill switches data received:', data.data)
+        // console.log('📊 Number of kill switches:', data.data?.length || 0)
         
         // Ensure we always set an array
         const killSwitchesArray = Array.isArray(data.data.killSwitches) ? data.data.killSwitches : []
-        console.log('🔧 Setting kill switches array:', killSwitchesArray)
+        // console.log('🔧 Setting kill switches array:', killSwitchesArray)
         setKillSwitches(killSwitchesArray)
       } else {
         throw new Error('Failed to fetch kill switches')
       }
     } catch (err) {
-      console.error('Error fetching kill switches:', err)
+      // console.error('Error fetching kill switches:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch kill switches')
     } finally {
       setLoading(false)
-      console.log('🔄 Loading set to false')
+      // console.log('🔄 Loading set to false')
     }
   }
 
@@ -391,7 +391,7 @@ export default function KillSwitchesClient() {
           <p className="text-gray-600 mb-4">Rendering {filteredKillSwitches.length} kill switches...</p>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {filteredKillSwitches.map((killSwitch, index) => {
-              console.log(`🎯 Rendering kill switch ${index + 1}:`, killSwitch.name, killSwitch)
+              // console.log(`🎯 Rendering kill switch ${index + 1}:`, killSwitch.name, killSwitch)
               return (
                 <div key={killSwitch.id}>
                   <KillSwitchCard killSwitch={killSwitch} />

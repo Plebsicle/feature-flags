@@ -127,7 +127,7 @@ class ReadKillSwitchController {
 
                 if (killSwitch?.flag_mappings?.length) {
                 await Promise.all(
-                    killSwitch.flag_mappings.map(async (mapping) => {
+                    killSwitch.flag_mappings.map(async (mapping: { flag_id: string }) => {
                     const flag = await this.prisma.feature_flags.findUnique({
                         where: {
                             id: mapping.flag_id

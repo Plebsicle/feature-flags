@@ -62,7 +62,7 @@ export default function EnvironmentsPage() {
     // Only fetch and hydrate if flagKey exists and context is not already initialized
     if (flagKey && (!state.name || state.name.trim() === '')) {
       // Set environment creation mode
-      console.log('Environments page - Setting environment creation mode to true for flagKey:', flagKey)
+      // console.log('Environments page - Setting environment creation mode to true for flagKey:', flagKey)
       setEnvironmentCreationMode(true)
       hydrateFromExistingFlag({ flag_id: flagKey })
       
@@ -80,7 +80,7 @@ export default function EnvironmentsPage() {
           }
 
           const flagData = await flagResponse.json()
-          console.log('Flag data received:', flagData);
+          // console.log('Flag data received:', flagData);
           
           // Fetch existing environments for this flag
           const envResponse = await fetch(`/${BACKEND_URL}/flag/getFlagEnvironmentData/${flagKey}`, {
@@ -93,8 +93,8 @@ export default function EnvironmentsPage() {
           }
 
           const apiResponse = await envResponse.json()
-          console.log('Environment API response received:', apiResponse);
-          console.log('Environment API response type:', typeof apiResponse);
+          // console.log('Environment API response received:', apiResponse);
+          // console.log('Environment API response type:', typeof apiResponse);
           
           // Extract the actual environment data from the API response
           let environmentArray: EnvironmentResponse[] = []
@@ -102,16 +102,16 @@ export default function EnvironmentsPage() {
           if (apiResponse && apiResponse.data && apiResponse.data.environmentData && Array.isArray(apiResponse.data.environmentData)) {
             // API returns { data: { environmentData: [...], flag_id: ..., flag_type: ... }, success: true, message: "..." }
             environmentArray = apiResponse.data.environmentData
-            console.log('Extracted environment data from response.data.environmentData:', environmentArray);
+            // console.log('Extracted environment data from response.data.environmentData:', environmentArray);
           } else if (apiResponse && Array.isArray(apiResponse.data)) {
             // Fallback: if data is directly an array
             environmentArray = apiResponse.data
-            console.log('Extracted environment data from response.data (direct array):', environmentArray);
+            // console.log('Extracted environment data from response.data (direct array):', environmentArray);
           } else {
-            console.warn('Unexpected API response structure:', apiResponse);
+            // console.warn('Unexpected API response structure:', apiResponse);
           }
-          console.log('Processed environment array:', environmentArray);
-          console.log('Environment types in array:', environmentArray.map(env => env.environment));
+          // console.log('Processed environment array:', environmentArray);
+          // console.log('Environment types in array:', environmentArray.map(env => env.environment));
           
           // Hydrate the context with existing flag data, including flag_id
           hydrateFromExistingFlag({
@@ -124,7 +124,7 @@ export default function EnvironmentsPage() {
           // Store existing environments in local state
           setExistingEnvironments(environmentArray)
         } catch (error) {
-          console.error('Error fetching existing flag data:', error);
+          // console.error('Error fetching existing flag data:', error);
           toast.error('Error fetching existing flag data')
           setExistingEnvironments([]) // Set to empty array on error
         } finally {
@@ -550,7 +550,7 @@ export default function EnvironmentsPage() {
   const handleNext = () => {
     if (validateForm()) {
       // Preserve the flagKey parameter when navigating if in environment creation mode
-      console.log(state);
+      // console.log(state);
       if (state.isCreatingEnvironmentOnly && state.flag_id) {
         router.push(`/create-flag/rules?flagKey=${state.flag_id}`)
       } else {
@@ -568,12 +568,12 @@ export default function EnvironmentsPage() {
     .map(env => env.environment)
     .filter(env => env != null && env !== undefined) // Remove any null/undefined values
   
-  console.log('Existing environments from API:', existingEnvironments)
-  console.log('Used environments extracted:', usedEnvironments)
-  console.log('All environment options:', environmentOptions.map(opt => opt.value))
-  console.log('isCreatingEnvironmentOnly:', state.isCreatingEnvironmentOnly)
-  console.log('Flag Id',state.flag_id);
-  console.log('isLoading:', isLoading)
+  // console.log('Existing environments from API:', existingEnvironments)
+  // console.log('Used environments extracted:', usedEnvironments)
+  // console.log('All environment options:', environmentOptions.map(opt => opt.value))
+  // console.log('isCreatingEnvironmentOnly:', state.isCreatingEnvironmentOnly)
+  // console.log('Flag Id',state.flag_id);
+  // console.log('isLoading:', isLoading)
   
   // Filter available environments based on what's already used
   const availableEnvironments = useMemo(() => {
@@ -587,7 +587,7 @@ export default function EnvironmentsPage() {
       return !isUsed
     })
     
-    console.log('Available environments after filtering:', filtered.map(opt => opt.value))
+    // console.log('Available environments after filtering:', filtered.map(opt => opt.value))
     return filtered
   }, [state.isCreatingEnvironmentOnly, isLoading, usedEnvironments])
 

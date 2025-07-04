@@ -81,11 +81,11 @@ export default function RolloutPage() {
   }
 
   const updateConfig = (updates: any) => {
-    console.log('Rollout page - Config updates:', updates)
+    // console.log('Rollout page - Config updates:', updates)
     // Check if any of the updates contain dates and log them
     Object.entries(updates).forEach(([key, value]) => {
       if (key.includes('Date') || key.includes('date')) {
-        console.log(`Rollout page - ${key} updated to:`, value)
+        // console.log(`Rollout page - ${key} updated to:`, value)
       }
     })
     updateRollout({
@@ -378,7 +378,7 @@ export default function RolloutPage() {
           }
         }
 
-        console.log('Rollout page - Environment creation request body:', JSON.stringify(requestBody, null, 2))
+        // console.log('Rollout page - Environment creation request body:', JSON.stringify(requestBody, null, 2))
 
         const response = await fetch(`/${BACKEND_URL}/flag/createEnvironment`, {
           method: 'POST',
@@ -394,7 +394,7 @@ export default function RolloutPage() {
         }
 
         const result = await response.json()
-        console.log('Environment created successfully:', result)
+        // console.log('Environment created successfully:', result)
         return result
       }
 
@@ -407,7 +407,7 @@ export default function RolloutPage() {
           return 'Environment created successfully! Redirecting...'
         },
         error: (err) => {
-          console.error(err)
+          // console.error(err)
           return 'Failed to create environment. Please try again.'
         }
       })
@@ -415,7 +415,7 @@ export default function RolloutPage() {
       // Original flag creation flow
       const createFlagPromise = async () => {
         const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
-        console.log(state.environments.environment,state.environments.value);
+        // console.log(state.environments.environment,state.environments.value);
         const requestBody = {
           name: state.name,
           key: state.key,
@@ -431,7 +431,7 @@ export default function RolloutPage() {
           tags: state.tags
         }
 
-        console.log('Rollout page - Flag creation request body:', JSON.stringify(requestBody, null, 2))
+        // console.log('Rollout page - Flag creation request body:', JSON.stringify(requestBody, null, 2))
 
         const response = await fetch(`/${BACKEND_URL}/flag/createFlag`, {
           method: 'POST',
@@ -447,7 +447,7 @@ export default function RolloutPage() {
         }
 
         const result = await response.json()
-        console.log('Flag created successfully:', result)
+        // console.log('Flag created successfully:', result)
         return result
       }
 
@@ -460,7 +460,7 @@ export default function RolloutPage() {
           return 'Feature flag created successfully! Redirecting...'
         },
         error: (err) => {
-          console.error(err)
+          // console.error(err)
           return 'Failed to create feature flag. Please try again.'
         }
       })
@@ -577,8 +577,8 @@ export default function RolloutPage() {
                 </Button>
                 <Button 
                   onClick={() => {
-                    console.log('Button clicked - state.isCreatingEnvironmentOnly:', state.isCreatingEnvironmentOnly)
-                    console.log('Full state:', state)
+                    // console.log('Button clicked - state.isCreatingEnvironmentOnly:', state.isCreatingEnvironmentOnly)
+                    // console.log('Full state:', state)
                     handleSubmit()
                   }}
                   className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-4 py-1.5 text-sm font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"

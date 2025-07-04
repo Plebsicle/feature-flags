@@ -99,7 +99,7 @@ export function CreateAlertModal({ metricId }: CreateAlertModalProps) {
             return 'Alert created successfully!'
         },
         error: (err) => {
-            console.error('Error creating alert:', err)
+            // console.error('Error creating alert:', err)
             return 'Failed to create alert. Please try again.'
         }
     }).finally(() => {

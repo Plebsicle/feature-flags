@@ -57,7 +57,7 @@ export function DeleteKillSwitchButton({ killSwitchId, killSwitchName }: DeleteK
         return 'Kill switch deleted successfully'
       },
       error: (err) => {
-        console.error('Error deleting kill switch:', err)
+        // console.error('Error deleting kill switch:', err)
         return 'Failed to delete kill switch. Please try again.'
       },
     }).finally(() => {

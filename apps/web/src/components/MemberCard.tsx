@@ -44,7 +44,7 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
         return "Role updated successfully!"
       },
       error: (err) => {
-        console.error("Failed to update role:", err)
+        // console.error("Failed to update role:", err)
         setSelectedRole(member.role)
         return "Failed to update role."
       }

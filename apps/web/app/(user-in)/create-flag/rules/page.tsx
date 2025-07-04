@@ -227,8 +227,8 @@ export default function RulesPage() {
     if (!condition) return
 
     const dateString = date.toISOString()
-    console.log('Rules page - Date selected:', date)
-    console.log('Rules page - ISO string stored:', dateString)
+    // console.log('Rules page - Date selected:', date)
+    // console.log('Rules page - ISO string stored:', dateString)
 
     // For DATE, only allow one value (replace existing)
     const newValues = [dateString]
@@ -271,7 +271,7 @@ export default function RulesPage() {
 
   const handleNext = () => {
     if (validateForm()) {
-      console.log('Rules page - Validation passed, rules data:', JSON.stringify(state.rules, null, 2))
+      // console.log('Rules page - Validation passed, rules data:', JSON.stringify(state.rules, null, 2))
       // Preserve the flagKey parameter when navigating if in environment creation mode
       const flagKey = searchParams?.get('flagKey')
       if (state.isCreatingEnvironmentOnly && flagKey) {

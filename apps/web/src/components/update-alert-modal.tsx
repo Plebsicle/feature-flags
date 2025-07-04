@@ -108,7 +108,7 @@ export function UpdateAlertModal({ alert, metricId }: UpdateAlertModalProps) {
             return 'Alert updated successfully!'
         },
         error: (err) => {
-            console.error('Error updating alert:', err)
+            // console.error('Error updating alert:', err)
             return 'Failed to update alert. Please try again.'
         }
     }).finally(() => {

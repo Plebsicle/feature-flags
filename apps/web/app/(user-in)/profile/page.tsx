@@ -99,7 +99,7 @@ export default function ProfilePage() {
           }, 2000)
         }
       } catch (error) {
-        console.error("Failed to fetch user data:", error)
+        // console.error("Failed to fetch user data:", error)
         setError("Network error occurred")
         setTimeout(() => {
           router.push("/auth/signin")

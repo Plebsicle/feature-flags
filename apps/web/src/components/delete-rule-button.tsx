@@ -54,7 +54,7 @@ export default function DeleteRuleButton({ ruleId, ruleName }: DeleteRuleButtonP
         return 'Rule deleted successfully'
       },
       error: (err) => {
-        console.error('Error deleting rule:', err)
+        // console.error('Error deleting rule:', err)
         return 'Failed to delete rule. Please try again.'
       },
     }).finally(() => {

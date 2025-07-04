@@ -55,7 +55,7 @@ class OrganisationMembersController {
                 }
             });
 
-            const memberIds = memberOrgData.map(data => data.user_id);
+            const memberIds = memberOrgData.map((data: { user_id: string }) => data.user_id);
             const memberDetails = await this.fetchMemberDetails(memberIds);
 
             res.status(200).json({ success: true, data: memberDetails, orgSlug: orgSlug });

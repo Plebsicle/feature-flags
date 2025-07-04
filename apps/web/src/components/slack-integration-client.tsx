@@ -62,7 +62,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
         setSelectedChannels(data.channels.map((ch: SlackChannel) => ch.id));
       }
     } catch (error) {
-      console.error('Error fetching integration status:', error);
+      // console.error('Error fetching integration status:', error);
     }
   };
 
@@ -92,7 +92,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
             return 'Redirecting...';
         },
         error: (err) => {
-            console.error('Error connecting to Slack:', err);
+            // console.error('Error connecting to Slack:', err);
             return 'Failed to connect to Slack';
         }
     }).finally(() => {
@@ -136,7 +136,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
     try {
         await promise;
     } catch (_error) {
-        console.error(_error)
+        // console.error(_error)
         return;
     }
 
@@ -163,7 +163,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
             }
         },
         error: (err) => {
-            console.error('Error disconnecting Slack:', err);
+            // console.error('Error disconnecting Slack:', err);
             return 'Failed to disconnect Slack';
         }
     }).finally(() => {
@@ -196,7 +196,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
             return 'Channels fetched successfully!';
         },
         error: (err) => {
-            console.error('Error fetching channels:', err);
+            // console.error('Error fetching channels:', err);
             return 'Failed to fetch channels';
         }
     }).finally(() => {
@@ -240,7 +240,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
             }
         },
         error: (err) => {
-            console.error('Error saving channels:', err);
+            // console.error('Error saving channels:', err);
             return 'Failed to save channels';
         }
     }).finally(() => {

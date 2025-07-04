@@ -125,7 +125,7 @@ async function getFlag(orgSlug: string, environment: environment_type, flagKey: 
       }
 
       const rules : RedisCacheRules[] = [];
-        environments.rules.forEach((rule)=>{
+        environments.rules.forEach((rule: { name: string; id: string; conditions: any; is_enabled: boolean; })=>{
             rules.push({
                 name : rule.name,
                 rule_id : rule.id,

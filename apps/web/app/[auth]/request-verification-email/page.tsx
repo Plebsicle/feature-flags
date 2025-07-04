@@ -39,7 +39,7 @@ export default function RequestVerificationEmailPage() {
             }
         },
         error: (err) => {
-            console.error(err);
+            // console.error(err);
             return 'Failed to send verification link. Please try again.';
         }
     }).finally(() => {

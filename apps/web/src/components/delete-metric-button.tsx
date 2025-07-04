@@ -56,7 +56,7 @@ export function DeleteMetricButton({ metricId, metricName }: DeleteMetricButtonP
         return 'Metric deleted successfully'
       },
       error: (err) => {
-        console.error('Error deleting metric:', err)
+        // console.error('Error deleting metric:', err)
         return 'Failed to delete metric. Please try again.'
       },
     }).finally(() => {

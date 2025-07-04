@@ -56,7 +56,7 @@ export function DeleteFlagButton({ flagId, flagName }: DeleteFlagButtonProps) {
         return 'Flag deleted successfully'
       },
       error: (err) => {
-        console.error('Error deleting flag:', err)
+        // console.error('Error deleting flag:', err)
         return 'Failed to delete flag. Please try again.'
       },
     }).finally(() => {

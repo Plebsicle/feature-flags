@@ -6,17 +6,12 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       service: 'bitswitch-landing',
-      version: process.env.npm_package_version || '1.0.0',
       node_version: process.version,
       memory: {
         used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024 * 100) / 100,
         total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024 * 100) / 100,
         external: Math.round(process.memoryUsage().external / 1024 / 1024 * 100) / 100,
         unit: 'MB'
-      },
-      environment: {
-        node_env: process.env.NODE_ENV || 'development',
-        api_url: process.env.NEXT_PUBLIC_API_URL || 'not-set'
       }
     };
 

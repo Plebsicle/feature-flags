@@ -61,7 +61,7 @@ class UpdateFlagController {
         const finalData : Redis_Value[] = [];
         for(const environment of environments){
             const rules : RedisCacheRules[] = [];
-            environment.rules.forEach((rule)=>{
+            environment.rules.forEach((rule: { name: string; id: string; conditions: any; is_enabled: boolean; })=>{
                 rules.push({
                     name : rule.name,
                     rule_id : rule.id,

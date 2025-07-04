@@ -170,9 +170,9 @@ export function FlagCreationProvider({ children }: { children: ReactNode }) {
       }
 
       const result = await response.json()
-      console.log('Flag created successfully:', result)
+      // console.log('Flag created successfully:', result)
     } catch (error) {
-      console.error('Error creating flag:', error)
+      // console.error('Error creating flag:', error)
       throw error
     }
   }, [state])

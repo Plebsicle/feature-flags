@@ -113,7 +113,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
         }
 
         const result = await response.json()
-        console.log(result);
+        // console.log(result);
         if (result.success) {
           setKillSwitch(result.data ?? null)
           setEditForm({
@@ -125,7 +125,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
                 environments: fm.environments
               })) ?? []
           })
-          console.log(editForm);
+          // console.log(editForm);
         } else {
           throw new Error(result.message || 'Failed to fetch kill switch')  
         }
@@ -236,7 +236,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
         return 'Kill switch updated successfully!'
       },
       error: (err) => {
-        console.error('Error updating kill switch:', err)
+        // console.error('Error updating kill switch:', err)
         return 'Failed to update kill switch. Please try again.'
       }
     }).finally(() => {
@@ -274,7 +274,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
         return 'Kill switch deleted successfully!'
       },
       error: (err) => {
-        console.error('Error deleting kill switch:', err)
+        // console.error('Error deleting kill switch:', err)
         return 'Failed to delete kill switch. Please try again.'
       }
     }).finally(() => {

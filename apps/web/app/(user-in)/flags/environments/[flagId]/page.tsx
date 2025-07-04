@@ -121,86 +121,7 @@ const extractValue = (valueObj: { value: any } | null | undefined): any => {
   return valueObj.value
 }
 
-// Helper function to validate value based on flag type
-const validateValueForType = (value: any, flagType: FlagType): { isValid: boolean; error?: string } => {
-  switch (flagType) {
-    case 'BOOLEAN':
-    case 'KILL_SWITCH':
-      if (typeof value !== 'boolean') {
-        return { isValid: false, error: 'Value must be true or false' }
-      }
-      return { isValid: true }
-    
-    case 'STRING':
-      if (typeof value !== 'string') {
-        return { isValid: false, error: 'Value must be a string' }
-      }
-      return { isValid: true }
-    
-    case 'NUMBER':
-      if (typeof value !== 'number' || isNaN(value)) {
-        return { isValid: false, error: 'Value must be a valid number' }
-      }
-      return { isValid: true }
-    
-    case 'JSON':
-    case 'MULTIVARIATE':
-      // For JSON and MULTIVARIATE, allow objects/arrays
-      if (typeof value !== 'object' || value === null) {
-        return { isValid: false, error: 'Value must be a valid JSON object or array' }
-      }
-      return { isValid: true }
-    
-    case 'AB_TEST':
-      // AB_TEST typical ly expects boolean or string values
-      if (typeof value !== 'boolean' && typeof value !== 'string') {
-        return { isValid: false, error: 'Value must be a boolean or string for A/B test' }
-      }
-      return { isValid: true }
-    
-    default:
-      return { isValid: true }
-  }
-}
 
-// Helper function to get input type based on flag type
-const getInputTypeForFlag = (flagType: FlagType): 'text' | 'number' | 'boolean' | 'json' => {
-  switch (flagType) {
-    case 'BOOLEAN':
-    case 'KILL_SWITCH':
-      return 'boolean'
-    case 'NUMBER':
-      return 'number'
-    case 'JSON':
-    case 'MULTIVARIATE':
-      return 'json'
-    case 'STRING':
-    case 'AB_TEST':
-    default:
-      return 'text'
-  }
-}
-
-// Helper function to get placeholder text based on flag type
-const getPlaceholderForFlag = (flagType: FlagType): string => {
-  switch (flagType) {
-    case 'BOOLEAN':
-    case 'KILL_SWITCH':
-      return 'true or false'
-    case 'STRING':
-      return 'Enter string value'
-    case 'NUMBER':
-      return 'Enter number value'
-    case 'JSON':
-      return '{"key": "value"}'
-    case 'AB_TEST':
-      return '"variant_a" or true/false'
-    case 'MULTIVARIATE':
-      return '{"variant": "A", "weight": 50}'
-    default:
-      return 'Enter value'
-  }
-}
 
 // Helper function to format value for display based on flag type
 const formatValueForDisplay = (value: any, flagType: FlagType): string => {
@@ -230,10 +151,6 @@ const formatValueForDisplay = (value: any, flagType: FlagType): string => {
   }
 }
 
-// Helper function to wrap value in the expected structure
-const wrapValue = (innerValue: any): { value: any } => {
-  return { value: innerValue }
-}
 
 // Value Display Component - Only show the inner value with type-aware formatting
 const ValueDisplay = ({ valueObj, label, flagType }: { 

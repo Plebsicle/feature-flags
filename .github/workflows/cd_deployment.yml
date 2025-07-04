@@ -18,19 +18,23 @@ jobs:
                 chmod 600 ~/ssh_key
             - name: SSH into server and deploy
               run: |
-                ssh -o StrictHostKeyChecking=no -i ~/ssh_key ubuntu@3.108.58.241 << 'EOF'
+                ssh -o StrictHostKeyChecking=no -i ~/ssh_key root@93.127.185.146 << 'EOF'
                     # Source environment setup
                     source ~/.bashrc
                     source ~/.nvm/nvm.sh
 
                     # Ensure Node.js and pnpm are accessible
-                    export PATH="$HOME/.nvm/versions/node/v22.14.0/bin:$PATH"
+                    export PATH="$HOME/.nvm/versions/node/v22.11.0/bin:$PATH"
                     echo "Node version: $(node -v)"
                     echo "pnpm version: $(pnpm -v)"
-                    cd app
+                    cd app/feature-flags
                     git pull
                     pnpm install
-                    pnpm run build
+                    cd packages/db && pnpm run build && pnpm prisma generate
+                    cd packages/config-types && pnpm run build
+                    cd apps/server && pnpm run build
+                    cd apps/web && pnpm run build
+                    cd apps/landing && pnpm run build
                     pm2 restart server
                     pm2 restart web
                     pm2 restart landing

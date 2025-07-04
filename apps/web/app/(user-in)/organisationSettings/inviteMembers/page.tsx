@@ -33,7 +33,7 @@ async function getMembersData(): Promise<MembersResponse | null> {
       .map((cookie: { name: string; value: string }) => `${cookie.name}=${cookie.value}`)
       .join('; ')
 
-    console.log('Fetching organisation members...') // Debug log
+    // console.log('Fetching organisation members...') // Debug log
 
     const response = await fetch(`${BACKEND_URL}/organisation/members`, {
       method: 'GET',
@@ -46,22 +46,22 @@ async function getMembersData(): Promise<MembersResponse | null> {
     })
 
     if (!response.ok) {
-      console.error(`HTTP error! status: ${response.status}`)
+      // console.error(`HTTP error! status: ${response.status}`)
       return null
     }
 
     const data = await response.json()
     
-    console.log('Response data structure:', JSON.stringify(data, null, 2))
+    // console.log('Response data structure:', JSON.stringify(data, null, 2))
     
     if (!data.success) {
-      console.error('Backend returned error:', data)
+      // console.error('Backend returned error:', data)
       return null
     }
 
     return data as MembersResponse
   } catch (err) {
-    console.error('Error fetching members data:', err)
+    // console.error('Error fetching members data:', err)
     return null
   }
 }

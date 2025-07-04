@@ -56,7 +56,7 @@ export function DeleteEnvironmentButton({ environmentId, environmentName }: Dele
             return 'Environment deleted successfully'
         },
         error: (err) => {
-            console.error('Error deleting environment:', err)
+            // console.error('Error deleting environment:', err)
             return 'Failed to delete environment. Please try again.'
         },
     }).finally(() => {

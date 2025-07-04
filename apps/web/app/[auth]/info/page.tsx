@@ -78,7 +78,7 @@ export default function InfoPage() {
         }
       },
       error: (err) => {
-        console.error(err);
+        // console.error(err);
         setTimeout(() => {
           router.push('/auth/signin');
         }, 3000);

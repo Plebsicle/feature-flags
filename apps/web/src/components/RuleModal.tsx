@@ -91,7 +91,7 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
             parsedConditions = [existingRule.conditions]
           }
         } catch (error) {
-          console.error('Error parsing conditions:', error)
+          // console.error('Error parsing conditions:', error)
           parsedConditions = []
         }
       }
@@ -303,8 +303,8 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
     if (!condition) return
 
     const dateString = date.toISOString()
-    console.log('RuleModal - Date selected:', date)
-    console.log('RuleModal - ISO string stored:', dateString)
+    // console.log('RuleModal - Date selected:', date)
+    // console.log('RuleModal - ISO string stored:', dateString)
 
     // For DATE, only allow one value (replace existing)
     const newValues = [dateString]
@@ -354,12 +354,12 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
   }
 
   const handleSubmit = async () => {
-    console.log('Form validation started')
+    // console.log('Form validation started')
     if (!validateForm()) {
-      console.log('Form validation failed')
+      // console.log('Form validation failed')
       return
     }
-    console.log('Form validation passed')
+    // console.log('Form validation passed')
 
     setLoading(true)
     toast.loading(mode === 'create' ? 'Creating rule...' : 'Updating rule...')
@@ -381,9 +381,9 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
       body.ruleId = existingRule.id
     }
 
-    console.log('Making request to:', url)
-    console.log('Request body:', body)
-    console.log('Conditions being sent:', JSON.stringify(conditions, null, 2))
+    // console.log('Making request to:', url)
+    // console.log('Request body:', body)
+    // console.log('Conditions being sent:', JSON.stringify(conditions, null, 2))
 
     try {
       const response = await fetch(url, {
@@ -395,17 +395,17 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
         body: JSON.stringify(body)
       })
 
-      console.log('Response received:', response.status)
+      // console.log('Response received:', response.status)
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       
       const data = await response.json() as { success: boolean; message?: string }
-      console.log('Response data:', data)
+      // console.log('Response data:', data)
       
       if (data.success) {
-        console.log('Success - closing modal and refreshing')
+        // console.log('Success - closing modal and refreshing')
         toast.dismiss()
         setOpen(false)
         router.refresh()
@@ -414,12 +414,12 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
         throw new Error(data.message || 'Failed to save rule')
       }
     } catch (error) {
-      console.error('Error:', error)
+      // console.error('Error:', error)
       toast.dismiss()
       setErrors({ submit: 'Failed to save rule. Please try again.' })
       toast.error('Failed to save rule. Please try again.')
     } finally {
-      console.log('Setting loading to false')
+      // console.log('Setting loading to false')
       setLoading(false)
     }
   }

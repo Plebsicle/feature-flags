@@ -64,10 +64,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             },{withCredentials:true});
             if(response.status === 200){
               // toast here
-              console.log('Signin Succesfull');
+              // console.log('Signin Succesfull');
             }
             else{
-              console.log('Signin Failed');
+              // console.log('Signin Failed');
             }
           }
           else{
@@ -76,10 +76,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             },{withCredentials:true});
             if(response.status === 200){
               // toast here 
-              console.log('google sigin succesfull');
+              // console.log('google sigin succesfull');
             }
             else{
-              console.log('google sigin failed');
+              // console.log('google sigin failed');
             }
           }
 
@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return true
     } catch {
       return false
-      console.log('Signin Failed');
+      // console.log('Signin Failed');
     } finally {
       setIsLoading(false)
     }
@@ -111,10 +111,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },{withCredentials:true});
         if(response.status === 200){
           // Setup Toasts Here 
-          console.log("Signup Succesfull");
+          // console.log("Signup Succesfull");
         }
         else{
-          console.log("Signup failed");
+          // console.log("Signup failed");
 
         }
       }
@@ -124,10 +124,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },{withCredentials:true});
         if(response.status === 200){
           // setup toasts here
-          console.log("Email sent  Successfully");
+          // console.log("Email sent  Successfully");
         }
         else{
-          console.log("Signup failed");
+          // console.log("Signup failed");
         }
       }
       setPartialSignupDetails(null);

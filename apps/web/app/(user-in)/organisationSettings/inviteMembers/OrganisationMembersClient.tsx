@@ -60,9 +60,9 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
         )
       )
 
-      console.log('Role updated successfully')
+      // console.log('Role updated successfully')
     } catch (error) {
-      console.error('Error updating role:', error)
+      // console.error('Error updating role:', error)
       throw error // Re-throw so the component can handle it
     } finally {
       setIsUpdating(false)
@@ -104,7 +104,7 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
         
         toast.success('Member removed successfully.')
       } catch (error) {
-        console.error('Error deleting member:', error)
+        // console.error('Error deleting member:', error)
         toast.error('Failed to remove member. Please try again.')
       } finally {
         setIsUpdating(false)
@@ -154,10 +154,10 @@ export function OrganisationMembersClient({ initialMembers }: OrganisationMember
         throw new Error(data.message || 'Failed to send invitations')
       }
 
-      console.log('Invitations sent successfully')
+      // console.log('Invitations sent successfully')
       
     } catch (error) {
-      console.error('Error sending invitations:', error)
+      // console.error('Error sending invitations:', error)
       throw error // Re-throw so the modal can handle it
     }
   }

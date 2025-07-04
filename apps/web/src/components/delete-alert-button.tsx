@@ -55,7 +55,7 @@ export function DeleteAlertButton({ metricId }: DeleteAlertButtonProps) {
         return 'Alert deleted successfully'
       },
       error: (err) => {
-        console.error('Error deleting alert:', err)
+        // console.error('Error deleting alert:', err)
         return 'Failed to delete alert. Please try again.'
       },
     }).finally(() => {

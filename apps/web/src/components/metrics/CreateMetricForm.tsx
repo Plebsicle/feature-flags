@@ -168,7 +168,7 @@ export default function CreateMetricForm() {
             aggregation_method: formData.aggregation_method
         })
     }
-    console.log(`/${backendUrl}/metrics`);
+    // console.log(`/${backendUrl}/metrics`);
     const promise = fetch(`/${backendUrl}/metrics`, {
         method: 'POST',
         credentials: 'include',
@@ -195,7 +195,7 @@ export default function CreateMetricForm() {
             return 'Metric created successfully!'
         },
         error: (err) => {
-            console.error('Error creating metric:', err)
+            // console.error('Error creating metric:', err)
             return 'Failed to create metric. Please try again.'
         }
     }).finally(() => {

@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
             }
         },
         error: (err) => {
-            console.error(err);
+            // console.error(err);
             return 'Failed to send reset link. Please try again.';
         }
     }).finally(() => {

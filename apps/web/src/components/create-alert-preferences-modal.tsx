@@ -86,7 +86,7 @@ export function CreateAlertPreferencesModal() {
             return 'Alert preferences created successfully!'
         },
         error: (err) => {
-            console.error('Error creating alert preferences:', err)
+            // console.error('Error creating alert preferences:', err)
             return 'Failed to create alert preferences. Please try again.'
         }
     }).finally(() => {

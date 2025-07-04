@@ -93,7 +93,7 @@ export function InviteMembersModal({ isOpen, onClose, onInvite }: InviteMembersM
             return 'Invitations sent successfully!'
         },
         error: (err: any) => {
-            console.error("Failed to send invitations:", err)
+            // console.error("Failed to send invitations:", err)
             return 'Failed to send invitations. Please try again.'
         }
     }).finally(() => {

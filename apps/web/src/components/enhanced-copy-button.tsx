@@ -21,7 +21,7 @@ export function EnhancedCopyButton({
       setCopied(true)
       setTimeout(() => setCopied(false), 3000)
     } catch (err) {
-      console.error('Failed to copy text: ', err)
+      // console.error('Failed to copy text: ', err)
     }
   }
 

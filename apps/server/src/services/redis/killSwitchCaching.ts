@@ -100,7 +100,7 @@ export const getKillSwitch = async (
       
       if (!killSwitchFromDB) return null;
       
-      const flagConfigs: killSwitchFlagConfig[] = killSwitchFromDB.flag_mappings.map(mapping => ({
+      const flagConfigs: killSwitchFlagConfig[] = killSwitchFromDB.flag_mappings.map((mapping: { flag: { key: string }; environments: any[] }) => ({
         flagKey: mapping.flag.key,
         environments: mapping.environments
       }));

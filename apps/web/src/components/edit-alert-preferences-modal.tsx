@@ -94,7 +94,7 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
             return 'Alert preferences updated successfully!'
         },
         error: (err) => {
-            console.error('Error updating alert preferences:', err)
+            // console.error('Error updating alert preferences:', err)
             return 'Failed to update alert preferences. Please try again.'
         }
     }).finally(() => {

@@ -172,7 +172,7 @@ class DashboardController {
                 }
             });
 
-            const flagIds = orgFlags.map(flag => flag.id);
+            const flagIds = orgFlags.map((flag: { id: string }) => flag.id);
             
             let flagEvaluations;
             if (flagIds.length === 0) {
@@ -200,7 +200,7 @@ class DashboardController {
                 }
             });
 
-            const metricIds = orgMetrics.map(metric => metric.id);
+            const metricIds = orgMetrics.map((metric: { id: string }) => metric.id);
             
             let conversionRate;
             if (metricIds.length === 0) {

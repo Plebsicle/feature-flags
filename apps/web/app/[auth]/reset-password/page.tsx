@@ -86,7 +86,7 @@ export default function ResetPasswordPage() {
         }
       },
       error: (err) => {
-        console.error(err);
+        // console.error(err);
         setTimeout(()=> {
           router.push('/auth/forgot-password');
         },3000);

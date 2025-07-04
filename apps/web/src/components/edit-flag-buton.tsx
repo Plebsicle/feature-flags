@@ -68,7 +68,7 @@ export function EditFeatureFlagModal({
 
   const handleSave = async () => {
     setIsLoading(true)
-    console.log(flagId);
+    // console.log(flagId);
     const promise = fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/updateFeatureFlag`, {
         method: 'PUT',
         credentials: 'include',
@@ -101,7 +101,7 @@ export function EditFeatureFlagModal({
             return 'Feature flag updated successfully'
         },
         error: (err) => {
-            console.error('Error updating feature flag:', err)
+            // console.error('Error updating feature flag:', err)
             return 'Failed to update feature flag. Please try again.'
         }
     }).finally(() => {
