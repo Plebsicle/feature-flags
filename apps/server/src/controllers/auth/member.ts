@@ -41,6 +41,33 @@ class MemberController {
     }
 
     private async createMemberUser(email: string, name: string, hashedPassword: string, role: user_role) {
+        const isInactiveButPresent = await this.prisma.users.findUnique({
+            where : {
+                email,
+                is_active : false
+            }
+        });
+        if(isInactiveButPresent){
+           return this.prisma.users.update({
+            where : {
+                email,
+                is_active : false,
+            },
+            data : {
+                is_active : true,
+                name,
+                isVerified : true,
+                role,
+                password : hashedPassword
+            },
+            select : {
+                name : true,
+                role : true,
+                email : true,
+                id : true
+            }
+           });
+        }
         return await this.prisma.users.create({
             data: {
                 email,
@@ -308,6 +335,7 @@ class MemberController {
 
 // Import the actual prisma instance
 import prisma from '@repo/db';
+import { tuple } from 'zod';
 
 // Export the instantiated controller
 export default new MemberController(prisma);
