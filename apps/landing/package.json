@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack --port 3001",
-    "build": "next build",
-    "postbuild": "cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public",
-    "start": "node .next/standalone/server.js",
-    "lint": "next lint --max-warnings 0",
-    "check-types": "tsc --noEmit"
-  },
+ "scripts": {
+  "dev": "next dev --turbopack --port 3001",
+  "build": "next build",
+  "postbuild": "mkdir -p .next/standalone/apps/landing && cp -r node_modules .next/standalone/ && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/static",
+  "start": "NODE_ENV=production PORT=3001 node .next/standalone/apps/landing/server.js",
+  "lint": "next lint --max-warnings 0",
+  "check-types": "tsc --noEmit"
+},
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
     "@repo/ui": "workspace:*",

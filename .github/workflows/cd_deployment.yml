@@ -35,7 +35,5 @@ jobs:
                     cd ../../apps/server && pnpm run build
                     cd ../web && pnpm run build
                     cd ../landing && pnpm run build
-                    pm2 restart server
-                    pm2 restart web
-                    pm2 restart landing
+                    cd ../../ && pm2 restart ecosystem.config.js
                   EOF
