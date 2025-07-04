@@ -13,7 +13,7 @@ interface SlackChannel {
 
 interface SlackIntegration {
   connected: boolean;
-  teamName?: string;
+  teamName?: string;   
   teamId?: string;
   channels?: SlackChannel[];
   installedAt?: string;

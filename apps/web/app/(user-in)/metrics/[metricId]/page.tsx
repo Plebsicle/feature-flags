@@ -13,7 +13,7 @@ import { DeleteAlertButton } from "@/components/delete-alert-button"
 import { EnhancedCopyButton } from "@/components/enhanced-copy-button"
 import { alert_operator, metric_aggregation_method, metric_type } from "@repo/db/client"
 
-// Types based on the API response structure
+// Types based on the API response structure 
 interface Metric {
   id: string
   created_at: Date
@@ -52,14 +52,14 @@ interface AlertResponse {
 }
 
 interface MetricDetailPageProps {
-  params: {
+  params: Promise<{
     metricId: string
-  }
+  }>
 }
 
 export default async function MetricDetailPage({ params }: MetricDetailPageProps) {
   const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000"
-  const { metricId } = params
+  const { metricId } = await params
 
   let metric: Metric | null = null
   let alert: Alert | null = null
@@ -398,7 +398,7 @@ export default async function MetricDetailPage({ params }: MetricDetailPageProps
                           </div>
                           <div className="flex items-center gap-2">
                             <UpdateAlertModal alert={alert} metricId={metric.id} />
-                            <DeleteAlertButton alertId={alert.id} metricId={metric.id} />
+                            <DeleteAlertButton metricId={metric.id} />
                           </div>
                         </div>
                       </div>

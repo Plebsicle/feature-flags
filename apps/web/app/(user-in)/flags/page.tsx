@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
-// Types based on the API response
+// Types based on th e API response
 type FlagType = flag_type
 type FeatureFlag = feature_flags
 

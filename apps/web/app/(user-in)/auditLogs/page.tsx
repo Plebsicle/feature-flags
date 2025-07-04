@@ -103,7 +103,7 @@ async function getAuditLogs(page: number): Promise<AuditLogsResponse | null> {
     const cookieHeader = cookieStore.getAll()
       .map((cookie: { name: string; value: string }) => `${cookie.name}=${cookie.value}`)
       .join('; ');
-
+ 
     const response = await fetch(`${BACKEND_URL}/auditLogs?page=${page}`, {
       method: 'GET',
       headers: {

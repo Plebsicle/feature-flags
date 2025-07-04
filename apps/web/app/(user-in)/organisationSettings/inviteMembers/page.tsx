@@ -12,9 +12,9 @@ type UserRole = "ADMIN" | "MEMBER" | "VIEWER" | "OWNER"
 interface MemberDetails {
   id: string
   name: string
-  email: string
+  email: string 
   role: UserRole
-}
+} 
 
 interface MembersResponse {
   data: MemberDetails[]

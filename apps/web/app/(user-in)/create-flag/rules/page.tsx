@@ -144,14 +144,14 @@ export default function RulesPage() {
         return trimmedValue
       
       case 'BOOLEAN':
-        // Validate boolean format
+        // Valida te boolean format
         if (trimmedValue.toLowerCase() !== 'true' && trimmedValue.toLowerCase() !== 'false') {
           toast.error('Boolean value must be "true" or "false"')
           return null
         }
         return trimmedValue.toLowerCase()
       
-      case 'DATE':
+      case 'DATE': {
         // Basic date validation
         const dateValue = new Date(trimmedValue)
         if (isNaN(dateValue.getTime())) {
@@ -159,14 +159,16 @@ export default function RulesPage() {
           return null
         }
         return trimmedValue
+      }
       
-      case 'SEMVER':
+      case 'SEMVER': {
         // Validate semantic version format using semver library
         if (!semver.valid(trimmedValue)) {
           toast.error('Please enter a valid semantic version (e.g., 1.0.0)')
           return null
         }
         return trimmedValue
+      }
       
       case 'STRING':
       case 'ARRAY':

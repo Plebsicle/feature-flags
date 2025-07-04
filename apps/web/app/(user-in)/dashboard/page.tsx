@@ -25,7 +25,7 @@ async function getDashboardData(): Promise<DashboardData | null> {
   try {
     const cookieStore = await cookies();
     
-    // Get all cookies and format them properly
+    // Get all co okies and format them properly
     const cookieHeader = cookieStore.getAll()
       .map((cookie: { name: string; value: string }) => `${cookie.name}=${cookie.value}`)
       .join('; ');

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { use, useEffect, useState } from "react"
+import {useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { ArrowRight, User, Lock, Shield, Eye, EyeOff, CheckCircle, XCircle, Flag } from "lucide-react"
 
@@ -47,7 +47,7 @@ export default function InfoPage() {
     const tokenParams = searchParams?.get("token");
     if(tokenParams)
       setToken(tokenParams);
-  },[]);
+  },[searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

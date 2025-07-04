@@ -453,7 +453,7 @@ export default function RolloutPage() {
 
       toast.promise(createFlagPromise(), {
         loading: 'Creating your feature flag...',
-        success: (flag_id) => {
+        success: () => {
           setTimeout(() => {
             router.push(`/flags`)
           }, 1500)

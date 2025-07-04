@@ -34,7 +34,7 @@ interface AlertData {
   is_active: boolean;
   tags: string[];
   triggered_alerts: TriggeredAlert[];
-}
+}  
 
 interface AlertsPageProps {
   searchParams: Promise<{ status?: string }>;

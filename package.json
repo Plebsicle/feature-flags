@@ -7,15 +7,11 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "build:packages": "turbo run build --filter=@repo/db --filter=@repo/types",
-    "build:server": "turbo run build --filter=server",
+    "build:packages": "pnpm run build --filter=@repo/db --filter=@repo/types",
+    "build:server": "pnpm run build --filter=server",
     "build:all": "pnpm run build:packages && pnpm run build:server",
-    "build:web": "turbo run build --filter=web", 
-    "build:landing": "turbo run build --filter=landing",
-    "heroku-postbuild": "if [ $SERVER_ENV ]; then pnpm run prod-server; elif [ $WEB_ENV ]; then pnpm run prod-web; elif [ $LANDING_ENV ]; then pnpm run prod-landing; else echo no environment detected, please set SERVER_ENV, WEB_ENV, or LANDING_ENV; fi",
-    "prod-server": "pnpm run build:server",
-    "prod-web": "pnpm run build:web",
-    "prod-landing": "pnpm run build:landing"
+    "build:web": "pnpm run build --filter=web", 
+    "build:landing": "pnpm run build --filter=landing"
   },
   "devDependencies": {
     "prettier": "^3.5.3",

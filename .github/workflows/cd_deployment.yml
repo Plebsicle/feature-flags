@@ -1,0 +1,37 @@
+name : deploy to production
+
+on:
+    push:
+        branches: [main]
+
+jobs:
+    redeploy_monorepo:
+        runs-on: ubuntu-latest
+        name: deploying repo to prod
+        steps:
+            - name: Checkout Repo
+              uses: actions/checkout@v3
+
+            - name: set up ssh key
+              run: | 
+                echo "${{ secrets.PROD_SECRET }}" > ~/ssh_key
+                chmod 600 ~/ssh_key
+            - name: SSH into server and deploy
+              run: |
+                ssh -o StrictHostKeyChecking=no -i ~/ssh_key ubuntu@3.108.58.241 << 'EOF'
+                    # Source environment setup
+                    source ~/.bashrc
+                    source ~/.nvm/nvm.sh
+
+                    # Ensure Node.js and pnpm are accessible
+                    export PATH="$HOME/.nvm/versions/node/v22.14.0/bin:$PATH"
+                    echo "Node version: $(node -v)"
+                    echo "pnpm version: $(pnpm -v)"
+                    cd app
+                    git pull
+                    pnpm install
+                    pnpm run build
+                    pm2 restart server
+                    pm2 restart web
+                    pm2 restart landing
+                  EOF

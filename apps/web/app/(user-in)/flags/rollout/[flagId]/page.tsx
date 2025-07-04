@@ -17,7 +17,7 @@ import Link from "next/link"
 import RolloutEditModal from "@/components/rollout-edit-modal"
 import { rollout_type } from '@repo/db/client'
 
-// Types for rollout data
+// Types for rollou t data
 interface RolloutData {
   id: string;
   created_at: Date;

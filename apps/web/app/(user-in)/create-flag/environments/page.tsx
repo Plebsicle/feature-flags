@@ -124,6 +124,7 @@ export default function EnvironmentsPage() {
           // Store existing environments in local state
           setExistingEnvironments(environmentArray)
         } catch (error) {
+          console.error('Error fetching existing flag data:', error);
           toast.error('Error fetching existing flag data')
           setExistingEnvironments([]) // Set to empty array on error
         } finally {
@@ -404,7 +405,7 @@ export default function EnvironmentsPage() {
     )
   }
 
-  const renderValueInput = (field: 'value' | 'default_value', label: string) => {
+  const renderValueInput = (field: 'value' | 'default_value') => {
     if (['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type)) {
       if (field === 'value') {
         return renderVariantConfiguration()
@@ -725,7 +726,7 @@ export default function EnvironmentsPage() {
                   {/* Value Configuration */}
                   <div className="space-y-3">
                     <Label className="font-semibold text-gray-900">Value Configuration</Label>
-                    {renderValueInput('value', 'Value')}
+                    {renderValueInput('value')}
                     {!['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type) && (
                       <p className="text-xs text-gray-500">The value returned when the flag is enabled</p>
                     )}
@@ -734,7 +735,7 @@ export default function EnvironmentsPage() {
                   {/* Default Value - Always available */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-700">Default Value</Label>
-                    {renderValueInput('default_value', 'Default Value')}
+                    {renderValueInput('default_value')}
                     <p className="text-xs text-gray-500">
                       The fallback value when the flag is disabled or when an error occurs
                     </p>

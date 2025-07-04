@@ -43,7 +43,7 @@ export default function CheckEmailVerifyFinalPage() {
                 else{
                     throw new Error("Verification failed");
                 }
-            } catch(e) {
+            } catch {
                 setStatus("error")
                 setMessage("Verification of Email Failed");
                 toast.error("Verification failed. Request a new link.");
@@ -70,7 +70,7 @@ export default function CheckEmailVerifyFinalPage() {
                 else{
                     throw new Error("Verification failed");
                 }
-            } catch(e) {
+            } catch {
                 setStatus("error")
                 setMessage("Verification of Email Failed");
                 toast.error("Verification failed. Please try signing up again.");
@@ -78,7 +78,7 @@ export default function CheckEmailVerifyFinalPage() {
         }
         fetchDetails();
     }
-  }, [searchParams])
+  }, [searchParams,router])
 
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.95 },
@@ -95,18 +95,15 @@ export default function CheckEmailVerifyFinalPage() {
   let IconComponent = Loader2
   let iconColorClass = "text-indigo-600 animate-spin"
   let bgColorClass = "bg-indigo-100"
-  let statusColor = "text-indigo-600"
 
   if (status === "success") {
     IconComponent = ShieldCheck
     iconColorClass = "text-emerald-600"
     bgColorClass = "bg-emerald-100"
-    statusColor = "text-emerald-600"
   } else if (status === "error") {
     IconComponent = AlertTriangle
     iconColorClass = "text-red-600"
     bgColorClass = "bg-red-100"
-    statusColor = "text-red-600"
   }
 
   return (

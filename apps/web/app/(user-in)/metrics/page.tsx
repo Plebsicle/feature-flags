@@ -11,7 +11,7 @@ import {
   Tag,
   Database,
   ArrowRight
-} from "lucide-react"
+} from "lucide-react"  
 import { metric_aggregation_method, metric_type } from "@repo/db/client"
 
 // Types based on the API response structure

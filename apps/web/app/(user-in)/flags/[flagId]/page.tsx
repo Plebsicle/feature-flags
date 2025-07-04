@@ -23,13 +23,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/card";    
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 
-// Types based on the updated API response
+// Types based on the updated API r esponse
 type FlagType = "BOOLEAN" | "STRING" | "NUMBER" | "JSON";
 
 interface FeatureFlag {
@@ -141,7 +141,7 @@ const FlagDetailLoading = () => (
 
 // Main Flag Detail Page Component
 export default async function FlagDetailPage(props: {
-  params: { flagId: string };
+  params: Promise<{ flagId: string }>;
 }) {
   const { flagId } = await props.params;
   const flag = await getFeatureFlagData(flagId);

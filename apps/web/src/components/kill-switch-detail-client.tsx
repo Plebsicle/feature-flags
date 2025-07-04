@@ -140,7 +140,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
     if (killSwitchId) {
       fetchKillSwitch()
     }
-  }, [killSwitchId])
+  }, [killSwitchId,editForm])
 
   const formatDate = (date: Date | null) => {
     if (!date) return 'Never'

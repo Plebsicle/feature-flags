@@ -45,7 +45,7 @@ const dataTypeOptions: { value: DataType; label: string }[] = [
   { value: 'ARRAY', label: 'Array' },
 ]
 
-export default function RuleModal({ mode, environmentId, existingRule , flagRuleId }: RuleModalProps) {
+export default function RuleModal({ mode, environmentId, existingRule }: RuleModalProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -214,7 +214,7 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
         }
         return trimmedValue.toLowerCase()
       
-      case 'DATE':
+      case 'DATE': {
         // Basic date validation - you might want to enhance this
         const dateValue = new Date(trimmedValue)
         if (isNaN(dateValue.getTime())) {
@@ -222,14 +222,16 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
           return null
         }
         return trimmedValue
+      }
       
-      case 'SEMVER':
+      case 'SEMVER': {
         // Validate semantic version format using semver library
         if (!semver.valid(trimmedValue)) {
           toast.error('Please enter a valid semantic version (e.g., 1.0.0)')
           return null
         }
         return trimmedValue
+      }
       
       case 'STRING':
       case 'ARRAY':
@@ -365,7 +367,7 @@ export default function RuleModal({ mode, environmentId, existingRule , flagRule
     
     let url = `/${BACKEND_URL}/flag/addRules`
     let method = 'POST'
-    let body: any = {
+    const body: any = {
       name: ruleName,
       description: ruleDescription,
       flag_environment_id: environmentId,

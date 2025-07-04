@@ -1,11 +1,12 @@
 import KillSwitchDetailClient from "@/components/kill-switch-detail-client"
 
 interface KillSwitchDetailPageProps {
-  params: {
+  params: Promise<{
     killSwitch: string
-  }
+  }>
 }
 
-export default function KillSwitchDetailPage({ params }: KillSwitchDetailPageProps) {
-  return <KillSwitchDetailClient killSwitchId={params.killSwitch} />
+export default async function KillSwitchDetailPage({ params }: KillSwitchDetailPageProps) {
+  const { killSwitch } = await params
+  return <KillSwitchDetailClient killSwitchId={killSwitch} />
 }

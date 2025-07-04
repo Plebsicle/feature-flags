@@ -202,7 +202,7 @@ export default async function AlertPreferencesPage() {
                         <Mail className="w-8 h-8 text-indigo-600 mx-auto mb-2" />
                         <h3 className="text-gray-900 font-medium mb-1">Email Alerts</h3>
                         <p className="text-gray-600 text-sm">Get notifications via email</p>
-                      </div>
+                      </div>   
                       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                         <MessageSquare className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
                         <h3 className="text-gray-900 font-medium mb-1">Slack Integration</h3>

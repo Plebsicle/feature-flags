@@ -234,19 +234,11 @@ function Calendar({
   ...props
 }: DayPickerProps & { yearRange?: number }) {
   const MONTHS = React.useMemo(() => {
-    let locale: Pick<Locale, 'options' | 'localize' | 'formatLong'> = enUS;
-    const { options, localize, formatLong } = props.locale || {};
-    if (options && localize && formatLong) {
-      locale = {
-        options,
-        localize,
-        formatLong,
-      };
-    }
-    return genMonths(locale);
-  }, []);
+    const locale = props.locale || enUS;
+    return genMonths(locale as Pick<Locale, 'options' | 'localize' | 'formatLong'>);
+  }, [props.locale]);
 
-  const YEARS = React.useMemo(() => genYears(yearRange), []);
+  const YEARS = React.useMemo(() => genYears(yearRange), [yearRange]);
   const disableLeftNavigation = () => {
     const today = new Date();
     const startDate = new Date(today.getFullYear() - yearRange, 0, 1);
@@ -311,13 +303,21 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Chevron: ({ ...props }) =>
-          props.orientation === 'left' ? (
+        Chevron: ({ orientation }: { 
+          orientation?: 'left' | 'right' | 'up' | 'down';
+          className?: string;
+          size?: number;
+          disabled?: boolean;
+        }) =>
+          orientation === 'left' ? (
             <ChevronLeft className="h-4 w-4" />
           ) : (
             <ChevronRight className="h-4 w-4" />
           ),
-        MonthCaption: ({ calendarMonth }) => {
+        MonthCaption: ({ calendarMonth }: { 
+          calendarMonth: { date: Date };    
+          onMonthChange?: (date: Date) => void 
+        }) => {
           return (
             <div className="inline-flex gap-2">
               <Select

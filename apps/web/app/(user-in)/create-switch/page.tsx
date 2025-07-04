@@ -17,14 +17,14 @@ import { Plus, Minus, Loader2 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 
 // TypeScript types
-export enum environment_type {
+enum environment_type {
   DEV = "DEV",
   STAGING = "STAGING",
   PROD = "PROD",
   TEST = "TEST",
 }
 
-export interface killSwitchFlagConfig {
+interface killSwitchFlagConfig {
   flagKey: string;
   environments: environment_type[];
 }

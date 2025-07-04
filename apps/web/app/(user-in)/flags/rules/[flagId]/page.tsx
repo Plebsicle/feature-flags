@@ -17,7 +17,7 @@ import RuleModal from "@/components/RuleModal"
 import DeleteRuleButton from "@/components/delete-rule-button"
 import { Condition } from "@repo/types/rule-config"
 
-// Types for rule data
+// Types for rul e data
 interface RuleData {
   name: string;
   id: string;

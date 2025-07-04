@@ -136,7 +136,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
     try {
         await promise;
     } catch (_error) {
-        // User cancelled
+        console.error(_error)
         return;
     }
 

@@ -6,7 +6,6 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       service: 'bitswitch-web',
-      version: process.env.npm_package_version || '1.0.0',
       node_version: process.version,
       memory: {
         used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024 * 100) / 100,
@@ -15,7 +14,7 @@ export async function GET() {
         unit: 'MB'
       },
       environment: {
-        node_env: process.env.NODE_ENV || 'development',
+        node_env: 'production',
         api_url: process.env.NEXT_PUBLIC_API_URL || 'not-set'
       }
     };
@@ -50,6 +49,7 @@ export async function HEAD() {
   try {
     return new Response(null, { status: 200 });
   } catch (_error) {
+    console.error('Health check failed:', _error);
     return new Response(null, { status: 503 });
   }
 } 

@@ -54,7 +54,7 @@ export function UpdateAlertModal({ alert, metricId }: UpdateAlertModalProps) {
     is_enabled: alert.is_enabled
   })
 
-  const handleInputChange = (field: keyof UpdateAlertFormData, value: any) => {
+  const handleInputChange = (field: keyof UpdateAlertFormData, value: alert_operator | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 

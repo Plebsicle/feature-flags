@@ -221,7 +221,7 @@ export default function KillSwitchesClient() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      let data: any = await response.json()
+      const data: any = await response.json()
   
       if (data.success) {
         console.log('✅ Kill switches data received:', data.data)

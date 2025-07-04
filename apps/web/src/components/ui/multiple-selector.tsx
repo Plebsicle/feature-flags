@@ -101,7 +101,7 @@ export function MultipleSelector({
                 {selectables.map((item) => (
                   <CommandItem
                     key={item}
-                    onMouseDown={(e : any) => {
+                    onMouseDown={(e: React.MouseEvent<HTMLElement>) => {
                       e.preventDefault()
                       e.stopPropagation()
                     }}

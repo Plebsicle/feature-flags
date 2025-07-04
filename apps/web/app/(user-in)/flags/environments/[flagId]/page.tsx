@@ -152,7 +152,7 @@ const validateValueForType = (value: any, flagType: FlagType): { isValid: boolea
       return { isValid: true }
     
     case 'AB_TEST':
-      // AB_TEST typically expects boolean or string values
+      // AB_TEST typical ly expects boolean or string values
       if (typeof value !== 'boolean' && typeof value !== 'string') {
         return { isValid: false, error: 'Value must be a boolean or string for A/B test' }
       }
@@ -558,4 +558,3 @@ export default async function FlagEnvironmentPage({
 }
 
 // Export helper functions for use in other components
-export { extractValue, wrapValue, validateValueForType, getInputTypeForFlag, getPlaceholderForFlag, formatValueForDisplay, type FlagType }
