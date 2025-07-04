@@ -1,9 +1,13 @@
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  outputFileTracingRoot: path.join(__dirname, '../../'), // Points to monorepo root
+  outputFileTracingRoot: path.join(__dirname, '../../'), // Adjust based on your monorepo structure
 };
 
 export default nextConfig;
