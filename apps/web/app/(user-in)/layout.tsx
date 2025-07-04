@@ -143,7 +143,7 @@ export default function DashboardLayout({
         icon: Settings,
         color: "text-gray-600",
         bgColor: "bg-gray-50",
-        allowedRoles: ['OWNER', 'ADMIN'],
+        allowedRoles: ['OWNER'],
       },
     ]
 

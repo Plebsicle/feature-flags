@@ -18,7 +18,7 @@ export const alertPreferencesBodySchema = z.object({
 // Update role schemas
 export const updateRoleBodySchema = z.object({
   role: userRoleSchema,
-  userId: z.string().uuid("Invalid user ID format")
+  memberId: z.string().uuid("Invalid user ID format")
 });
 
 // Invite member schema
