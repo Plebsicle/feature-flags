@@ -19,21 +19,21 @@ jobs:
             - name: SSH into server and deploy
               run: |
                 ssh -o StrictHostKeyChecking=no -i ~/ssh_key root@93.127.185.146 << 'EOF'
-                    # Source environment setup
-                    source ~/.bashrc
-                    source ~/.nvm/nvm.sh
+                  # Source environment setup
+                  source ~/.bashrc
+                  source ~/.nvm/nvm.sh
 
-                    # Ensure Node.js and pnpm are accessible
-                    export PATH="$HOME/.nvm/versions/node/v22.11.0/bin:$PATH"
-                    echo "Node version: $(node -v)"
-                    echo "pnpm version: $(pnpm -v)"
-                    cd app/feature-flags
-                    git pull
-                    pnpm install
-                    cd packages/db && pnpm run build && pnpm prisma generate
-                    cd ../config-types && pnpm run build
-                    cd ../../apps/server && pnpm run build
-                    cd ../web && pnpm run build
-                    cd ../landing && pnpm run build
-                    cd ../../ && pm2 restart ecosystem.config.js
-                  EOF
+                  # Ensure Node.js and pnpm are accessible
+                  export PATH="$HOME/.nvm/versions/node/v22.11.0/bin:$PATH"
+                  echo "Node version: $(node -v)"
+                  echo "pnpm version: $(pnpm -v)"
+                  cd app/feature-flags
+                  git pull
+                  pnpm install
+                  cd packages/db && pnpm run build && pnpm prisma generate
+                  cd ../config-types && pnpm run build
+                  cd ../../apps/server && pnpm run build
+                  cd ../web && pnpm run build
+                  cd ../landing && pnpm run build
+                  cd ../../ && pm2 restart ecosystem.config.js
+                EOF

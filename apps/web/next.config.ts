@@ -1,7 +1,8 @@
+import path from 'path';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  outputFileTracingRoot: process.cwd(),
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   async headers() {
     return [
       {
