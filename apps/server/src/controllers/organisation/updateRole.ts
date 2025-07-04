@@ -5,7 +5,7 @@ import prisma from '@repo/db';
 
 interface UpdateRoleBody {
     role: user_role;
-    userId: string;
+    memberId: string;
 }
 
 interface UpdateRoleControllerDependencies {
@@ -59,13 +59,13 @@ class UpdateRoleController {
 
             if (!this.checkOwnerAuthorization(req, res)) return;
 
-            const { role, userId } = req.body as UpdateRoleBody;
+            const { role, memberId } = req.body as UpdateRoleBody;
             const organizationId = req.session.user?.userOrganisationId!;
 
             // Zod validation could be added here
             await Promise.all([
-                this.updateUserOrganizationRole(organizationId, userId, role),
-                this.updateUserRole(userId, role)
+                this.updateUserOrganizationRole(organizationId, memberId, role),
+                this.updateUserRole(memberId, role)
             ]);
 
             res.status(200).json({ success: true, message: "Role Updated Successfully" });
