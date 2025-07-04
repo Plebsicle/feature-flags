@@ -83,7 +83,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {        
-        const response = await fetch(`${BACKEND_URL}/auth/me`, {
+        const response = await fetch(`/${BACKEND_URL}/auth/me`, {
           method: "GET",
           credentials: "include",
         })
