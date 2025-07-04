@@ -140,7 +140,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
     if (killSwitchId) {
       fetchKillSwitch()
     }
-  }, [killSwitchId,editForm])
+  }, [killSwitchId])
 
   const formatDate = (date: Date | null) => {
     if (!date) return 'Never'
@@ -248,13 +248,12 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
     setIsDeleting(true)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
     
-    const promise = fetch(`/${backendUrl}/killSwitch`, {
+    const promise = fetch(`/${backendUrl}/killSwitch/${killSwitchId}`, {
       method: 'DELETE',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ killSwitchId }),
     })
 
     toast.promise(promise, {

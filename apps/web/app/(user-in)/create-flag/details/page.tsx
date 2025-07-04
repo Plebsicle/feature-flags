@@ -20,8 +20,7 @@ const flagTypeOptions = [
   { value: 'NUMBER', label: 'Number', description: 'Numeric value' },
   { value: 'JSON', label: 'JSON', description: 'Complex JSON object' },
   { value: 'AB_TEST', label: 'A/B Test', description: 'Multi-variant testing' },
-  { value: 'MULTIVARIATE', label: 'Multivariate', description: 'Multiple value options' },
-  { value: 'KILL_SWITCH', label: 'Kill Switch', description: 'Emergency disable' },
+  { value: 'MULTIVARIATE', label: 'Multivariate', description: 'Multiple value options' }
 ] as const
 
 // Helper function to generate key from name

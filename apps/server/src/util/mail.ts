@@ -85,7 +85,7 @@ export async function sendEmailAlert(email: string, alertMessage: string, orgNam
           .email-container {
             background-color: #FFFFFF;
             border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             border: 1px solid #E5E7EB;
             overflow: hidden;
           }
@@ -108,7 +108,7 @@ export async function sendEmailAlert(email: string, alertMessage: string, orgNam
           .org-name {
             color: #6366F1;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 1.125rem;
             margin-bottom: 1.5rem;
           }
           .alert-message {
@@ -116,9 +116,25 @@ export async function sendEmailAlert(email: string, alertMessage: string, orgNam
             color: #374151;
             background-color: #FEE2E2;
             border-left: 4px solid #EF4444;
-            padding: 1rem;
+            padding: 1.25rem;
             border-radius: 0.5rem;
             line-height: 1.5;
+            margin-bottom: 1.5rem;
+          }
+          .divider {
+            margin: 2rem 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #E5E7EB, transparent);
+          }
+          .security-note {
+            background-color: #F3F4F6;
+            border-left: 4px solid #EF4444;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-size: 0.875rem;
+            color: #4B5563;
+            text-align: left;
           }
           .footer {
             background-color: #F9FAFB;
@@ -143,9 +159,16 @@ export async function sendEmailAlert(email: string, alertMessage: string, orgNam
             <div class="alert-message">
               ${alertMessage}
             </div>
+            
+            <div class="divider"></div>
+            
+            <div class="security-note">
+              <strong>🔔 Note:</strong> This alert was automatically generated based on your configured thresholds and requires your attention.
+            </div>
           </div>
           <div class="footer">
-            <p>This alert was generated automatically. Please do not reply to this email.</p>
+            <p>This is an automated message from the monitoring system.</p>
+            <p style="margin-top: 0.75rem;">Please do not reply to this email.</p>
           </div>
         </div>
       </body>
@@ -153,11 +176,14 @@ export async function sendEmailAlert(email: string, alertMessage: string, orgNam
     `;
 
     const textContent = `
-      Alert for ${orgName}
+      Alert Notification for ${orgName}
 
       ${alertMessage}
 
-      This alert was generated automatically. Please do not reply to this email.
+      This alert was automatically generated based on your configured thresholds and requires your attention.
+      
+      This is an automated message from the monitoring system.
+      Please do not reply to this email.
     `;
 
     return await sendEmail(
@@ -500,7 +526,7 @@ export async function sendResetPassword(email: string, token: string) {
 
 export async function sendVerificationEmailManualMailer(email: string, token: string) {
   try {
-    const verificationUrl = `${FRONTEND_URL}/check-email-verify-final?token=${token}`;
+    const verificationUrl = `${FRONTEND_URL}/auth/check-email-verify-final?token=${token}`;
     
     const htmlContent = `
       <!DOCTYPE html>

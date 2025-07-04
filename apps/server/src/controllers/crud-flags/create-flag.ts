@@ -74,13 +74,13 @@ class CreateFlagController {
             const rollout_type = type;
             let rollout_config = config;
             console.log(req.body);
-
            if (rollout_config.currentStage) {
             if (!rollout_config.stages) {
                 const frequencyMs = convertToMilliseconds(rollout_config.frequency);
                 rollout_config.currentStage.nextProgressAt = new Date(
                     new Date(rollout_config.startDate).getTime() + frequencyMs * (rollout_config.currentStage.stage + 1)
                 );
+                console.log(rollout_config.currentStage.nextProgressAt);
             } else {
                                                                 
                     const nextStage = rollout_config.stages.find(

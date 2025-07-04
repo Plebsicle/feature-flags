@@ -40,7 +40,7 @@ interface AlertsPageProps {
   searchParams: Promise<{ status?: string }>;
 }
 
-async function getAlertsData(status: string): Promise<AlertData[] | null> {
+async function getAlertsData(status: string | undefined): Promise<AlertData[] | null> {
   try {
     const cookieStore = await cookies();
     
@@ -89,7 +89,9 @@ async function getAlertsData(status: string): Promise<AlertData[] | null> {
   }
 }
 
-function EmptyState({ status }: { status: string }) {
+function EmptyState({ status }: { status: string | undefined }) {
+  const statusText = status?.toLowerCase() || 'active';
+  
   return (
     <Card className="text-center py-12">
       <CardContent>
@@ -99,12 +101,14 @@ function EmptyState({ status }: { status: string }) {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No {status.toLowerCase()} alerts
+              No {statusText} alerts
             </h3>
             <p className="text-gray-600 max-w-md">
               {status === 'TRIGGERED' 
                 ? "Great! You don't have any active alerts requiring attention."
-                : `No alerts are currently in ${status.toLowerCase()} status.`
+                : status 
+                  ? `No alerts are currently in ${statusText} status.`
+                  : "You don't have any alerts that match your current filter."
               }
             </p>
           </div>
@@ -116,7 +120,7 @@ function EmptyState({ status }: { status: string }) {
 
 export default async function AlertsPage({ searchParams }: AlertsPageProps) {
   const params = await searchParams;
-  const status = params.status?.toUpperCase() as AlertStatus;
+  const status = params.status?.toUpperCase() as AlertStatus | undefined;
   const alertsData = await getAlertsData(status);
   
   // Flatten the alerts data to get individual alerts
