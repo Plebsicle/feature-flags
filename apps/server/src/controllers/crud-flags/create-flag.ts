@@ -4,6 +4,9 @@ import { Redis_Value, RedisCacheRules, setFlag } from '../../services/redis/redi
 import { RolloutConfig } from '@repo/types/rollout-config';
 import { Prisma } from '@repo/db/client';
 import { convertToMilliseconds } from '../../util/convertToMs';
+import { updateFlagRulesRedis } from '../../services/redis/redis-flag';
+import { environment_type } from '@repo/db/client';
+import { Conditions } from '@repo/types';
 import { 
     createFlagBodySchema, 
     createEnvironmentBodySchema, 
@@ -14,6 +17,9 @@ import {
 interface CreateFlagControllerDependencies {
     prisma: typeof prisma;
 }
+
+
+
 
 class CreateFlagController {
     private prisma: typeof prisma;
@@ -30,6 +36,53 @@ class CreateFlagController {
         const userAgent = Array.isArray(rawUserAgent) ? rawUserAgent[0] : rawUserAgent || null;
         
         return { ip, userAgent };
+    };
+
+       private constructRedisFlagData = async (flagId: string, environment?: environment_type): Promise<Redis_Value[]> => {
+        const flagData = await this.prisma.feature_flags.findUnique({
+            where: { id: flagId },
+            include: {
+                environments: {
+                    where: environment ? { environment } : {},
+                    include: {
+                        rules: {
+                            orderBy: { created_at: 'asc' }
+                        },
+                        rollout: true,
+                    }
+                }
+            }
+        });
+
+        if (!flagData) {
+            throw new Error('Flag not found');
+        }
+        const environments = flagData.environments;
+        const finalData : Redis_Value[] = [];
+        for(const environment of environments){
+            const rules : RedisCacheRules[] = [];
+            environment.rules.forEach((rule: { name: string; id: string; conditions: any; is_enabled: boolean; })=>{
+                rules.push({
+                    name : rule.name,
+                    rule_id : rule.id,
+                    conditions : rule.conditions as unknown as Conditions,
+                    is_enabled : rule.is_enabled
+                });
+            });
+            const objectToPush : Redis_Value = {
+                flagId : flagData.id,
+                flag_type : flagData.flag_type,
+                environment : environment.environment,
+                is_active : flagData.is_active,
+                is_environment_active : environment.is_enabled,
+                value : environment.value as Record<string,any>,
+                default_value : environment.default_value as Record<string,any>,
+                rules,
+                rollout_config : environment.rollout?.config as unknown as RolloutConfig
+            }
+            finalData.push(objectToPush);
+        }
+        return finalData;
     };
 
     private checkUserAuthorization = (req: express.Request, res: express.Response, requiresNonViewer: boolean = false): boolean => {
@@ -430,8 +483,8 @@ class CreateFlagController {
             if (!validatedBody) return;
 
             const { ip, userAgent } = this.extractIpAndUserAgent(req);
-
             const {flag_environment_id , description , conditions , name , is_enabled} = req.body;
+            console.log(conditions);
             const environment_id = flag_environment_id;
             const ruleName = name;
             const isEnabled = is_enabled;
@@ -441,6 +494,28 @@ class CreateFlagController {
                 res.json(400).json({success : false,message : "No Env Id"});
                 return;
             }
+            const flagDataFromEnv = await this.prisma.flag_environments.findUnique({
+                where : {
+                    id : environment_id
+                },
+                select : {
+                    flag_id : true,
+                    environment : true,
+                    flag : {
+                        select : {
+                            key : true,
+                            flag_type : true
+                        }
+                    }
+                }
+            });
+
+            if(!flagDataFromEnv){
+                res.status(400).json({success : false , message : "Invalid ENV ID"});
+                return;
+            }
+
+
             const ruleCreation = await this.prisma.flag_rules.create({
                 data : {
                     flag_environment_id : environment_id,
@@ -450,7 +525,6 @@ class CreateFlagController {
                     is_enabled : isEnabled
                 },
                 select : {
-                    flag_environment : true,
                     id:true
                 }
             });
@@ -459,7 +533,7 @@ class CreateFlagController {
                 data : {
                     action : "CREATE",
                     resource_type : "FLAG_RULE",
-                    environment : ruleCreation.flag_environment.environment,
+                    environment : flagDataFromEnv.environment,
                     ip_address : ip,
                     organisation_id : organisation_id,
                     user_agent : userAgent,
@@ -467,7 +541,9 @@ class CreateFlagController {
                     resource_id : ruleCreation.id,
                 }
             })
-            // TODO:caching
+            const orgSlug = req.session.user?.userOrganisationSlug!;
+            const redisFlagData = await this.constructRedisFlagData(flagDataFromEnv.flag_id,flagDataFromEnv.environment);
+            await updateFlagRulesRedis(orgSlug, flagDataFromEnv.flag.key, flagDataFromEnv.environment,  redisFlagData[0],flagDataFromEnv.flag.flag_type);
             res.status(200).json({success : true , message : "Rule Added Succesfully"});
         }
         catch(e){

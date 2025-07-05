@@ -1,39 +1,60 @@
-name : deploy to production
+name: deploy to production
 
 on:
-    push:
-        branches: [main]
+  push:
+    branches: [main]
 
 jobs:
-    redeploy_monorepo:
-        runs-on: ubuntu-latest
-        name: deploying repo to prod
-        steps:
-            - name: Checkout Repo
-              uses: actions/checkout@v3
+  redeploy_monorepo:
+    runs-on: ubuntu-latest
+    name: deploying repo to prod
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
 
-            - name: set up ssh key
-              run: | 
-                echo "${{ secrets.PROD_SECRET }}" > ~/ssh_key
-                chmod 600 ~/ssh_key
-            - name: SSH into server and deploy
-              run: |
-                ssh -o StrictHostKeyChecking=no -i ~/ssh_key root@93.127.185.146 << 'EOF'
-                  # Source environment setup
-                  source ~/.bashrc
-                  source ~/.nvm/nvm.sh
+      - name: set up ssh key
+        run: | 
+          echo "${{ secrets.PROD_SECRET }}" > ~/ssh_key
+          chmod 600 ~/ssh_key
 
-                  # Ensure Node.js and pnpm are accessible
-                  export PATH="$HOME/.nvm/versions/node/v22.11.0/bin:$PATH"
-                  echo "Node version: $(node -v)"
-                  echo "pnpm version: $(pnpm -v)"
-                  cd app/feature-flags
-                  git pull
-                  pnpm install
-                  cd packages/db && pnpm run build && pnpm prisma generate
-                  cd ../config-types && pnpm run build
-                  cd ../../apps/server && pnpm run build
-                  cd ../web && pnpm run build
-                  cd ../landing && pnpm run build
-                  cd ../../ && pm2 restart ecosystem.config.js
-                EOF
+      - name: SSH into server and deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/ssh_key root@93.127.185.146 << 'EOF'
+            source ~/.bashrc
+            source ~/.nvm/nvm.sh
+            export PATH="$HOME/.nvm/versions/node/v22.11.0/bin:$PATH"
+            
+            cd app/feature-flags
+            git fetch origin main
+            CHANGED_FILES=$(git diff --name-only HEAD..origin/main)
+            git pull
+            pnpm install
+
+            if echo "$CHANGED_FILES" | grep -q '^packages/db/'; then
+              echo "Building packages/db"
+              cd packages/db && pnpm run build && pnpm prisma generate && cd -
+            fi
+
+            if echo "$CHANGED_FILES" | grep -q '^packages/config-types/'; then
+              echo "Building packages/config-types"
+              cd packages/config-types && pnpm run build && cd -
+            fi
+
+            if echo "$CHANGED_FILES" | grep -q '^apps/server/'; then
+              echo "Building apps/server"
+              cd apps/server && pnpm run build && cd -
+              pm2 restart server
+            fi
+
+            if echo "$CHANGED_FILES" | grep -q '^apps/web/'; then
+              echo "Building apps/web"
+              cd apps/web && pnpm run build && cd -
+              pm2 restart web
+            fi
+
+            if echo "$CHANGED_FILES" | grep -q '^apps/landing/'; then
+              echo "Building apps/landing"
+              cd apps/landing && pnpm run build && cd -
+              pm2 restart landing
+            fi
+          EOF
