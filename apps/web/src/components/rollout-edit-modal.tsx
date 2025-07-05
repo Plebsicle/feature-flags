@@ -317,7 +317,7 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="minutes">Minutes</SelectItem>
+                    <SelectItem value="weeks">Weeks</SelectItem>
                     <SelectItem value="hours">Hours</SelectItem>
                     <SelectItem value="days">Days</SelectItem>
                   </SelectContent>
