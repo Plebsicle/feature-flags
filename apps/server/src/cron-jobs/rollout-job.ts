@@ -17,7 +17,7 @@ interface ProgressiveRolloutConfig {
   maxPercentage: number;
   frequency: {
     value: number;
-    unit: 'minutes' | 'hours' | 'days';
+    unit: 'weeks' | 'hours' | 'days';
   };
   currentStage: {
     stage: number;
@@ -117,8 +117,8 @@ class RolloutJob {
         const nextDate = new Date(currentDate);
         
         switch (frequency.unit) {
-            case 'minutes':
-                nextDate.setMinutes(nextDate.getMinutes() + frequency.value);
+            case 'weeks':
+                nextDate.setDate(nextDate.getDate() + frequency.value * 7);
                 break;
             case 'hours':
                 nextDate.setHours(nextDate.getHours() + frequency.value);
@@ -133,7 +133,7 @@ class RolloutJob {
         
         return nextDate;
     }
-    //TODO: Cap the next Progress to Max Percentage and mark it as is_finished
+    
     private async updateProgressiveRollout(rollout: RolloutData): Promise<boolean> {
         try {
             const config = rollout.config as ProgressiveRolloutConfig;
