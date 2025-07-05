@@ -13,7 +13,8 @@ This feature flag system provides a complete solution for managing feature toggl
 - **⚙️ Rule-Based Targeting**: Define complex targeting rules based on user attributes, geographic location, and custom properties  
 - **📈 Gradual Rollouts**: Implement percentage-based rollouts and canary deployments  
 - **⚡ Real-time Updates**: Redis-powered caching for instant flag evaluation  
-- **📊 Audit Logging**: Comprehensive audit trail for all flag changes and deployments  
+- **📊 Audit Logging**: Comprehensive audit trail for all flag changes and deployments
+- + **🔔 Slack Notifications**: Receive instant alerts on flag changes, rollouts, or kill switch activations via Slack  
 - **🏢 Multi-tenant Architecture**: Organization-based isolation with role-based access control  
 - **🔐 Authentication**: Email/password and Google OAuth integration with session management  
 - **🛡️ Type Safety**: Full TypeScript coverage with Zod validation  
@@ -110,7 +111,14 @@ The SDK includes:
 - 🎯 Simple API for flag evaluation and metric collection
 - 🛡️ TypeScript support with full type definitions  
 - 📚 Comprehensive documentation and examples  
-- 🎨 Support for React, Vue, and vanilla JavaScript applications  
+- 🎨 Support for React, Vue, and vanilla JavaScript applications
+
+### 🔔 Slack Notifications
+
+Easily integrate Slack to receive real-time alerts whenever feature flags are created, updated, or rolled back.
+
+- 🔐 Secure webhook-based integration  
+- 🧩 Supports team-wide notifications with custom channel configuration  
 
 ### ☁️ Hosted Service
 
