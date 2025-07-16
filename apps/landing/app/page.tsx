@@ -25,18 +25,27 @@ const FeatureCard = ({
   title,
   description,
   color,
+  comingSoon = false,
 }: {
   icon: any
   title: string
   description: string
   color: string
+  comingSoon?: boolean
 }) => (
   <motion.div
     whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
     whileTap={{ scale: 0.98, transition: { duration: 0.2 } }}
     className="h-full"
   >
-    <Card className="h-full bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-200 group">
+    <Card className="h-full bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-200 group relative">
+      {comingSoon && (
+        <div className="absolute top-3 right-3 z-10">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
+            Coming Soon
+          </span>
+        </div>
+      )}
       <CardHeader className="pb-4">
         <div
           className={`w-14 h-14 rounded-lg ${color} flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-200`}
@@ -135,6 +144,7 @@ export default function LandingPage() {
       description:
         "Comprehensive insights into feature adoption, performance metrics, and user engagement with beautiful, actionable dashboards.",
       color: "bg-pink-600",
+      comingSoon: true,
     },
     {
       icon: Shield,
