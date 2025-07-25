@@ -33,7 +33,6 @@ interface EvaluationResponse {
   flagKey: string;
   environment: string;
   value: any; // The actual flag value
-  defaultValue: any; // Fallback value
   enabled: boolean;
   ruleMatched?: string; // Name of the rule that matched
   reason: string; // Why this value was returned
@@ -371,7 +370,7 @@ class ConditionValidator {
 
 // 6. ROLLOUT EVALUATION LOGIC
 class RolloutEvaluator {
-  static evaluate(rolloutConfig: RolloutConfig, rolloutType: string, userContext: UserContext,flag_type : flag_type,value : Record<string,any>): boolean {
+  static evaluate(rolloutConfig: RolloutConfig, rolloutType: string, userContext: UserContext,flag_type : flag_type,value : Record<string,any>): boolean | any {
     console.log(`🎯 RolloutEvaluator.evaluate - Starting rollout evaluation:`, {
       rolloutType,
       rolloutConfig,
@@ -433,20 +432,12 @@ class RolloutEvaluator {
       const index = hashedNumber % entries.length;
       console.log(index);
       console.log(entries[index][1]);
-      return entries[index];
+      return entries[index][1];
     } 
     console.log(`🎯 RolloutEvaluator.evaluatePercentage - Hash calculation: identifier="${identifier}", hash=${hash}, percentage=${percentage}, result=${result}`);
     return result;
   }
 
-  private static createEvaluationEntry() {
-    try{
-
-    }
-    catch(e){
-      console.error(e);
-    }
-  }
   
   private static evaluateProgressive(config: any, userContext: UserContext,flag_type : flag_type,value : Record<string,any>): boolean | any {
     console.log(`🎯 RolloutEvaluator.evaluateProgressive - Config:`, config);
@@ -464,7 +455,7 @@ class RolloutEvaluator {
       const index = hashedNumber % entries.length;
       console.log(index);
       console.log(entries[index][1]);
-      return entries[index];
+      return entries[index][1];
     } 
     console.log(`🎯 RolloutEvaluator.evaluateProgressive - Hash calculation: identifier="${identifier}", hash=${hash}, currentStage.percentage=${currentStage.percentage}, result=${result}`);
     return result;
@@ -486,7 +477,7 @@ class RolloutEvaluator {
       const index = hashedNumber % entries.length;
       console.log(index);
       console.log(entries[index][1]);
-      return entries[index];
+      return entries[index][1];
     } 
     console.log(`🎯 RolloutEvaluator.evaluateCustomProgressive - Hash calculation: identifier="${identifier}", hash=${hash}, currentStage.percentage=${currentStage.percentage}, result=${result}`);
     return result;
@@ -533,7 +524,7 @@ class FeatureFlagEvaluator {
       
       if (!flagData || !flagData.is_active || !flagData.is_environment_active) {
         console.log(`🚀 Step 1: Flag disabled or not found, returning default`);
-        return this.createResponse(request, flagData?.default_value, 'Flag disabled or not found');
+        return this.createResponse(request, flagData?.default_value.value, 'Flag disabled or not found');
       }
 
       // step 1.5 Check if any kill Switches block this flag
@@ -541,7 +532,7 @@ class FeatureFlagEvaluator {
       if(killSwitchData.length !== 0){
           // one or the other kill switch is affecting this flag and this environment
           console.log(`🚀 Step 1.5: Kill Switch On, returning default`);
-         return this.createResponse(request, flagData.default_value, 'Kill Switch Activated');
+         return this.createResponse(request, flagData.default_value.value, 'Kill Switch Activated');
       }
       
       // Step 2: Check rules (OR between rules, AND between conditions)
@@ -550,7 +541,7 @@ class FeatureFlagEvaluator {
       
       if (!matchedRule) {
         console.log(`🚀 Step 2: No rules matched, returning default`);
-        return this.createResponse(request, flagData.default_value, 'No rules matched');
+        return this.createResponse(request, flagData.default_value.value, 'No rules matched');
       }
       
       console.log(`🚀 Step 2: Rule matched:`, {
@@ -583,7 +574,7 @@ class FeatureFlagEvaluator {
       
       if (!rolloutPassed) {
         console.log(`🚀 Step 3: Rollout percentage not met, returning default`);
-        return this.createResponse(request, flagData.default_value, 'Rollout percentage not met');
+        return this.createResponse(request, flagData.default_value.value, 'Rollout percentage not met');
       }
       
       console.log(`🚀 Step 3: Rollout passed`);
@@ -600,7 +591,7 @@ class FeatureFlagEvaluator {
       console.log(rolloutPassed);
       // Step 4: Return the flag value
       console.log(`🚀 Step 4: Processing flag value...`);
-      const value = getValueStructure(flagData.flag_type, flagData.value);
+      const value = getValueStructure(flagData.flag_type, flagData.value.value);
       let response = null;
       if((flagData.flag_type !== "AB_TEST") &&( flagData.flag_type!== "MULTIVARIATE")){
         response = this.createResponse(request, value, 'Rules and rollout matched', matchedRule.name);
@@ -694,7 +685,6 @@ class FeatureFlagEvaluator {
       flagKey: request.flagKey,
       environment: request.environment,
       value: value,
-      defaultValue: value,
       enabled: value !== null,
       ruleMatched: ruleName,
       reason: reason
