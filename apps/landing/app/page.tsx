@@ -179,7 +179,7 @@ export default function LandingPage() {
                   Sign In
                 </Button>
               </Link>
-              <Link href="https://app.bitswitch.tech/auth/signin/auth/signup">
+              <Link href="https://app.bitswitch.tech/auth/signin/">
                 <Button 
                   className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 font-medium rounded-lg"
                 >
