@@ -69,5 +69,5 @@ jobs:
             fi
 
             pm2 save
-            echo "Deployment Completed "
+            echo "Deployment Completed"
           EOF
