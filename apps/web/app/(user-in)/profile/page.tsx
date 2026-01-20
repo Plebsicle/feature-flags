@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
+import { motion,easeOut } from "framer-motion"
 import {
   User,
   Mail,
@@ -119,14 +119,14 @@ export default function ProfilePage() {
       transition: {
         staggerChildren: 0.1,
         duration: 0.6,
-        ease: "easeOut",
+        ease: easeOut,
       },
     },
   }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: easeOut } },
   }
 
   if (loading) {

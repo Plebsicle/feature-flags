@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion,easeOut } from "framer-motion"
 import Link from "next/link"
 import {
   Flag,
@@ -64,7 +64,7 @@ const FeatureCard = ({
 const BenefitItem = ({ text }: { text: string }) => (
   <motion.li
     initial={{ opacity: 0, x: -20 }}
-    whileInView={{ opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } }}
+    whileInView={{ opacity: 1, x: 0, transition: { duration: 0.5, ease: easeOut } }}
     viewport={{ once: true }}
     className="flex items-center space-x-3 text-gray-700"
   >
@@ -99,14 +99,14 @@ export default function LandingPage() {
       transition: {
         staggerChildren: 0.1,
         duration: 0.6,
-        ease: "easeOut",
+        ease: easeOut,
       },
     },
   }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: easeOut } },
   }
 
   const features = [
@@ -160,7 +160,7 @@ export default function LandingPage() {
       {/* Navigation */}
       <motion.nav
         initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }}
+        animate={{ opacity: 1, y: 0, transition: { duration: 0.6, ease: easeOut } }}
         className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 backdrop-blur-sm"
       >
         <div className="max-w-7xl mx-auto px-6">

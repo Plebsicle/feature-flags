@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion,easeOut } from "framer-motion"
 import Link from "next/link"
 import { MailCheck, ArrowLeft, Flag } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,7 +14,7 @@ export default function VerifyEmailPage() {
       scale: 1,
       transition: {
         duration: 0.5,
-        ease: "easeOut",
+        ease: easeOut,
       },
     },
   }

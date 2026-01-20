@@ -4,7 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
-import { motion } from "framer-motion"
+import { motion,easeOut } from "framer-motion"
 import Link from "next/link"
 import { Mail, ArrowRight, ArrowLeft, KeyRound, Flag } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -54,7 +54,7 @@ export default function ForgotPasswordPage() {
       y: 0,
       transition: {
         duration: 0.7,
-        ease: "easeOut",
+        ease: easeOut,
         staggerChildren: 0.1,
       },
     },
@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: easeOut } },
   }
 
   return (

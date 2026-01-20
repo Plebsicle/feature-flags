@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { motion } from "framer-motion"
+import { motion,easeOut } from "framer-motion"
 import Link from "next/link"
 import { Lock, Eye, EyeOff, ArrowRight, ShieldCheck, ArrowLeft, CheckCircle, XCircle, Flag } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -104,7 +104,7 @@ export default function ResetPasswordPage() {
       y: 0,
       transition: {
         duration: 0.7,
-        ease: "easeOut",
+        ease: easeOut,
         staggerChildren: 0.1,
       },
     },
@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: easeOut } },
   }
 
   return (

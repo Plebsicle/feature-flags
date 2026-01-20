@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { motion } from "framer-motion"
+import { motion,easeOut } from "framer-motion"
 import Link from "next/link"
 import { CheckCircle2, ShieldCheck, AlertTriangle, Loader2, Flag } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -87,7 +87,7 @@ export default function CheckEmailVerifyFinalPage() {
       scale: 1,
       transition: {
         duration: 0.5,
-        ease: "easeOut",
+        ease: easeOut,
       },
     },
   }
