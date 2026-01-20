@@ -7,6 +7,7 @@ import {
     validateParams 
 } from '../../util/zod';
 import { removeAllOrgFlags, deleteRuleRedis, removeFlag } from '../../services/redis/redis-flag';
+import { requireString } from '../../util/request-helpers';
 
 interface DeleteFlagControllerDependencies {
     prisma: typeof prisma;
@@ -175,7 +176,7 @@ class DeleteFlagController {
             
             if (!this.checkUserAuthorization(req, res, true)) return;
 
-            const ruleId = req.params.ruleId;
+            const ruleId = requireString(req.params.ruleId, 'ruleId');
             const userId = req.session.user?.userId;
 
             // Get the rule data before deletion for audit logging

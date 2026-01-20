@@ -5,6 +5,7 @@ import { memberSignupVerificationBodySchema, memberSignupSendInvitationBodySchem
 import { hashPassword } from '../../util/hashing';
 import tokenGenerator from '../../util/token';
 import { sendMemberSignupMails } from '../../util/mail';
+import { ensureString } from '../../util/request-helpers';
 
 class MemberController {
     private prisma: PrismaClient;
@@ -219,7 +220,7 @@ class MemberController {
     }
     removeMemberFromOrg = async (req : express.Request , res : express.Response)=> {
         try{
-            const memberToBeDeleted = req.params.userId;
+            const memberToBeDeleted = ensureString(req.params.userId, 'userId');
             const ownerRole = req.session.user?.userRole;
             console.log(ownerRole);
             if(ownerRole === undefined || (ownerRole !== "OWNER")){

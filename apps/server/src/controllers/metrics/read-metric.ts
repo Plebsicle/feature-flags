@@ -2,6 +2,7 @@ import prisma from '@repo/db';
 import express from 'express'
 import { metricIdParamsSchema, validateParams } from '../../util/zod';
 import { PrismaClient } from '@repo/db/client';
+import { ensureString } from '../../util/request-helpers';
 
 class ReadMetricController {
     private prisma: PrismaClient;
@@ -54,7 +55,7 @@ class ReadMetricController {
             if (!validatedParams) return;
 
             if (!this.checkUserAuthorizationForSingle(req, res)) return;
-            const metricId = req.params.metricId;
+            const metricId = ensureString(req.params.metricId, 'metricId');
             
             const metrics = await this.prisma.metrics.findUnique({
                 where: {

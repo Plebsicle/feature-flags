@@ -1,5 +1,6 @@
 import { PrismaClient } from '@repo/db/client';
 import express from 'express'
+import { requireString } from '../../util/request-helpers';
 
 class AlertReadController {
     private prisma: PrismaClient;
@@ -43,7 +44,7 @@ class AlertReadController {
             }
 
             const organisationId = req.session.user?.userOrganisationId;
-            const metricId = req.params.metricId;
+            const metricId = requireString(req.params.metricId, 'metricId');
 
             const alertData = await this.getAlertWithMetric(metricId);
 

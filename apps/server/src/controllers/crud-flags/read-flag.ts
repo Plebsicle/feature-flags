@@ -8,6 +8,7 @@ import {
 import { Redis_Value, refreshOrSetFlagTTL, updateFeatureFlagRedis, environment_type, RedisCacheRules } from '../../services/redis/redis-flag';
 import { Condition, Conditions } from '@repo/types/rule-config';
 import { RolloutConfig } from '@repo/types/rollout-config';
+import { requireString } from '../../util/request-helpers';
 
 interface ReadFlagControllerDependencies {
     prisma: typeof prisma;
@@ -110,7 +111,7 @@ class ReadFlagController {
 
             if (!this.checkUserAuthorization(req, res)) return;
 
-            const flagId = req.params.flagId;
+            const flagId = requireString(req.params.flagId, 'flagId');
 
             // Get complete flag data with all environments
             const completeFlag = await this.getCompleteFlagData(flagId);
@@ -164,7 +165,7 @@ class ReadFlagController {
         try {
             if (!this.checkUserAuthorization(req, res)) return;
 
-            const flagId = req.params.flagId;
+            const flagId = requireString(req.params.flagId, 'flagId');
             console.log(flagId);
             // Get complete flag data with all environments
             const completeFlag = await this.getCompleteFlagData(flagId);

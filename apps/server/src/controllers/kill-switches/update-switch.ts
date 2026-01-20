@@ -5,6 +5,7 @@ import { extractAuditInfo } from '../../util/ip-agent';
 import prisma from '@repo/db';
 import { updateKillSwitchBodySchema, validateBody } from '../../util/zod';
 import { setKillSwitch,invalidateFlagCacheForKillSwitch } from '../../services/redis/killSwitchCaching';
+import { ensureString } from '../../util/request-helpers';
 
 interface UpdateBodyType {
     killSwitchId : string,
@@ -41,7 +42,7 @@ class UpdateKillSwitchController {
             if (!validatedBody) return;
 
             if (!this.checkUserAuthorization(req, res)) return;
-            const killSwitchId = req.params.killSwitchId;
+            const killSwitchId = ensureString(req.params.killSwitchId, 'killSwitchId');
             const {name, description, is_active, flags } = req.body as UpdateBodyType;
             console.log(req.body);
             

@@ -1,6 +1,7 @@
 import { PrismaClient } from '@repo/db/client';
 import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
+import { ensureString } from '../../util/request-helpers';
 
 class AlertDeleteController {
     private prisma: PrismaClient;
@@ -82,7 +83,7 @@ class AlertDeleteController {
 
             const organisationId = req.session.user?.userOrganisationId!;
             const userId = req.session.user?.userId;
-            const metricId = req.params.metricId;
+            const metricId = ensureString(req.params.metricId, 'metricId');
 
             if (!metricId) {
                 res.status(400).json({ success: false, message: "Metric Id Needed" });

@@ -9,6 +9,7 @@ import {
 import { slackService } from '../../services/slack-integration/slack';
 import { decryptState, encryptState } from '../../util/encrypt-url';
 import { user_role } from '@repo/db/client';
+import { requireString } from '../../util/request-helpers';
 
 interface SlackControllerDependencies {
     slackService: typeof slackService;
@@ -148,7 +149,7 @@ class SlackController {
             const validatedParams = validateParams(slackChannelParamsSchema, req, res);
             if (!validatedParams) return;
 
-            const { teamId } = req.params;
+            const teamId = requireString(req.params.teamId, 'teamId');
             
             const channels = await this.slackService.getChannels(teamId);
             
@@ -166,7 +167,7 @@ class SlackController {
             const validatedBody = validateBody(slackConfigBodySchema, req, res);
             if (!validatedBody) return;
 
-            const integrationId = req.params.integrationId;
+            const integrationId = requireString(req.params.integrationId, 'integrationId');
             const { channels } = req.body;
             
             console.log(integrationId);

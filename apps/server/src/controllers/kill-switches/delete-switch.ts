@@ -3,6 +3,7 @@ import express from 'express'
 import { extractAuditInfo } from '../../util/ip-agent';
 import prisma from '@repo/db';
 import { invalidateFlagCacheForKillSwitch } from '../../services/redis/killSwitchCaching';
+import { ensureString } from '../../util/request-helpers';
 
 interface FlagData {
     flagKey: string;
@@ -63,7 +64,7 @@ class DeleteKillSwitchController {
         try {
             if (!this.checkUserAuthorization(req, res)) return;
 
-            const killSwitchId = req.params.killSwitchId;
+            const killSwitchId = ensureString(req.params.killSwitchId, 'killSwitchId');
             
             if (!killSwitchId) {
                 res.status(400).json({

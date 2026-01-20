@@ -4,6 +4,7 @@ import { killSwitchIdParamsSchema, validateParams } from '../../util/zod';
 import prisma from '@repo/db';
 import { killSwitchFlagConfig } from '@repo/types/kill-switch-flag-config';
 import { setKillSwitch } from '../../services/redis/killSwitchCaching';
+import { ensureString } from '../../util/request-helpers';
 
 interface ReadKillSwitchControllerDependencies {
     prisma: typeof prisma;
@@ -94,7 +95,7 @@ class ReadKillSwitchController {
             const validatedParams = validateParams(killSwitchIdParamsSchema, req, res);
             if (!validatedParams) return;
 
-            const killSwitchId = req.params.killSwitchId;
+            const killSwitchId = ensureString(req.params.killSwitchId, 'killSwitchId');
             
             if (!killSwitchId) {
                 res.status(400).json({
