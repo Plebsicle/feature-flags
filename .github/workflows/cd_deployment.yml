@@ -38,7 +38,9 @@ jobs:
             export PNPM_HOME="/home/deploy/.local/share/pnpm"
             export PATH="$PNPM_HOME:$PATH"
 
-            cd /home/deploy/app || exit 1
+            cd /home/deploy/app/feature-flags || exit 1
+            pwd
+            ls -la
 
             echo "Pulling latest changes..."
             git fetch origin main
