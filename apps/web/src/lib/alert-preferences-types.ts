@@ -60,7 +60,7 @@ export const getRoleColor = (role: user_role, isSelected?: boolean): string => {
   if (isSelected !== undefined) {
     // For interactive components (buttons) - using WorkOS design system colors
     const baseColors = {
-      OWNER: isSelected ? "bg-violet-600 text-white border-violet-600 shadow-sm" : "bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100",
+      OWNER: isSelected ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20",
       ADMIN: isSelected ? "bg-rose-600 text-white border-rose-600 shadow-sm" : "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100", 
       MEMBER: isSelected ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
       VIEWER: isSelected ? "bg-slate-600 text-white border-slate-600 shadow-sm" : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -70,7 +70,7 @@ export const getRoleColor = (role: user_role, isSelected?: boolean): string => {
     // For display components (badges) - vibrant but readable
     switch (role) {
       case "OWNER":
-        return "bg-violet-100 text-violet-800 border-violet-200";
+        return "bg-primary/10 text-primary border-primary/20";
       case "ADMIN":
         return "bg-rose-100 text-rose-800 border-rose-200";
       case "MEMBER":

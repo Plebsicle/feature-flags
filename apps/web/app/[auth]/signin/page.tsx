@@ -7,7 +7,7 @@ import Link from "next/link"
 import { GoogleLogin } from '@react-oauth/google';
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { ArrowRight, Mail, Lock, Eye, EyeOff, Flag } from "lucide-react"
+import { ArrowRight, Mail, Lock, Eye, EyeOff, Flag } from "@/components/ui/icons"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -84,42 +84,45 @@ export default function SignInPage() {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, var(--border) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+
         <motion.div 
           variants={containerVariants} 
           initial="hidden" 
           animate="visible" 
-          className="w-full max-w-md"
+          className="w-full max-w-md relative z-10"
         >
           <motion.div variants={itemVariants} className="text-center mb-8">
-            <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Flag className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 bg-primary/10 rounded-xl border border-primary/20 flex items-center justify-center mx-auto mb-4">
+              <Flag className="w-6 h-6 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-            <p className="text-gray-600 mt-1">Sign in to your account</p>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Welcome back</h1>
+            <p className="text-muted-foreground mt-1 text-sm">Sign in to your account</p>
           </motion.div>
 
           <motion.div variants={itemVariants}>
-            <Card className="shadow-lg">
-              <CardHeader className="space-y-1">
-                <CardTitle className="text-xl text-center">Sign in</CardTitle>
-                <CardDescription className="text-center">
+            <Card className="rounded-xl border-border shadow-sm">
+              <CardHeader className="space-y-1 border-b border-border/50">
+                <CardTitle className="text-xl text-center font-semibold">Sign in</CardTitle>
+                <CardDescription className="text-center text-sm">
                   Enter your email and password to access your account
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                       <Input
                         id="email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="Enter your email"
-                        className="pl-10"
+                        className="pl-10 text-sm rounded-lg"
                         required
                       />
                     </div>
@@ -127,29 +130,29 @@ export default function SignInPage() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                       <Link
                         href="/auth/forgot-password"
-                        className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                        className="text-xs font-medium text-primary hover:text-primary/80"
                       >
                         Forgot password?
                       </Link>
                     </div>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Enter your password"
-                        className="pl-10 pr-10"
+                        className="pl-10 pr-10 text-sm rounded-lg"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         aria-label={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -160,14 +163,14 @@ export default function SignInPage() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full"
+                    className="w-full font-medium text-sm rounded-lg shadow-sm"
                     size="lg"
                   >
                     {isLoading ? (
                       <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                        className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full"
                       />
                     ) : (
                       <>
@@ -179,10 +182,10 @@ export default function SignInPage() {
 
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
-                      <Separator className="w-full" />
+                      <Separator className="w-full bg-border" />
                     </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                    <div className="relative flex justify-center text-xs text-muted-foreground uppercase">
+                      <span className="bg-card px-2">Or continue with</span>
                     </div>
                   </div>
 
@@ -202,15 +205,15 @@ export default function SignInPage() {
                 <div className="mt-6 text-center text-sm">
                   <Link
                     href="/auth/request-verification-email"
-                    className="text-indigo-600 hover:text-indigo-700 font-medium"
+                    className="text-primary hover:text-primary/80 font-medium"
                   >
                     Resend verification email
                   </Link>
                 </div>
 
-                <div className="mt-4 text-center text-sm text-gray-600">
+                <div className="mt-4 text-center text-sm text-muted-foreground">
                   Don&apos;t have an account?{" "}
-                  <Link href="/auth/signup" className="text-indigo-600 hover:text-indigo-700 font-medium">
+                  <Link href="/auth/signup" className="text-primary hover:text-primary/80 font-medium">
                     Sign up
                   </Link>
                 </div>

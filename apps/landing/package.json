@@ -1,5 +1,5 @@
 {
-  "name": "docs",
+  "name": "landing",
   "version": "0.1.0",
   "type": "module",
   "private": true,
@@ -11,6 +11,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/react-slot": "^1.2.3",
     "@repo/ui": "workspace:*",
     "@tailwindcss/postcss": "^4.1.8",

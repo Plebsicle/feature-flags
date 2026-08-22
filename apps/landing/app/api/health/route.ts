@@ -44,7 +44,7 @@ export async function GET() {
 export async function HEAD() {
   try {
     return new Response(null, { status: 200 });
-  } catch (error) {
+  } catch {
     return new Response(null, { status: 503 });
   }
 } 

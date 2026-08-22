@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { rollout_type } from '@repo/db/client'
-import { ArrowLeft, Rocket, Check } from "lucide-react"
+import { ArrowLeft, Rocket, Check } from "@/components/ui/icons"
 import { Toaster, toast } from 'react-hot-toast'
 import { LightDateTimePicker } from '@/components/LightDateTimePicker'
 
@@ -83,7 +83,7 @@ export default function RolloutPage() {
   const updateConfig = (updates: any) => {
     // console.log('Rollout page - Config updates:', updates)
     // Check if any of the updates contain dates and log them
-    Object.entries(updates).forEach(([key, value]) => {
+    Object.keys(updates).forEach(key => {
       if (key.includes('Date') || key.includes('date')) {
         // console.log(`Rollout page - ${key} updated to:`, value)
       }
@@ -124,9 +124,9 @@ export default function RolloutPage() {
     switch (state.rollout.type) {
       case 'PERCENTAGE':
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-medium text-gray-700">Percentage (0-100%)</Label>
+              <Label className="text-xs font-medium text-foreground">Percentage (0-100%)</Label>
               <div className="px-2">
                 <Slider
                   value={[config.percentage || 0]}
@@ -135,9 +135,9 @@ export default function RolloutPage() {
                   step={1}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs font-medium text-muted-foreground mt-2">
                   <span>0%</span>
-                  <span className="text-indigo-600 font-medium">{config.percentage || 0}%</span>
+                  <span className="text-primary font-bold">{config.percentage || 0}%</span>
                   <span>100%</span>
                 </div>
               </div>
@@ -145,7 +145,7 @@ export default function RolloutPage() {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium text-gray-700">Start Date</Label>
+                <Label className="text-xs font-medium text-foreground">Start Date</Label>
                 <LightDateTimePicker
                   value={config.startDate ? new Date(config.startDate) : undefined}
                   onChange={(date) => updateConfig({ startDate: date ? date.toISOString() : null })}
@@ -154,7 +154,7 @@ export default function RolloutPage() {
               </div>
               
               <div className="space-y-2">
-                <Label className="text-xs font-medium text-gray-700">End Date</Label>
+                <Label className="text-xs font-medium text-foreground">End Date</Label>
                 <LightDateTimePicker
                   value={config.endDate ? new Date(config.endDate) : undefined}
                   onChange={(date) => updateConfig({ endDate: date ? date.toISOString() : null })}
@@ -167,48 +167,48 @@ export default function RolloutPage() {
 
       case 'PROGRESSIVE_ROLLOUT':
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium text-gray-700">Start Percentage</Label>
+                <Label className="text-xs font-medium text-muted-foreground">Start Percentage</Label>
                 <Input
                   type="number"
                   min="0"
                   max="100"
                   value={config.startPercentage || 5}
                   onChange={(e) => updateConfig({ startPercentage: parseInt(e.target.value) || 5 })}
-                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                  className="h-8 border-border bg-background rounded-md text-sm focus:border-primary"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label className="text-xs font-medium text-gray-700">Increment Percentage</Label>
+                <Label className="text-xs font-medium text-muted-foreground">Increment Percentage</Label>
                 <Input
                   type="number"
                   min="1"
                   max="50"
                   value={config.incrementPercentage || 10}
                   onChange={(e) => updateConfig({ incrementPercentage: parseInt(e.target.value) || 10 })}
-                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                  className="h-8 border-border bg-background rounded-md text-sm focus:border-primary"
                 />
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium text-gray-700">Max Percentage</Label>
+                <Label className="text-xs font-medium text-muted-foreground">Max Percentage</Label>
                 <Input
                   type="number"
                   min="1"
                   max="100"
                   value={config.maxPercentage || 100}
                   onChange={(e) => updateConfig({ maxPercentage: parseInt(e.target.value) || 100 })}
-                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                  className="h-8 border-border bg-background rounded-md text-sm focus:border-primary"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label className="text-xs font-medium text-gray-700">Start Date</Label>
+                <Label className="text-xs font-medium text-muted-foreground">Start Date</Label>
                 <LightDateTimePicker
                   value={config.startDate ? new Date(config.startDate) : undefined}
                   onChange={(date) => updateConfig({ startDate: date ? date.toISOString() : null })}
@@ -218,7 +218,7 @@ export default function RolloutPage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-medium text-gray-700">Frequency</Label>
+              <Label className="text-xs font-medium text-muted-foreground">Frequency</Label>
               <div className="grid grid-cols-2 gap-3">
                 <Input
                   type="number"
@@ -230,7 +230,7 @@ export default function RolloutPage() {
                       value: parseInt(e.target.value) || 1 
                     } 
                   })}
-                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                  className="h-8 border-border bg-background rounded-md text-sm focus:border-primary"
                 />
                 <Select
                   value={config.frequency?.unit || 'days'}
@@ -241,13 +241,13 @@ export default function RolloutPage() {
                     } 
                   })}
                 >
-                  <SelectTrigger className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                  <SelectTrigger className="h-8 border-border rounded-md bg-background text-sm focus:border-primary">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="hours">Hours</SelectItem>
-                    <SelectItem value="days">Days</SelectItem>
-                    <SelectItem value="weeks">Weeks</SelectItem>
+                  <SelectContent className="bg-card border-border rounded-md shadow-sm text-sm">
+                    <SelectItem value="hours" className="rounded-md cursor-pointer">Hours</SelectItem>
+                    <SelectItem value="days" className="rounded-md cursor-pointer">Days</SelectItem>
+                    <SelectItem value="weeks" className="rounded-md cursor-pointer">Weeks</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -259,12 +259,12 @@ export default function RolloutPage() {
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-gray-900">Custom Stages</Label>
+              <Label className="text-xs font-medium text-foreground">Custom Stages</Label>
               <Button
                 onClick={addCustomStage}
                 size="sm"
                 variant="outline"
-                className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 h-7 px-2 text-xs"
+                className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary h-7 px-2 text-xs font-medium rounded-md"
               >
                 Add Stage
               </Button>
@@ -272,15 +272,15 @@ export default function RolloutPage() {
             
             <div className="space-y-3">
               {config.stages?.map((stage: any, index: number) => (
-                <div key={index} className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                <div key={index} className="p-3 border border-border rounded-lg bg-muted/30">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900 text-sm">Stage {index + 1}</h4>
+                    <h4 className="font-semibold text-foreground text-sm">Stage {index + 1}</h4>
                     {config.stages.length > 1 && (
                       <Button
                         onClick={() => removeCustomStage(index)}
                         size="sm"
                         variant="ghost"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10 h-6 px-2 text-xs font-medium rounded-md"
                       >
                         Remove
                       </Button>
@@ -289,7 +289,7 @@ export default function RolloutPage() {
                   
                   <div className="grid md:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs font-medium text-gray-700">Percentage</Label>
+                      <Label className="text-xs font-medium text-muted-foreground">Percentage</Label>
                       <Input
                         type="number"
                         min="0"
@@ -303,12 +303,12 @@ export default function RolloutPage() {
                           }
                           updateConfig({ stages: newStages })
                         }}
-                        className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                        className="h-8 border-border bg-background rounded-md text-sm focus:border-primary"
                       />
                     </div>
                     
                     <div className="space-y-1">
-                      <Label className="text-xs font-medium text-gray-700">Stage Date</Label>
+                      <Label className="text-xs font-medium text-muted-foreground">Stage Date</Label>
                       <LightDateTimePicker
                         value={stage.stageDate ? new Date(stage.stageDate) : undefined}
                         onChange={(date) => {
@@ -330,7 +330,7 @@ export default function RolloutPage() {
         )
 
       default:
-        return <div className="text-gray-500 text-sm">Select a rollout type to configure settings</div>
+        return <div className="text-muted-foreground text-sm font-medium">Select a rollout type to configure settings</div>
     }
   }
 
@@ -380,7 +380,7 @@ export default function RolloutPage() {
 
         // console.log('Rollout page - Environment creation request body:', JSON.stringify(requestBody, null, 2))
 
-        const response = await fetch(`/${BACKEND_URL}/flag/createEnvironment`, {
+        const response = await fetch(`${BACKEND_URL}/flag/createEnvironment`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -406,7 +406,7 @@ export default function RolloutPage() {
           }, 1500)
           return 'Environment created successfully! Redirecting...'
         },
-        error: (err) => {
+        error: () => {
           // console.error(err)
           return 'Failed to create environment. Please try again.'
         }
@@ -433,7 +433,7 @@ export default function RolloutPage() {
 
         // console.log('Rollout page - Flag creation request body:', JSON.stringify(requestBody, null, 2))
 
-        const response = await fetch(`/${BACKEND_URL}/flag/createFlag`, {
+        const response = await fetch(`${BACKEND_URL}/flag/createFlag`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -459,7 +459,7 @@ export default function RolloutPage() {
           }, 1500)
           return 'Feature flag created successfully! Redirecting...'
         },
-        error: (err) => {
+        error: () => {
           // console.error(err)
           return 'Failed to create feature flag. Please try again.'
         }
@@ -480,19 +480,22 @@ export default function RolloutPage() {
   return (
     <>
       <Toaster />
-      <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
-        <div className="max-w-3xl mx-auto">
+      <div className="min-h-screen bg-transparent p-4 lg:p-6 relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, var(--border) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+
+        <div className="max-w-3xl mx-auto relative z-10">
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center space-x-3 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md">
-                <Rocket className="w-4 h-4 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Rocket className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">
                   {state.isCreatingEnvironmentOnly ? 'Add Environment' : 'Rollout Strategy'}
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm font-medium text-muted-foreground">
                   {state.isCreatingEnvironmentOnly ? 'Configure rollout for your new environment' : 'Step 4 of 4 - Final step to launch your flag'}
                 </p>
               </div>
@@ -500,56 +503,56 @@ export default function RolloutPage() {
             
             {/* Progress indicator */}
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
-                <Check className="w-3 h-3" />
+              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary">
+                <Check className="w-4 h-4" />
               </div>
-              <div className="h-1 w-12 bg-emerald-500 rounded-full"></div>
-              <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
-                <Check className="w-3 h-3" />
+              <div className="h-0.5 w-16 bg-primary/50"></div>
+              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary">
+                <Check className="w-4 h-4" />
               </div>
-              <div className="h-1 w-12 bg-emerald-500 rounded-full"></div>
-              <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
-                <Check className="w-3 h-3" />
+              <div className="h-0.5 w-16 bg-primary/50"></div>
+              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary">
+                <Check className="w-4 h-4" />
               </div>
-              <div className="h-1 w-12 bg-purple-500 rounded-full"></div>
-              <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
+              <div className="h-0.5 w-16 bg-primary/50"></div>
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
                 4
               </div>
             </div>
           </div>
 
           {/* Form */}
-          <Card className="shadow-md border-gray-200 bg-white rounded-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-semibold text-gray-900">Rollout Configuration</CardTitle>
-              <CardDescription className="text-gray-600 text-sm">
+          <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+            <CardHeader className="pb-3 border-b border-border/50">
+              <CardTitle className="text-xl font-semibold text-foreground">Rollout Configuration</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
                 Define how your feature flag will be rolled out to users
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 pt-6">
               {/* Rollout Type */}
               <div className="space-y-2">
-                <Label htmlFor="rollout-type" className="text-xs font-medium text-gray-700">Rollout Type *</Label>
+                <Label htmlFor="rollout-type" className="text-sm font-medium text-foreground">Rollout Type *</Label>
                 <Select value={state.rollout.type} onValueChange={handleRolloutTypeChange}>
-                  <SelectTrigger className="h-10 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm pl-3 pr-8">
+                  <SelectTrigger className="h-10 border-border rounded-lg bg-background text-sm focus:border-primary">
                     <SelectValue placeholder="Select rollout type">
                       {state.rollout.type && (
-                        <span className="text-gray-900">
+                        <span className="text-foreground">
                           {rolloutTypeOptions.find(option => option.value === state.rollout.type)?.label}
                         </span>
                       )}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-gray-200 shadow-lg max-h-60 overflow-y-auto">
+                  <SelectContent className="bg-card border-border rounded-lg shadow-sm max-h-60 overflow-y-auto">
                     {rolloutTypeOptions.map((option) => (
                       <SelectItem 
                         key={option.value} 
                         value={option.value}
-                        className="py-3 pl-3 pr-8 hover:bg-gray-50 focus:bg-gray-50 cursor-pointer"
+                        className="py-3 pl-3 pr-8 hover:bg-muted focus:bg-muted cursor-pointer rounded-md"
                       >
                         <div className="flex flex-col space-y-1">
-                          <span className="font-medium text-gray-900 text-sm leading-tight">{option.label}</span>
-                          <span className="text-xs text-gray-500 leading-tight">{option.description}</span>
+                          <span className="font-semibold text-foreground text-sm leading-tight">{option.label}</span>
+                          <span className="text-xs text-muted-foreground leading-tight">{option.description}</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -559,31 +562,29 @@ export default function RolloutPage() {
 
               {/* Dynamic Config */}
               {state.rollout.type && (
-                <div className="p-4 rounded-lg bg-indigo-50 border border-indigo-200">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Configuration</h3>
+                <div className="p-4 rounded-lg bg-muted/30 border border-border">
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Configuration</h3>
                   {renderRolloutConfig()}
                 </div>
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between pt-3 border-t border-gray-200">
+              <div className="flex justify-between pt-6 border-t border-border/50">
                 <Button 
                   variant="outline" 
                   onClick={handlePrevious}
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-sm"
+                  className="border-dashed hover:border-solid transition-all text-sm h-10 px-4 rounded-lg font-medium"
                 >
-                  <ArrowLeft className="w-3 h-3 mr-1" />
+                  <ArrowLeft className="w-4 h-4 mr-2" />
                   Previous Step
                 </Button>
                 <Button 
                   onClick={() => {
-                    // console.log('Button clicked - state.isCreatingEnvironmentOnly:', state.isCreatingEnvironmentOnly)
-                    // console.log('Full state:', state)
                     handleSubmit()
                   }}
-                  className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-4 py-1.5 text-sm font-medium rounded-lg shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                  className="font-medium text-sm h-10 px-6 rounded-lg"
                 >
-                  <Rocket className="w-3 h-3 mr-1" />
+                  <Rocket className="w-4 h-4 mr-2" />
                   {state.isCreatingEnvironmentOnly ? 'Create Environment' : 'Create Flag'}
                 </Button>
               </div>

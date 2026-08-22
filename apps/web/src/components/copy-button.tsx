@@ -1,6 +1,6 @@
 "use client"
 
-import { Copy } from "lucide-react"
+import { Copy } from "@/components/ui/icons"
 import { Button } from "@/components/ui/button"
 
 interface CopyButtonProps {

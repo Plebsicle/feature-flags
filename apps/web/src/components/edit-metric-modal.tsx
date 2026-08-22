@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Edit, Save, X, Loader2, Tag, Plus, Target, Hash, TrendingUp, Activity } from 'lucide-react'
+import { Edit, Save, X, Loader2, Tag, Plus, Target, Hash, TrendingUp, Activity } from "@/components/ui/icons"
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -126,7 +126,7 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
     setIsSubmitting(true)
     
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-    const promise = fetch(`/${backendUrl}/metrics`, {
+    const promise = fetch(`${backendUrl}/metrics`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -152,7 +152,7 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
             })
             return 'Metric updated successfully!'
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error updating metric:', err)
             return 'Failed to update metric. Please try again.'
         }
@@ -164,13 +164,13 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
   const getMetricTypeIconBackground = (type: metric_type) => {
     switch (type) {
       case "CONVERSION":
-        return 'bg-purple-100 text-purple-600'
+        return 'bg-primary/10 text-primary'
       case "COUNT":
-        return 'bg-blue-100 text-blue-600'
+        return 'bg-blue-500/10 text-blue-500'
       case "NUMERIC":
-        return 'bg-emerald-100 text-emerald-600'
+        return 'bg-emerald-500/10 text-emerald-500'
       default:
-        return 'bg-gray-100 text-gray-600'
+        return 'bg-muted text-muted-foreground'
     }
   }
 
@@ -194,9 +194,9 @@ export function EditMetricModal({ metric }: EditMetricModalProps) {
       case "COUNT":
         return 'from-blue-500 to-cyan-500'
       case "NUMERIC":
-        return 'from-purple-500 to-pink-500'
+        return 'from-primary to-primary/70'
       default:
-        return 'from-gray-500 to-slate-500'
+        return 'from-muted-foreground to-muted'
     }
   }
 

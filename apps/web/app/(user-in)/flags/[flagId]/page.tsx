@@ -16,7 +16,7 @@ import { EnhancedCopyButton } from "@/components/enhanced-copy-button";
   ExternalLink,
   Database,
   Plus,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import {
   Card,
   CardContent,
@@ -84,49 +84,49 @@ async function getFeatureFlagData(flagId: string): Promise<FeatureFlag | null> {
     } else {
       throw new Error(result.message || "Failed to fetch flag data");
     }
-  } catch (error) {
-    console.error("Error fetching feature flag data:", error);
+  } catch (err) {
+    console.error("Error fetching feature flag data:", err);
     return null;
   }
 }
 
 // Loading component
 const FlagDetailLoading = () => (
-  <div className="min-h-screen bg-gray-50">
-    <div className="max-w-7xl mx-auto p-6 lg:p-8">
+  <div className="min-h-screen bg-transparent">
+    <div className="max-w-7xl mx-auto">
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-300 rounded w-1/3 mb-4" />
-          <div className="h-4 bg-gray-200 rounded w-2/3" />
+          <div className="h-8 bg-muted rounded-xl w-1/3 mb-4" />
+          <div className="h-4 bg-muted/50 rounded-lg w-2/3" />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             {[...Array(2)].map((_, i) => (
               <Card
                 key={i}
-                className="animate-pulse"
+                className="animate-pulse rounded-xl border-border shadow-sm"
               >
                 <CardHeader>
-                  <div className="h-6 bg-gray-300 rounded w-1/2" />
+                  <div className="h-6 bg-muted rounded-lg w-1/2" />
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="h-4 bg-gray-200 rounded w-full" />
-                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-4 bg-muted/50 rounded-lg w-full" />
+                    <div className="h-4 bg-muted/50 rounded-lg w-3/4" />
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
           <div className="space-y-6">
-            <Card className="animate-pulse">
+            <Card className="animate-pulse rounded-xl border-border shadow-sm">
               <CardHeader>
-                <div className="h-6 bg-gray-300 rounded w-1/2" />
+                <div className="h-6 bg-muted rounded-lg w-1/2" />
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-full" />
-                  <div className="h-4 bg-gray-200 rounded w-2/3" />
+                  <div className="h-4 bg-muted/50 rounded-lg w-full" />
+                  <div className="h-4 bg-muted/50 rounded-lg w-2/3" />
                 </div>
               </CardContent>
             </Card>
@@ -163,21 +163,21 @@ export default async function FlagDetailPage(props: {
   const getFlagTypeColor = (type: FlagType) => {
     switch (type) {
       case "BOOLEAN":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
       case "STRING":
-        return "bg-emerald-100 text-emerald-800";
+        return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
       case "NUMBER":
-        return "bg-purple-100 text-purple-800";
+        return "bg-primary/10 text-primary border-primary/20";
       case "JSON":
-        return "bg-amber-100 text-amber-800";
+        return "bg-amber-500/10 text-amber-500 border-amber-500/20";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground border-border";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6 lg:p-8">
+    <div className="min-h-screen bg-transparent">
+      <div className="max-w-7xl mx-auto">
         <Suspense fallback={<FlagDetailLoading />}>
           <div className="space-y-6">
             {/* Header */}
@@ -187,34 +187,35 @@ export default async function FlagDetailPage(props: {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="border-dashed hover:border-solid transition-all font-medium text-xs h-9 rounded-md"
                   >
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Flags
+                    Back
                   </Button>
                 </Link>
                 <div>
                   <div className="flex items-center space-x-3 mb-2">
                     <div
-                      className={`w-3 h-3 rounded-full ${flag.is_active ? "bg-emerald-500" : "bg-gray-400"}`}
+                      className={`w-3 h-3 rounded-full ${flag.is_active ? "bg-primary shadow-sm" : "bg-muted-foreground/30"}`}
                     />
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
                       {flag.name}
                     </h1>
-                    <Badge className={getFlagTypeColor(flag.flag_type)}>
+                    <Badge className={`rounded-md border font-medium text-xs px-2 py-0.5 ${getFlagTypeColor(flag.flag_type)}`}>
                       {flag.flag_type}
                     </Badge>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <code className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded font-mono">
+                    <code className="text-sm text-foreground bg-muted border border-border px-2 py-1 rounded-md font-mono">
                       {flag.key}
                     </code>
                     <div className="flex items-center space-x-2">
                       {flag.is_active ? (
-                        <ToggleRight className="w-5 h-5 text-emerald-500" />
+                        <ToggleRight className="w-5 h-5 text-primary" />
                       ) : (
-                        <ToggleLeft className="w-5 h-5 text-gray-400" />
+                        <ToggleLeft className="w-5 h-5 text-muted-foreground/50" />
                       )}
-                      <span className={`text-sm font-medium ${flag.is_active ? "text-emerald-600" : "text-gray-600"}`}>
+                      <span className={`text-sm font-medium ${flag.is_active ? "text-primary" : "text-muted-foreground"}`}>
                         {flag.is_active ? "Active" : "Inactive"}
                       </span>
                     </div>
@@ -229,9 +230,9 @@ export default async function FlagDetailPage(props: {
 
             {/* Description */}
             {flag.description && (
-              <Card>
+              <Card className="rounded-xl border-dashed border-border bg-card/50 shadow-sm">
                 <CardContent className="p-6">
-                  <p className="text-gray-700 leading-relaxed">{flag.description}</p>
+                  <p className="text-muted-foreground leading-relaxed text-sm">{flag.description}</p>
                 </CardContent>
               </Card>
             )}
@@ -243,17 +244,17 @@ export default async function FlagDetailPage(props: {
                 {/* Navigation Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Link href={`/flags/environments/${flag.id}`}>
-                    <Card className="bg-white border-gray-200 hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer group">
+                    <Card className="bg-card border-border hover:shadow-md hover:border-primary/50 transition-all duration-300 cursor-pointer group rounded-xl shadow-sm">
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-[#6366F1] rounded-xl flex items-center justify-center group-hover:shadow-lg transition-all duration-200">
-                            <Database className="w-6 h-6 text-white" />
+                          <div className="w-12 h-12 bg-primary/10 rounded-lg border border-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <Database className="w-6 h-6 text-primary" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors text-lg">
+                            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors text-lg tracking-tight">
                               Environments
                             </h3>
-                            <p className="text-sm text-gray-600 group-hover:text-gray-700">Manage configurations</p>
+                            <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground">Manage config</p>
                           </div>
                         </div>
                       </CardContent>
@@ -262,24 +263,24 @@ export default async function FlagDetailPage(props: {
                 </div>
 
                 {/* API Integration */}
-                <Card className="bg-white border-gray-200">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-gray-900 flex items-center">
-                      <Code className="w-5 h-5 mr-2 text-[#6366F1]" />
+                <Card className="bg-card border-border rounded-xl shadow-sm">
+                  <CardHeader className="border-b border-border/50">
+                    <CardTitle className="text-xl text-foreground font-semibold flex items-center">
+                      <Code className="w-5 h-5 mr-2 text-primary" />
                       API Integration
                     </CardTitle>
-                    <CardDescription className="text-gray-600">
+                    <CardDescription className="text-muted-foreground text-sm">
                       Use this flag in your application
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-6 pt-6">
                     <div>
-                      <label className="text-sm font-bold text-gray-900 mb-3 block">
+                      <label className="text-sm font-medium text-foreground mb-3 block">
                         Flag Key
                       </label>
                       <div className="flex items-center space-x-3">
-                        <div className="bg-white border border-gray-300 rounded-lg px-4 py-3 flex-1">
-                          <code className="text-lg font-mono text-gray-800 font-medium">
+                        <div className="bg-muted/50 border border-border rounded-lg px-4 py-3 flex-1">
+                          <code className="text-lg font-mono text-foreground font-medium">
                             {flag.key}
                           </code>
                         </div>
@@ -290,24 +291,24 @@ export default async function FlagDetailPage(props: {
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      <label className="text-sm font-medium text-muted-foreground mb-2 block">
                         JavaScript SDK Example
                       </label>
-                      <div className="bg-white border border-gray-300 rounded-lg p-4">
-                        <code className="text-sm font-mono text-gray-800">
+                      <div className="bg-muted/50 border border-border rounded-lg p-4">
+                        <code className="text-sm font-mono text-foreground">
                           {`const isEnabled = await client.isEnabled('${flag.key}');`}
                         </code>
                       </div>
                     </div>
                     
                     {/* Quick Actions moved here */}
-                    <div className="border-t border-gray-200 pt-4">
-                      <h4 className="text-sm font-bold text-gray-900 mb-3">Quick Actions</h4>
+                    <div className="border-t border-border/50 pt-4">
+                      <h4 className="text-sm font-medium text-foreground mb-3">Quick Actions</h4>
                       <div className="grid grid-cols-1 gap-3">
                         <Link href={`/create-flag/environments?flagKey=${flag.id}`}>
                           <Button
                             variant="outline"
-                            className="w-full bg-white hover:bg-gray-50 border-gray-200"
+                            className="w-full bg-transparent hover:bg-muted border-dashed border-border rounded-md h-10 text-sm"
                           >
                             <Plus className="w-4 h-4 mr-2" />
                             Add Environment
@@ -326,45 +327,45 @@ export default async function FlagDetailPage(props: {
               {/* Right Column - Sidebar */}
               <div className="space-y-6">
                 {/* Flag Details */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg text-gray-900">Flag Details</CardTitle>
+                <Card className="rounded-xl border-border shadow-sm">
+                  <CardHeader className="border-b border-border/50">
+                    <CardTitle className="text-lg text-foreground font-semibold">Flag Details</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Type</label>
-                      <Badge className={`mt-1 ${getFlagTypeColor(flag.flag_type)}`}>
+                      <label className="text-sm font-medium text-muted-foreground block mb-1">Type</label>
+                      <Badge className={`rounded-md font-medium text-xs px-2 py-0.5 border ${getFlagTypeColor(flag.flag_type)}`}>
                         {flag.flag_type}
                       </Badge>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Status</label>
-                      <div className="flex items-center space-x-2 mt-1">
+                      <label className="text-sm font-medium text-muted-foreground block mb-1">Status</label>
+                      <div className="flex items-center space-x-2">
                         {flag.is_active ? (
-                          <ToggleRight className="w-5 h-5 text-emerald-500" />
+                          <ToggleRight className="w-5 h-5 text-primary" />
                         ) : (
-                          <ToggleLeft className="w-5 h-5 text-gray-400" />
+                          <ToggleLeft className="w-5 h-5 text-muted-foreground/50" />
                         )}
-                        <span className={`text-sm font-medium ${flag.is_active ? "text-emerald-600" : "text-gray-600"}`}>
+                        <span className={`text-sm font-medium ${flag.is_active ? "text-primary" : "text-muted-foreground"}`}>
                           {flag.is_active ? "Active" : "Inactive"}
                         </span>
                       </div>
                     </div>
-                    <Separator />
+                    <Separator className="bg-border/50" />
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Created</label>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-900">
+                      <label className="text-sm font-medium text-muted-foreground block mb-1">Created</label>
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">
                           {formatDate(flag.created_at)}
                         </span>
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Last Updated</label>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Activity className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-900">
+                      <label className="text-sm font-medium text-muted-foreground block mb-1">Last Updated</label>
+                      <div className="flex items-center space-x-2">
+                        <Activity className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">
                           {formatDate(flag.updated_at)}
                         </span>
                       </div>
@@ -374,30 +375,30 @@ export default async function FlagDetailPage(props: {
 
                 {/* Tags */}
                 {flag.tags && flag.tags.length > 0 && (
-                  <Card className="bg-white border-gray-200">
-                    <CardHeader>
-                      <CardTitle className="text-lg text-gray-900 flex items-center">
-                        <Tag className="w-4 h-4 mr-2 text-[#6366F1]" />
+                  <Card className="bg-card border-border rounded-xl shadow-sm">
+                    <CardHeader className="border-b border-border/50">
+                      <CardTitle className="text-lg text-foreground font-semibold flex items-center">
+                        <Tag className="w-4 h-4 mr-2 text-primary" />
                         Tags
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-4">
                       <div className="flex flex-wrap gap-2">
                         {flag.tags.map((tag, index) => {
                           const colors = [
-                            "bg-blue-100 text-blue-800 border-blue-200",
-                            "bg-green-100 text-green-800 border-green-200", 
-                            "bg-purple-100 text-purple-800 border-purple-200",
-                            "bg-orange-100 text-orange-800 border-orange-200",
-                            "bg-pink-100 text-pink-800 border-pink-200",
-                            "bg-teal-100 text-teal-800 border-teal-200"
+                            "bg-blue-500/10 text-blue-500 border-blue-500/20",
+                            "bg-green-500/10 text-green-500 border-green-500/20", 
+                            "bg-primary/10 text-primary border-primary/20",
+                            "bg-orange-500/10 text-orange-500 border-orange-500/20",
+                            "bg-pink-500/10 text-pink-500 border-pink-500/20",
+                            "bg-teal-500/10 text-teal-500 border-teal-500/20"
                           ]
                           const colorClass = colors[index % colors.length]
                           
                           return (
                             <Badge
                               key={index}
-                              className={`${colorClass} font-medium px-3 py-1`}
+                              className={`${colorClass} rounded-md font-medium text-xs px-2 py-0.5 border`}
                             >
                               {tag}
                             </Badge>
@@ -407,8 +408,6 @@ export default async function FlagDetailPage(props: {
                     </CardContent>
                   </Card>
                 )}
-
-
               </div>
             </div>
           </div>

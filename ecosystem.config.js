@@ -3,20 +3,22 @@ module.exports = {
     {
       name: "server",
       cwd: "apps/server",
-      script: "pnpm",
-      args: "start"
+      script: "dist/index.js",
+      env: { NODE_ENV: "production" }
     },
     {
       name: "web",
       cwd: "apps/web",
-      script: "pnpm",
-      args: "start"
+      script: "node_modules/next/dist/bin/next",
+      args: "start",
+      env: { NODE_ENV: "production" }
     },
     {
       name: "landing",
       cwd: "apps/landing",
-      script: "pnpm",
-      args: "start"
+      script: "node_modules/next/dist/bin/next",
+      args: "start",
+      env: { NODE_ENV: "production" }
     }
   ]
 }

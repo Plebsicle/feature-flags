@@ -39,14 +39,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://bitswitch.tech"),
+  metadataBase: new URL("https://bitswitch.site"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "BitSwitch - Feature Flags & A/B Testing Platform",
     description: "Ship features with confidence using powerful feature flags, A/B testing, and real-time insights. Deploy safely, experiment boldly, and deliver exceptional user experiences.",
-    url: "https://bitswitch.tech",
+    url: "https://bitswitch.site",
     siteName: "BitSwitch",
     images: [
       {

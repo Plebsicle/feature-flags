@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MultipleSelector } from "@/components/ui/multiple-selector"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { flag_type } from '@repo/db/client'
-import { ArrowRight, Flag } from "lucide-react"
+import { ArrowRight, Flag } from "@/components/ui/icons"
 import { Toaster, toast } from "react-hot-toast"
 
 const flagTypeOptions = [
@@ -90,52 +90,55 @@ export default function DetailsPage() {
   return (
     <>
       <Toaster />
-      <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
-        <div className="max-w-3xl mx-auto">
+      <div className="min-h-screen bg-transparent p-4 lg:p-6 relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, var(--border) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+        
+        <div className="max-w-3xl mx-auto relative z-10">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center shadow-md">
-                <Flag className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Flag className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Create Feature Flag</h1>
-                <p className="text-sm text-gray-600">Step 1 of 4 - Define basic details</p>
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">Create Feature Flag</h1>
+                <p className="text-sm font-medium text-muted-foreground">Step 1 of 4 - Define basic details</p>
               </div>
             </div>
             
             {/* Progress indicator */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
                 1
               </div>
-              <div className="h-1 w-16 bg-gray-200 rounded-full"></div>
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">
+              <div className="h-0.5 w-16 bg-border"></div>
+              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground text-sm font-medium">
                 2
               </div>
-              <div className="h-1 w-16 bg-gray-200 rounded-full"></div>
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">
+              <div className="h-0.5 w-16 bg-border"></div>
+              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground text-sm font-medium">
                 3
               </div>
-              <div className="h-1 w-16 bg-gray-200 rounded-full"></div>
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">
+              <div className="h-0.5 w-16 bg-border"></div>
+              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground text-sm font-medium">
                 4
               </div>
             </div>
           </div>
 
           {/* Form */}
-          <Card className="shadow-lg border-gray-200 bg-white rounded-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl font-semibold text-gray-900">Flag Details</CardTitle>
-              <CardDescription className="text-gray-600">
+          <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+            <CardHeader className="pb-4 border-b border-border/50">
+              <CardTitle className="text-xl font-semibold text-foreground">Flag Details</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
                 Define the basic information for your feature flag
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-6 pt-6">
               {/* Name */}
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="name" className="text-sm font-medium text-foreground">
                   Name *
                 </Label>
                 <Input
@@ -143,13 +146,13 @@ export default function DetailsPage() {
                   value={state.name}
                   onChange={handleNameChange}
                   placeholder="e.g., Dark Mode Toggle"
-                  className="h-10 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                  className="h-10 border-border rounded-lg bg-background text-sm focus:border-primary"
                 />
               </div>
 
               {/* Key (auto-generated) */}
               <div className="space-y-2">
-                <Label htmlFor="key" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="key" className="text-sm font-medium text-foreground">
                   Key (auto-generated)
                 </Label>
                 <Input
@@ -157,16 +160,16 @@ export default function DetailsPage() {
                   value={state.key}
                   readOnly
                   placeholder="auto-generated-from-name"
-                  className="h-10 bg-gray-50 border-gray-300 text-gray-600 cursor-not-allowed"
+                  className="h-10 bg-muted/50 border-border border-dashed text-muted-foreground cursor-not-allowed rounded-lg text-sm"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   This key is automatically generated from the name with a unique suffix and will be used in your code
                 </p>
               </div>
 
               {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="description" className="text-sm font-medium text-foreground">
                   Description
                 </Label>
                 <Textarea
@@ -174,29 +177,29 @@ export default function DetailsPage() {
                   value={state.description}
                   onChange={handleDescriptionChange}
                   placeholder="Describe what this feature flag controls..."
-                  className="min-h-[80px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 resize-none"
+                  className="min-h-[80px] border-border rounded-lg bg-background text-sm focus:border-primary resize-none"
                 />
               </div>
 
               {/* Flag Type */}
               <div className="space-y-2">
-                <Label htmlFor="flag-type" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="flag-type" className="text-sm font-medium text-foreground">
                   Flag Type *
                 </Label>
                 <Select value={state.flag_type} onValueChange={handleFlagTypeChange}>
-                  <SelectTrigger className="h-10 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                  <SelectTrigger className="h-10 border-border rounded-lg bg-background text-sm focus:border-primary">
                     <SelectValue placeholder="Select flag type" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-gray-200 shadow-lg">
+                  <SelectContent className="bg-card border-border rounded-lg shadow-sm text-sm">
                     {flagTypeOptions.map((option) => (
                       <SelectItem 
                         key={option.value} 
                         value={option.value}
-                        className="py-2 px-3 hover:bg-gray-50 focus:bg-gray-50"
+                        className="py-2 px-3 hover:bg-muted focus:bg-muted cursor-pointer rounded-md"
                       >
                         <div className="flex flex-col">
-                          <span className="font-medium text-gray-900">{option.label}</span>
-                          <span className="text-xs text-gray-500">{option.description}</span>
+                          <span className="font-semibold text-foreground">{option.label}</span>
+                          <span className="text-xs text-muted-foreground">{option.description}</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -206,7 +209,7 @@ export default function DetailsPage() {
 
               {/* Tags */}
               <div className="space-y-2">
-                <Label htmlFor="tags" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="tags" className="text-sm font-medium text-foreground">
                   Tags
                 </Label>
                 <MultipleSelector
@@ -214,20 +217,20 @@ export default function DetailsPage() {
                   onValueChange={handleTagsChange}
                   placeholder="Add tags to organize your flag..."
                   emptyIndicator={
-                    <p className="text-center text-sm leading-8 text-gray-400">
+                    <p className="text-center text-xs font-medium text-muted-foreground">
                       No tags found. Type to create new ones.
                     </p>
                   }
-                  className="min-h-[40px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                  className="min-h-[40px] border-border rounded-lg bg-background text-sm focus:border-primary"
                 />
-                <p className="text-xs text-gray-500">Press Enter to create a new tag</p>
+                <p className="text-xs text-muted-foreground">Press Enter to create a new tag</p>
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end pt-4 border-t border-gray-200">
+              <div className="flex justify-end pt-6 border-t border-border/50">
                 <Button 
                   onClick={handleNext} 
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 font-medium rounded-md shadow-sm transition-all duration-200 hover:shadow-md"
+                  className="font-medium text-sm rounded-lg"
                 >
                   <span>Next: Environments</span>
                   <ArrowRight className="w-4 h-4 ml-2" />

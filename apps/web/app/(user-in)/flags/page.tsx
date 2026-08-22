@@ -10,15 +10,14 @@ import {
   ToggleRight,
   Activity,
   Calendar,
-  Tag,
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
-// Types based on th e API response
+// Types based on the API response
 type FlagType = flag_type
 type FeatureFlag = feature_flags
 
@@ -54,8 +53,8 @@ async function getFeatureFlags(): Promise<FeatureFlag[]> {
     } else {
       throw new Error(result.message || 'Failed to fetch flags')
     }
-  } catch (error) {
-    console.error('Error fetching feature flags:', error)
+  } catch (error) { 
+    console.error(error)
     return []
   }
 }
@@ -73,115 +72,83 @@ const FlagCard = ({ flag }: { flag: FeatureFlag }) => {
   const getFlagTypeColor = (type: FlagType) => {
     switch (type) {
       case 'BOOLEAN':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
       case 'STRING':
-        return 'bg-emerald-100 text-emerald-800'
+        return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
       case 'NUMBER':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-primary/10 text-primary border-primary/20'
       case 'JSON':
-        return 'bg-amber-100 text-amber-800'
+        return 'bg-amber-500/10 text-amber-500 border-amber-500/20'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-muted text-muted-foreground border-border'
     }
   }
 
   return (
     <Link href={`/flags/${flag.id}`}>
-      <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer group h-full">
-        <CardHeader className="pb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-start space-x-4 min-w-0 flex-1">
-              <div className={`w-4 h-4 rounded-full mt-1 flex-shrink-0 ${flag.is_active ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+      <Card className="bg-card border-border shadow-sm hover:shadow-md transition-all duration-300 group h-full flex flex-col">
+        <CardHeader className="pb-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start space-x-3 min-w-0 flex-1">
+              <div className={`w-2.5 h-2.5 rounded-full mt-2 flex-shrink-0 ${flag.is_active ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`} />
               <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors mb-3">
+                <CardTitle className="text-lg font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                   {flag.name}
                 </CardTitle>
-                <div className="flex items-center space-x-3 mb-4">
-                  <code className="text-sm text-gray-600 bg-gray-100 px-3 py-1.5 rounded-md font-mono">
+                <div className="flex items-center space-x-2 mt-1.5">
+                  <code className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md font-mono border border-border">
                     {flag.key}
                   </code>
-                  <Badge className={`text-sm px-3 py-1 font-medium ${getFlagTypeColor(flag.flag_type)}`}>
+                  <Badge className={`text-[10px] px-1.5 py-0 font-medium ${getFlagTypeColor(flag.flag_type)}`}>
                     {flag.flag_type}
                   </Badge>
                 </div>
-                {flag.description && (
-                  <CardDescription className="text-gray-600 text-sm leading-relaxed line-clamp-2">
-                    {flag.description}
-                  </CardDescription>
-                )}
               </div>
             </div>
-            <button className="text-gray-400 hover:text-gray-600 transition-colors duration-200 flex-shrink-0 ml-4">
+            <button className="text-muted-foreground hover:text-foreground transition-colors p-1">
               <MoreHorizontal className="w-5 h-5" />
             </button>
           </div>
+          {flag.description && (
+            <CardDescription className="text-muted-foreground text-sm mt-3 line-clamp-2">
+              {flag.description}
+            </CardDescription>
+          )}
         </CardHeader>
-        <CardContent className="pt-0 space-y-6">
-          {/* Status Section */}
-          <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
-            <span className="text-sm font-medium text-gray-700">Status</span>
-            <div className="flex items-center space-x-3">
-              {flag.is_active ? (
-                <ToggleRight className="w-6 h-6 text-emerald-500" />
-              ) : (
-                <ToggleLeft className="w-6 h-6 text-gray-400" />
-              )}
-              <span className={`text-sm font-semibold ${flag.is_active ? 'text-emerald-600' : 'text-gray-600'}`}>
-                {flag.is_active ? 'Active' : 'Inactive'}
-              </span>
-            </div>
-          </div>
+        <CardContent className="pt-0 flex-1 flex flex-col justify-end space-y-4">
           
           {/* Tags Section */}
           {flag.tags && flag.tags.length > 0 && (
-            <div className="space-y-3">
-              <span className="text-sm font-medium text-gray-700">Tags</span>
-              <div className="flex flex-wrap gap-2">
-                {flag.tags.slice(0, 2).map((tag, index) => {
-                  const colors = [
-                    "bg-blue-100 text-blue-800 border-blue-200",
-                    "bg-green-100 text-green-800 border-green-200", 
-                    "bg-purple-100 text-purple-800 border-purple-200",
-                    "bg-orange-100 text-orange-800 border-orange-200",
-                  ]
-                  const colorClass = colors[index % colors.length]
-                  
-                  return (
-                    <Badge key={index} className={`${colorClass} text-sm px-3 py-1 font-medium border`}>
-                      {tag}
-                    </Badge>
-                  )
-                })}
-                {flag.tags.length > 2 && (
-                  <Badge className="bg-gray-100 text-gray-700 border-gray-200 text-sm px-3 py-1 font-medium border">
-                    +{flag.tags.length - 2} more
-                  </Badge>
-                )}
-              </div>
+            <div className="flex flex-wrap gap-1.5 pt-2">
+              {flag.tags.slice(0, 3).map((tag, index) => (
+                <Badge key={index} variant="secondary" className="text-[10px] px-1.5 py-0 font-medium border-border bg-muted/50 text-muted-foreground">
+                  {tag}
+                </Badge>
+              ))}
+              {flag.tags.length > 3 && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-medium border-border bg-muted/50 text-muted-foreground">
+                  +{flag.tags.length - 3}
+                </Badge>
+              )}
             </div>
           )}
           
           {/* Metadata Section */}
-          <div className="pt-4 border-t border-gray-200">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700">Created</span>
-                </div>
-                <div className="text-sm text-gray-900 font-medium ml-6">
-                  {formatDate(flag.created_at)}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Activity className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700">Last Updated</span>
-                </div>
-                <div className="text-sm text-gray-900 font-medium ml-6">
-                  {formatDate(flag.updated_at)}
-                </div>
-              </div>
+          <div className="flex items-center justify-between pt-4 border-t border-border/50 text-xs text-muted-foreground">
+            <div className="flex items-center space-x-1.5">
+              <Activity className="w-3.5 h-3.5" />
+              <span>{formatDate(flag.updated_at)}</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              {flag.is_active ? (
+                <span className="text-emerald-500 font-medium flex items-center gap-1">
+                  <ToggleRight className="w-4 h-4" /> Active
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <ToggleLeft className="w-4 h-4" /> Inactive
+                </span>
+              )}
             </div>
           </div>
         </CardContent>
@@ -193,21 +160,28 @@ const FlagCard = ({ flag }: { flag: FeatureFlag }) => {
 // Main Flags Page Component
 export default async function FlagsPage() {
   const flags = await getFeatureFlags()
+  
+  const activeCount = flags.filter(f => f.is_active).length
+  const inactiveCount = flags.filter(f => !f.is_active).length
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6 lg:p-8">
-        <div className="space-y-6">
+    <div className="min-h-screen bg-transparent">
+      <div className="max-w-7xl mx-auto">
+        <div className="space-y-8">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Feature Flags</h1>
-              <p className="text-gray-600 text-base sm:text-lg">
-                Manage and monitor your feature flags across all environments
-              </p>
+              <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">Feature Flags</h1>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">{flags.length} Total</span>
+                <span className="w-1 h-1 rounded-full bg-border" />
+                <span className="text-emerald-500">{activeCount} Active</span>
+                <span className="w-1 h-1 rounded-full bg-border" />
+                <span>{inactiveCount} Inactive</span>
+              </div>
             </div>
             <Link href="/create-flag/details">
-              <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Button className="w-full sm:w-auto shadow-sm">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Flag
               </Button>
@@ -215,139 +189,42 @@ export default async function FlagsPage() {
           </div>
 
           {/* Search and Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input
                 placeholder="Search flags..."
-                className="pl-10 bg-white border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                className="pl-9 bg-background border-border focus:border-primary transition-all shadow-sm"
               />
             </div>
-            <Button variant="outline" className="w-full sm:w-auto border-gray-300 text-gray-700 hover:bg-gray-50">
+            <Button variant="outline" className="w-full sm:w-auto shadow-sm bg-background">
               <Filter className="w-4 h-4 mr-2" />
               Filter
             </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <Card className="bg-white border border-gray-200 shadow-sm">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <Flag className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 flex-shrink-0" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-xl sm:text-2xl font-bold text-gray-900">{flags.length}</div>
-                    <div className="text-xs sm:text-sm text-gray-600">Total Flags</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500 flex-shrink-0" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-xl sm:text-2xl font-bold text-gray-900">
-                      {flags.filter(f => f.is_active).length}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-600">Active</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <div className="w-3 h-3 rounded-full bg-gray-400 flex-shrink-0" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-xl sm:text-2xl font-bold text-gray-900">
-                      {flags.filter(f => !f.is_active).length}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-600">Inactive</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white border border-gray-200 shadow-sm">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Tag className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 flex-shrink-0" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-xl sm:text-2xl font-bold text-gray-900">
-                      {flags.reduce((acc, flag) => acc + (flag.tags?.length || 0), 0)}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-600">Total Tags</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Flags Grid */}
           {flags.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {flags.map((flag) => (
                 <FlagCard key={flag.id} flag={flag} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Flag className="w-6 h-6 text-gray-400" />
+            <div className="text-center py-16 rounded-xl border border-dashed border-border bg-muted/20">
+              <div className="w-12 h-12 bg-background shadow-sm rounded-xl border border-border flex items-center justify-center mx-auto mb-4">
+                <Flag className="w-6 h-6 text-muted-foreground" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No flags found</h3>
-              <p className="text-gray-600 mb-6">Create your first feature flag to get started.</p>
+              <h3 className="text-lg font-semibold text-foreground mb-1">No flags found</h3>
+              <p className="text-muted-foreground text-sm mb-6">Create your first feature flag to get started.</p>
               <Link href="/create-flag/details">
-                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                <Button shadow-sm>
                   <Plus className="w-4 h-4 mr-2" />
                   Create Flag
                 </Button>
               </Link>
             </div>
           )}
-
-          {/* Info Card */}
-          <Card className="bg-blue-50 border border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-lg text-gray-900 flex items-center">
-                <Flag className="w-5 h-5 mr-2 text-blue-600" />
-                Feature Flag Management
-              </CardTitle>
-              <CardDescription className="text-gray-600">
-                Best practices for managing feature flags effectively
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">Environment Control</h4>
-                  <p className="text-sm text-gray-600">
-                    Control flag behavior across development, staging, and production environments
-                  </p>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">Targeting Rules</h4>
-                  <p className="text-sm text-gray-600">
-                    Create sophisticated targeting rules based on user attributes and conditions
-                  </p>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">Rollout Strategies</h4>
-                  <p className="text-sm text-gray-600">
-                    Gradually release features with percentage-based and progressive rollouts
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

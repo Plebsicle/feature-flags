@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Edit, Save, X, Loader2, ToggleLeft, ToggleRight, Tag, Plus } from 'lucide-react'
+import { Edit, Save, X, Loader2, ToggleLeft, ToggleRight, Tag, Plus } from "@/components/ui/icons"
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -69,7 +69,7 @@ export function EditFeatureFlagModal({
   const handleSave = async () => {
     setIsLoading(true)
     // console.log(flagId);
-    const promise = fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/updateFeatureFlag`, {
+    const promise = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/updateFeatureFlag`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -100,7 +100,7 @@ export function EditFeatureFlagModal({
             })
             return 'Feature flag updated successfully'
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error updating feature flag:', err)
             return 'Failed to update feature flag. Please try again.'
         }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2, Loader2 } from 'lucide-react'
+import { Trash2, Loader2 } from "@/components/ui/icons"
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -29,7 +29,7 @@ export function DeleteAlertButton({ metricId }: DeleteAlertButtonProps) {
   const handleDelete = async () => {
     setIsDeleting(true)
     
-    const promise = fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/alerts/${metricId}`, {
+    const promise = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/alerts/${metricId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -54,7 +54,7 @@ export function DeleteAlertButton({ metricId }: DeleteAlertButtonProps) {
         })
         return 'Alert deleted successfully'
       },
-      error: (err) => {
+      error: () => {
         // console.error('Error deleting alert:', err)
         return 'Failed to delete alert. Please try again.'
       },

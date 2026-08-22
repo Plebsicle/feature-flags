@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, CheckCircle, Settings, X, Loader2 } from 'lucide-react';
+import { MessageSquare, CheckCircle, Settings, X, Loader2 } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster, toast } from 'react-hot-toast';
@@ -44,7 +44,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
 
   const fetchIntegrationStatus = async () => {
     try {
-      const response = await fetch(`/${BACKEND_URL}/slack/integration`, {
+      const response = await fetch(`${BACKEND_URL}/slack/integration`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
@@ -61,14 +61,13 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
       if (data.connected && data.channels) {
         setSelectedChannels(data.channels.map((ch: SlackChannel) => ch.id));
       }
-    } catch (error) {
-      // console.error('Error fetching integration status:', error);
+    } catch (error) { // console.error(error);
     }
   };
 
   const handleConnectSlack = async () => {
     setLoading(true);
-    const promise = fetch(`/${BACKEND_URL}/slack/auth/url`, {
+    const promise = fetch(`${BACKEND_URL}/slack/auth/url`, {
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
@@ -91,7 +90,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
             })
             return 'Redirecting...';
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error connecting to Slack:', err);
             return 'Failed to connect to Slack';
         }
@@ -135,13 +134,12 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
 
     try {
         await promise;
-    } catch (_error) {
-        // console.error(_error)
+    } catch (_error) { // console.error(_error)
         return;
     }
 
     setLoading(true);
-    const disconnectPromise = fetch(`/${BACKEND_URL}/slack/integration`, {
+    const disconnectPromise = fetch(`${BACKEND_URL}/slack/integration`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -162,7 +160,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
                 throw new Error('Failed to disconnect');
             }
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error disconnecting Slack:', err);
             return 'Failed to disconnect Slack';
         }
@@ -175,7 +173,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
     if (!integration.teamId) return;
     
     setLoading(true);
-    const promise = fetch(`/${BACKEND_URL}/slack/channels/${integration.teamId}`, {
+    const promise = fetch(`${BACKEND_URL}/slack/channels/${integration.teamId}`, {
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
@@ -195,7 +193,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
             })
             return 'Channels fetched successfully!';
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error fetching channels:', err);
             return 'Failed to fetch channels';
         }
@@ -219,7 +217,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
       }));
 
     setLoading(true);
-    const promise = fetch(`/${BACKEND_URL}/slack/channels/${integration.teamId}`, {
+    const promise = fetch(`${BACKEND_URL}/slack/channels/${integration.teamId}`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -239,7 +237,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
                 throw new Error('Failed to save');
             }
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error saving channels:', err);
             return 'Failed to save channels';
         }
@@ -261,24 +259,24 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
       <Toaster />
       <div className="space-y-6">
         {/* Main Integration Card */}
-        <Card>
-          <CardHeader className="pb-4">
+        <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
-                  <MessageSquare className="w-6 h-6 text-emerald-600" />
+                <div className="w-12 h-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <MessageSquare className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl text-gray-900 font-semibold">
+                  <CardTitle className="text-2xl text-foreground font-semibold">
                     Slack Integration
                   </CardTitle>
-                  <CardDescription className="text-gray-600">
+                  <CardDescription className="text-muted-foreground text-sm mt-1">
                     Connect your Slack workspace to receive alerts and notifications
                   </CardDescription>
                 </div>
               </div>
               {integration.connected && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">
+                <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   Connected
                 </span>
@@ -286,22 +284,22 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
             </div>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="pt-6">
             {!integration.connected ? (
               <div className="text-center py-8">
-                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mb-6">
-                  <MessageSquare className="w-8 h-8 text-gray-400" />
+                <div className="mx-auto w-16 h-16 bg-muted/10 border border-border rounded-xl flex items-center justify-center mb-6">
+                  <MessageSquare className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">
+                <h4 className="text-lg font-semibold text-foreground mb-2">
                   Connect your Slack workspace
                 </h4>
-                <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                <p className="text-sm text-muted-foreground mb-8 max-w-md mx-auto">
                   Get real-time alerts and notifications directly in your Slack channels when feature flags are updated or metrics change.
                 </p>
                 <Button
                   onClick={handleConnectSlack}
                   disabled={loading}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-3"
+                  className="rounded-lg font-medium text-sm bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 shadow-sm"
                 >
                   {loading ? (
                     <>
@@ -319,16 +317,16 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
             ) : (
               <div className="space-y-6">
                 {/* Connection Success Banner */}
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircle className="h-5 w-5 text-emerald-600" />
+                      <CheckCircle className="h-5 w-5 text-emerald-500" />
                     </div>
                     <div className="ml-3 flex-1">
-                      <h4 className="text-sm font-medium text-emerald-800">
+                      <h4 className="text-sm font-medium text-emerald-600">
                         Connected to {integration.teamName}
                       </h4>
-                      <p className="text-sm text-emerald-700 mt-1">
+                      <p className="text-xs text-emerald-600/80 mt-1">
                         Your Slack workspace is successfully connected. Configure channels below to receive notifications.
                       </p>
                     </div>
@@ -337,9 +335,9 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
 
                 {/* Configured Channels */}
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <div className="bg-indigo-100 p-1.5 rounded mr-2">
-                      <Settings className="w-4 h-4 text-indigo-600" />
+                  <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center">
+                    <div className="bg-primary/10 border border-primary/20 p-1.5 rounded-lg mr-2">
+                      <Settings className="w-4 h-4 text-primary" />
                     </div>
                     Configured Channels
                   </h4>
@@ -348,14 +346,14 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
                       {integration.channels.map((channel) => (
                         <div 
                           key={channel.id} 
-                          className="flex items-center justify-between bg-gray-50 px-4 py-3 rounded-lg border border-gray-200"
+                          className="flex items-center justify-between bg-muted/10 px-4 py-3 rounded-lg border border-border"
                         >
                           <div className="flex items-center">
-                            <span className="text-sm font-mono text-gray-900">
+                            <span className="text-sm font-medium text-foreground">
                               #{channel.channel_name}
                             </span>
                             {channel.is_private && (
-                              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700">
+                              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium uppercase bg-muted/50 border border-border text-muted-foreground">
                                 Private
                               </span>
                             )}
@@ -364,7 +362,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">
+                    <p className="text-sm text-muted-foreground bg-muted/10 px-4 py-3 rounded-lg border border-border">
                       No channels configured yet
                     </p>
                   )}
@@ -376,7 +374,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
                     onClick={fetchChannels}
                     disabled={loading}
                     variant="outline"
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="rounded-lg font-medium text-sm border-border text-foreground hover:bg-muted/50"
                   >
                     <Settings className="w-4 h-4 mr-2" />
                     {loading ? 'Loading...' : 'Configure Channels'}
@@ -386,7 +384,7 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
                     onClick={handleDisconnectSlack}
                     disabled={loading}
                     variant="outline"
-                    className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                    className="rounded-lg font-medium text-sm border-destructive/50 text-destructive hover:bg-destructive/10 hover:border-destructive"
                   >
                     <X className="w-4 h-4 mr-2" />
                     Disconnect
@@ -399,16 +397,16 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
 
         {/* Channel Setup Modal/View */}
         {showChannelSetup && (
-           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-             <div className="relative bg-white border border-gray-200 shadow-xl rounded-lg max-w-md w-full max-h-[80vh] overflow-hidden">
+           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+             <div className="relative bg-card border border-border shadow-sm rounded-xl max-w-md w-full max-h-[80vh] overflow-hidden">
                <div className="p-6">
                  <div className="flex items-center justify-between mb-6">
-                   <h3 className="text-lg font-semibold text-gray-900">Select Channels</h3>
+                   <h3 className="text-xl font-semibold text-foreground">Select Channels</h3>
                    <Button
                      variant="ghost"
                      size="sm"
                      onClick={() => setShowChannelSetup(false)}
-                     className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2"
+                     className="rounded-lg font-medium text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 p-2"
                    >
                      <X className="w-4 h-4" />
                    </Button>
@@ -418,36 +416,36 @@ const SlackIntegrationClient: React.FC<SlackIntegrationClientProps> = ({
                    {availableChannels.map((channel) => (
                      <label 
                        key={channel.id}
-                       className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                       className="flex items-center p-3 rounded-lg border border-transparent hover:border-border hover:bg-muted/10 transition-colors cursor-pointer"
                      >
                        <input
                          type="checkbox"
                          checked={selectedChannels.includes(channel.id)}
                          onChange={() => toggleChannelSelection(channel.id)}
-                         className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                         className="h-4 w-4 text-primary focus:ring-primary border-border bg-card rounded"
                        />
-                       <span className="ml-3 text-sm text-gray-900">
+                       <span className="ml-3 text-sm font-medium text-foreground">
                          #{channel.name}
                          {channel.is_private && (
-                           <span className="ml-1 text-xs text-gray-500">(private)</span>
+                           <span className="ml-1 text-xs text-muted-foreground opacity-70">(private)</span>
                          )}
                        </span>
                      </label>
                    ))}
                  </div>
                  
-                 <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                 <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-border/50">
                    <Button
                      onClick={() => setShowChannelSetup(false)}
                      variant="outline"
-                     className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                     className="rounded-lg font-medium text-sm border-border text-foreground hover:bg-muted/50"
                    >
                      Cancel
                    </Button>
                    <Button
                      onClick={handleSaveChannels}
                      disabled={loading || selectedChannels.length === 0}
-                     className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                     className="rounded-lg font-medium text-sm bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
                    >
                      {loading ? (
                        <>

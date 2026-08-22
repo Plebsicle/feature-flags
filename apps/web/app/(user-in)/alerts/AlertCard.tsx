@@ -10,7 +10,7 @@ import {
   TrendingUp,
   Activity,
   Tag
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,13 +60,13 @@ function getStatusIcon(status: AlertStatus) {
 function getStatusColor(status: AlertStatus): string {
   switch (status) {
     case 'TRIGGERED':
-      return 'bg-red-50 text-red-700 border-red-200';
+      return 'bg-destructive/10 text-destructive border-destructive/20';
     case 'ACKNOWLEDGED':
-      return 'bg-amber-50 text-amber-700 border-amber-200';
+      return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
     case 'RESOLVED':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
     default:
-      return 'bg-gray-50 text-gray-700 border-gray-200';
+      return 'bg-muted/50 text-muted-foreground border-border';
   }
 }
 
@@ -95,8 +95,7 @@ export function AlertCard({ alert }: AlertCardProps) {
       } else {
         console.error('Failed to update alert status');
       }
-    } catch (error) {
-      console.error('Error updating alert status:', error);
+    } catch (error) { console.error(error);
     } finally {
       setIsUpdating(false);
     }
@@ -115,8 +114,7 @@ export function AlertCard({ alert }: AlertCardProps) {
               size="sm"
               variant="outline"
               onClick={() => updateAlertStatus('ACKNOWLEDGED')}
-              disabled={isUpdating}
-              className="text-amber-700 border-amber-300 hover:bg-amber-50"
+              className="text-amber-500 border-amber-500/50 hover:bg-amber-500/10 hover:text-amber-500 rounded-lg text-xs"
             >
               <Clock className="w-4 h-4 mr-1" />
               Acknowledge
@@ -124,8 +122,7 @@ export function AlertCard({ alert }: AlertCardProps) {
             <Button
               size="sm"
               onClick={() => updateAlertStatus('RESOLVED')}
-              disabled={isUpdating}
-              className="text-emerald-700 bg-emerald-50 border-emerald-300 hover:bg-emerald-100"
+              className="text-emerald-500 bg-emerald-500/10 border-emerald-500/50 hover:bg-emerald-500/20 hover:text-emerald-500 rounded-lg text-xs"
             >
               <CheckCircle className="w-4 h-4 mr-1" />
               Resolve
@@ -137,8 +134,7 @@ export function AlertCard({ alert }: AlertCardProps) {
           <Button
             size="sm"
             onClick={() => updateAlertStatus('RESOLVED')}
-            disabled={isUpdating}
-            className="text-emerald-700 bg-emerald-50 border-emerald-300 hover:bg-emerald-100"
+            className="text-emerald-500 bg-emerald-500/10 border-emerald-500/50 hover:bg-emerald-500/20 hover:text-emerald-500 rounded-lg text-xs"
           >
             <CheckCircle className="w-4 h-4 mr-1" />
             Resolve
@@ -152,20 +148,22 @@ export function AlertCard({ alert }: AlertCardProps) {
   const isExceeding = alert.current_value > alert.threshold_value;
 
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200">
-      <CardHeader className="pb-4">
+    <Card className="hover:shadow-md transition-shadow duration-200 border-border bg-card/80 backdrop-blur shadow-sm rounded-xl">
+      <CardHeader className="border-b border-border/50 pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
-            {getStatusIcon(currentStatus)}
+            <div className="bg-muted/10 p-2 border border-border rounded-lg">
+              {getStatusIcon(currentStatus)}
+            </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardTitle className="text-lg font-semibold text-foreground">
                 {alert.metric_name}
               </CardTitle>
               <div className="flex items-center space-x-2 mt-1">
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="rounded-md font-medium text-xs text-muted-foreground">
                   {alert.metric_key}
                 </Badge>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="rounded-md font-medium text-xs text-muted-foreground">
                   {alert.metric_type}
                 </Badge>
               </div>
@@ -173,7 +171,7 @@ export function AlertCard({ alert }: AlertCardProps) {
           </div>
           
           <div className="flex items-center space-x-3">
-            <Badge className={`${getStatusColor(currentStatus)} border`}>
+            <Badge className={`${getStatusColor(currentStatus)} border rounded-full font-medium text-xs uppercase px-2 py-0.5`}>
               {currentStatus}
             </Badge>
             {renderActionButtons()}
@@ -181,60 +179,60 @@ export function AlertCard({ alert }: AlertCardProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         {/* Metric Values */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-muted/10 border border-border rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-600">Current Value</span>
+              <TrendingUp className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Current Value</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold tracking-tight text-foreground">
               {alert.current_value.toLocaleString()}
             </p>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-muted/10 border border-border rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-1">
-              <Target className="w-4 h-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-600">Threshold</span>
+              <Target className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Threshold</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold tracking-tight text-foreground">
               {alert.threshold_value.toLocaleString()}
             </p>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-muted/10 border border-border rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-1">
-              <Activity className="w-4 h-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-600">
+              <Activity className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">
                 {isExceeding ? 'Over threshold' : 'Under threshold'}
               </span>
             </div>
-            <p className={`text-2xl font-bold ${isExceeding ? 'text-red-600' : 'text-emerald-600'}`}>
+            <p className={`text-2xl font-bold tracking-tight ${isExceeding ? 'text-destructive' : 'text-emerald-500'}`}>
               {percentageChange > 0 ? '+' : ''}{percentageChange.toFixed(1)}%
             </p>
           </div>
         </div>
 
         {/* Timestamps */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-border/50">
+          <div className="flex items-center space-x-2 text-sm font-medium text-muted-foreground">
             <Calendar className="w-4 h-4" />
-            <span>Triggered: {formatDate(alert.created_at)}</span>
+            <span>Triggered: <span className="text-foreground font-normal">{formatDate(alert.created_at)}</span></span>
           </div>
           
           {alert.acknowledged_at && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <div className="flex items-center space-x-2 text-sm font-medium text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span>Acknowledged: {formatDate(alert.acknowledged_at)}</span>
+              <span>Acknowledged: <span className="text-foreground font-normal">{formatDate(alert.acknowledged_at)}</span></span>
             </div>
           )}
           
           {alert.resolved_at && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <div className="flex items-center space-x-2 text-sm font-medium text-muted-foreground">
               <CheckCircle className="w-4 h-4" />
-              <span>Resolved: {formatDate(alert.resolved_at)}</span>
+              <span>Resolved: <span className="text-foreground font-normal">{formatDate(alert.resolved_at)}</span></span>
             </div>
           )}
         </div>
@@ -242,10 +240,10 @@ export function AlertCard({ alert }: AlertCardProps) {
         {/* Tags */}
         {alert.tags && alert.tags.length > 0 && (
           <div className="flex items-center space-x-2 pt-2">
-            <Tag className="w-4 h-4 text-gray-500" />
+            <Tag className="w-4 h-4 text-muted-foreground" />
             <div className="flex flex-wrap gap-1">
               {alert.tags.map((tag, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
+                <Badge key={index} variant="secondary" className="rounded-md font-medium text-xs bg-muted/50 text-muted-foreground">
                   {tag}
                 </Badge>
               ))}

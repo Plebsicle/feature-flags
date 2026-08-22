@@ -7,7 +7,7 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 
@@ -56,8 +56,7 @@ async function getDashboardData(): Promise<DashboardData | null> {
     }
 
     return data.data;
-  } catch (err) {
-    console.error('Error fetching dashboard data:', err);
+  } catch (err) { console.error(err);
     return null;
   }
 }
@@ -78,18 +77,18 @@ function StatCard({
   iconBg: string
 }) {
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200">
+    <Card className="hover:shadow-md transition-shadow duration-300 border-border group cursor-pointer flex flex-col justify-between">
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
-        <div className={`w-10 h-10 rounded-lg ${iconBg} flex items-center justify-center`}>
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className={`w-10 h-10 rounded-lg border border-transparent group-hover:border-border transition-colors ${iconBg} flex items-center justify-center`}>
           <Icon className={`w-5 h-5 ${iconColor}`} />
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-gray-900 mb-1">
+        <div className={`text-foreground mb-1 break-words min-w-0 ${value.toString().length > 10 ? 'text-lg font-semibold tracking-normal leading-snug mt-2' : 'text-2xl font-bold tracking-tight'}`}>
           {value}
         </div>
-        <CardDescription className="text-gray-600 text-sm">
+        <CardDescription className="text-muted-foreground text-sm line-clamp-1">
           {description}
         </CardDescription>
       </CardContent>
@@ -110,22 +109,23 @@ function ActivityItem({
   status: "success" | "warning" | "pending"
 }) {
   const statusConfig = {
-    success: { icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
-    warning: { icon: AlertCircle, color: "text-amber-600", bg: "bg-amber-50" },
-    pending: { icon: Clock, color: "text-indigo-600", bg: "bg-indigo-50" },
+    success: { icon: CheckCircle, color: "text-emerald-500", bg: "bg-emerald-500/10 border-emerald-500/20" },
+    warning: { icon: AlertCircle, color: "text-amber-500", bg: "bg-amber-500/10 border-amber-500/20" },
+    pending: { icon: Clock, color: "text-primary", bg: "bg-primary/10 border-primary/20" },
   }
 
   const StatusIcon = statusConfig[status].icon
 
   return (
-    <div className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-      <div className={`flex-shrink-0 w-8 h-8 rounded-full ${statusConfig[status].bg} flex items-center justify-center`}>
+    <div className="flex items-start space-x-4 p-4 rounded-xl hover:bg-muted/50 transition-colors duration-200 border-b border-border last:border-0 group cursor-pointer relative">
+      <div className="absolute left-6 top-10 bottom-0 w-[1px] bg-border last:hidden" />
+      <div className={`relative z-10 flex-shrink-0 w-8 h-8 rounded-full border ${statusConfig[status].bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
         <StatusIcon className={`w-4 h-4 ${statusConfig[status].color}`} />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900">{type}</p>
-        <p className="text-sm text-gray-600 mt-1 leading-relaxed">{message}</p>
-        <p className="text-xs text-gray-500 mt-2">{time}</p>
+      <div className="flex-1 min-w-0 pt-1">
+        <p className="text-sm font-medium text-foreground">{type}</p>
+        <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{message}</p>
+        <p className="text-xs text-muted-foreground/60 mt-2">{time}</p>
       </div>
     </div>
   )
@@ -148,8 +148,8 @@ export default async function DashboardPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome back! Here&apos;s what&apos;s happening with your feature flags.</p>
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-1 text-sm">Welcome back! Here's what's happening with your feature flags.</p>
       </div>
 
       {dashboardData ? (
@@ -161,44 +161,44 @@ export default async function DashboardPage() {
               value={dashboardData.activeFlags?.toString() || "0"}
               description="Currently deployed"
               icon={Flag}
-              iconColor="text-indigo-600"
-              iconBg="bg-indigo-100"
+              iconColor="text-primary"
+              iconBg="bg-primary/10"
             />
             <StatCard
               title="Total Users"
               value={dashboardData.totalUsers?.toLocaleString() || "0"}
               description="Registered users"
               icon={Users}
-              iconColor="text-emerald-600"
-              iconBg="bg-emerald-100"
+              iconColor="text-emerald-500"
+              iconBg="bg-emerald-500/10"
             />
             <StatCard
               title="Flag Evaluations"
               value={dashboardData.flagEvaluations || "0"}
               description="In the last 24h"
               icon={Activity}
-              iconColor="text-amber-600"
-              iconBg="bg-amber-100"
+              iconColor="text-amber-500"
+              iconBg="bg-amber-500/10"
             />
             <StatCard
               title="Conversion Rate"
               value={dashboardData.conversionRate || "0%"}
               description="This month"
               icon={TrendingUp}
-              iconColor="text-purple-600"
-              iconBg="bg-purple-100"
+              iconColor="text-blue-500"
+              iconBg="bg-blue-500/10"
             />
           </div>
 
           {/* Recent Activity */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">Recent Activity</CardTitle>
+            <CardHeader className="border-b border-border bg-muted/20">
+              <CardTitle className="text-lg font-semibold text-foreground">Recent Activity</CardTitle>
               <CardDescription>Latest changes and updates to your feature flags</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               {Array.isArray(dashboardData.recentActivity) && dashboardData.recentActivity.length > 0 ? (
-                <div className="divide-y divide-gray-100">
+                <div className="flex flex-col">
                   {dashboardData.recentActivity.map((activity: any, index: number) => (
                     <ActivityItem
                       key={index}
@@ -211,9 +211,9 @@ export default async function DashboardPage() {
                 </div>
               ) : (
                 <div className="p-8 text-center">
-                  <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No recent activity</h3>
-                  <p className="text-gray-600">When you start using feature flags, you&apos;ll see recent activity here.</p>
+                  <Activity className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-1">No recent activity</h3>
+                  <p className="text-muted-foreground text-sm">When you start using feature flags, you'll see recent activity here.</p>
                 </div>
               )}
             </CardContent>
@@ -228,46 +228,46 @@ export default async function DashboardPage() {
               value="0"
               description="Currently deployed"
               icon={Flag}
-              iconColor="text-indigo-600"
-              iconBg="bg-indigo-100"
+              iconColor="text-primary"
+              iconBg="bg-primary/10"
             />
             <StatCard
               title="Total Users"
               value="0"
               description="Registered users"
               icon={Users}
-              iconColor="text-emerald-600"
-              iconBg="bg-emerald-100"
+              iconColor="text-emerald-500"
+              iconBg="bg-emerald-500/10"
             />
             <StatCard
               title="Flag Evaluations"
               value="0"
               description="In the last 24h"
               icon={Activity}
-              iconColor="text-amber-600"
-              iconBg="bg-amber-100"
+              iconColor="text-amber-500"
+              iconBg="bg-amber-500/10"
             />
             <StatCard
               title="Conversion Rate"
               value="0%"
               description="This month"
               icon={TrendingUp}
-              iconColor="text-purple-600"
-              iconBg="bg-purple-100"
+              iconColor="text-blue-500"
+              iconBg="bg-blue-500/10"
             />
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">Recent Activity</CardTitle>
+            <CardHeader className="border-b border-border bg-muted/20">
+              <CardTitle className="text-lg font-semibold text-foreground">Recent Activity</CardTitle>
               <CardDescription>Latest changes and updates to your feature flags</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load dashboard data</h3>
-                <p className="text-gray-600">Please check your connection and try refreshing the page.</p>
-              </div>
+                <div className="text-center py-8">
+                  <Activity className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-1">Unable to load dashboard data</h3>
+                  <p className="text-muted-foreground text-sm">Please check your connection and try refreshing the page.</p>
+                </div>
             </CardContent>
           </Card>
         </div>

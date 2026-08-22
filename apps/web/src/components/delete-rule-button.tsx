@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2 } from "@/components/ui/icons"
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -29,7 +29,7 @@ export default function DeleteRuleButton({ ruleId, ruleName }: DeleteRuleButtonP
   const handleDelete = async () => {
     setIsDeleting(true)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-    const promise = fetch(`/${backendUrl}/flag/deleteRule/${ruleId}`, {
+    const promise = fetch(`${backendUrl}/flag/deleteRule/${ruleId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -53,7 +53,7 @@ export default function DeleteRuleButton({ ruleId, ruleName }: DeleteRuleButtonP
         })
         return 'Rule deleted successfully'
       },
-      error: (err) => {
+      error: () => {
         // console.error('Error deleting rule:', err)
         return 'Failed to delete rule. Please try again.'
       },

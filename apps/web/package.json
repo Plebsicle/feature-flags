@@ -11,6 +11,8 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.7",
@@ -33,10 +35,12 @@
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.15.0",
+    "gsap": "^3.15.0",
     "lucide-react": "^0.511.0",
     "next": "15.5.9",
     "next-themes": "^0.4.6",
     "postcss": "^8.5.4",
+    "radix-ui": "^1.6.7",
     "react": "^19.2.3",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.2.3",
@@ -44,7 +48,8 @@
     "semver": "^7.7.2",
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.0",
-    "tailwindcss": "^4.1.8"
+    "tailwindcss": "^4.1.8",
+    "tw-shimmer": "^0.4.12"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

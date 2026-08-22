@@ -7,7 +7,7 @@ import {
   ToggleLeft,
   ToggleRight,
   Settings,
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -63,8 +63,7 @@ async function getRulesData(environmentId: string): Promise<RuleData[] | null> {
     } else {
       throw new Error(result.message || 'Failed to fetch rules data')
     }
-  } catch (error) {
-    console.error('Error fetching rules data:', error)
+  } catch (error) { console.error(error)
     return null
   }
 }

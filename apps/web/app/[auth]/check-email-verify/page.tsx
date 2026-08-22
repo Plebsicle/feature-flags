@@ -2,7 +2,7 @@
 
 import { motion,easeOut } from "framer-motion"
 import Link from "next/link"
-import { MailCheck, ArrowLeft, Flag } from "lucide-react"
+import { MailCheck, ArrowLeft, Flag } from "@/components/ui/icons"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 

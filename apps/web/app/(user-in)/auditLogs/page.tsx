@@ -14,7 +14,7 @@ import {
   BarChart3,
   AlertTriangle,
   Eye
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AuditLogsPagination } from "./AuditLogsPagination";
@@ -127,8 +127,7 @@ async function getAuditLogs(page: number): Promise<AuditLogsResponse | null> {
     }
     console.log(data);
     return data;
-  } catch (err) {
-    console.error('Error fetching audit logs:', err);
+  } catch (err) { console.error(err);
     return null;
   }
 }
@@ -157,7 +156,7 @@ function getActionIcon(action: AuditAction) {
     case 'DISABLE':
       return <Shield className="w-4 h-4 text-gray-600" />;
     case 'EVALUATE':
-      return <Eye className="w-4 h-4 text-purple-600" />;
+      return <Eye className="w-4 h-4 text-primary" />;
     case 'ALERT_TRIGGERED':
       return <AlertTriangle className="w-4 h-4 text-red-600" />;
     case 'ALERT_ACKNOWLEDGED':
@@ -194,71 +193,71 @@ function getResourceIcon(resourceType: AuditResourceType) {
 function getActionColor(action: AuditAction): string {
   switch (action) {
     case 'CREATE':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
     case 'UPDATE':
-      return 'bg-blue-50 text-blue-700 border-blue-200';
+      return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
     case 'DELETE':
-      return 'bg-red-50 text-red-700 border-red-200';
+      return 'bg-destructive/10 text-destructive border-destructive/20';
     case 'ENABLE':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
     case 'DISABLE':
-      return 'bg-gray-50 text-gray-700 border-gray-200';
+      return 'bg-muted/50 text-muted-foreground border-border';
     case 'EVALUATE':
-      return 'bg-purple-50 text-purple-700 border-purple-200';
+      return 'bg-primary/10 text-primary border-primary/20';
     case 'ALERT_TRIGGERED':
-      return 'bg-red-50 text-red-700 border-red-200';
+      return 'bg-destructive/10 text-destructive border-destructive/20';
     case 'ALERT_ACKNOWLEDGED':
-      return 'bg-amber-50 text-amber-700 border-amber-200';
+      return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
     case 'ALERT_RESOLVED':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
     default:
-      return 'bg-gray-50 text-gray-700 border-gray-200';
+      return 'bg-muted/50 text-muted-foreground border-border';
   }
 }
 
 function getEnvironmentColor(environment?: EnvironmentType): string {
   switch (environment) {
     case 'PROD':
-      return 'bg-red-100 text-red-800';
+      return 'bg-destructive/10 text-destructive border border-destructive/20';
     case 'STAGING':
-      return 'bg-amber-100 text-amber-800';
+      return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
     case 'DEV':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
     case 'TEST':
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-muted/50 text-muted-foreground border border-border';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-muted/50 text-muted-foreground border border-border';
   }
 }
 
 function getRoleColor(role: UserRole): string {
   switch (role) {
     case 'OWNER':
-      return 'bg-purple-100 text-purple-800';
+      return 'bg-primary/10 text-primary border border-primary/20';
     case 'ADMIN':
-      return 'bg-red-100 text-red-800';
+      return 'bg-destructive/10 text-destructive border border-destructive/20';
     case 'MEMBER':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
     case 'VIEWER':
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-muted/50 text-muted-foreground border border-border';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-muted/50 text-muted-foreground border border-border';
   }
 }
 
 function EmptyState() {
   return (
-    <Card className="text-center py-12">
+    <Card className="text-center py-12 rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
       <CardContent>
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-            <ScrollText className="w-8 h-8 text-gray-400" />
+        <div className="flex flex-col items-center space-y-4 pt-6">
+          <div className="w-16 h-16 bg-muted/20 border border-border rounded-xl flex items-center justify-center">
+            <ScrollText className="w-8 h-8 text-muted-foreground" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               No audit logs found
             </h3>
-            <p className="text-gray-600 max-w-md">
+            <p className="text-muted-foreground text-sm max-w-md">
               No audit logs are available at the moment. Activity will appear here as actions are performed.
             </p>
           </div>
@@ -272,22 +271,24 @@ function AuditLogCard({ log }: { log: AuditLog }) {
   const hasAttributeChanges = log.attributes_changed && Object.keys(log.attributes_changed).length > 0;
 
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200">
-      <CardHeader className="pb-4">
+    <Card className="hover:shadow-md transition-shadow duration-200 border-border bg-card/80 backdrop-blur shadow-sm rounded-xl">
+      <CardHeader className="border-b border-border/50 pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
-            {getActionIcon(log.action)}
+            <div className="bg-muted/10 p-2 border border-border rounded-lg">
+              {getActionIcon(log.action)}
+            </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardTitle className="text-lg font-semibold text-foreground">
                 {log.action.replace(/_/g, ' ')} - {log.resource_type.replace(/_/g, ' ')}
               </CardTitle>
               <div className="flex items-center space-x-2 mt-1">
                 <div className="flex items-center space-x-1">
                   {getResourceIcon(log.resource_type)}
-                  <span className="text-sm text-gray-600">{log.resource_type.replace(/_/g, ' ')}</span>
+                  <span className="text-xs font-medium text-muted-foreground">{log.resource_type.replace(/_/g, ' ')}</span>
                 </div>
                 {log.environment && (
-                  <Badge className={`${getEnvironmentColor(log.environment)} text-xs`}>
+                  <Badge className={`${getEnvironmentColor(log.environment)} rounded-md text-xs font-medium uppercase px-2 py-0`}>
                     {log.environment}
                   </Badge>
                 )}
@@ -295,36 +296,36 @@ function AuditLogCard({ log }: { log: AuditLog }) {
             </div>
           </div>
           
-          <Badge className={`${getActionColor(log.action)} border`}>
+          <Badge className={`${getActionColor(log.action)} border rounded-full text-xs font-medium uppercase px-2 py-0.5`}>
             {log.action}
           </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         {/* User Information */}
         {log.user && (
-          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg p-4 border border-indigo-100">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-indigo-600" />
+          <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1">
-                <h4 className="text-lg font-semibold text-gray-900">{log.user.name}</h4>
-                <p className="text-sm text-gray-600">{log.user.email}</p>
+                <h4 className="text-sm font-semibold text-foreground">{log.user.name}</h4>
+                <p className="text-xs text-muted-foreground">{log.user.email}</p>
               </div>
-              <div className="flex flex-col space-y-1">
-                <Badge className={`${getRoleColor(log.user.role)} text-xs px-2 py-1`}>
+              <div className="flex flex-col space-y-2 items-end">
+                <Badge className={`${getRoleColor(log.user.role)} rounded-md text-xs font-medium uppercase px-2 py-0`}>
                   {log.user.role}
                 </Badge>
                 <div className="flex space-x-1">
                   {log.user.is_active && (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 text-emerald-700 border-emerald-300">
+                    <Badge variant="outline" className="rounded-md text-xs font-medium text-primary border-primary/50 px-2 py-0">
                       Active
                     </Badge>
                   )}
                   {log.user.isVerified && (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 text-blue-700 border-blue-300">
+                    <Badge variant="outline" className="rounded-md text-xs font-medium text-blue-500 border-blue-500/50 px-2 py-0">
                       Verified
                     </Badge>
                   )}
@@ -336,23 +337,23 @@ function AuditLogCard({ log }: { log: AuditLog }) {
 
         {/* Action Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-50 rounded-lg p-3">
+          <div className="bg-muted/10 border border-border rounded-lg p-3">
             <div className="flex items-center space-x-2 mb-1">
-              <Calendar className="w-4 h-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-600">Timestamp</span>
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">Timestamp</span>
             </div>
-            <p className="text-sm text-gray-900">
+            <p className="text-sm font-medium text-foreground">
               {formatDate(log.created_at)}
             </p>
           </div>
 
           {log.environment && (
-            <div className="bg-gray-50 rounded-lg p-3">
+            <div className="bg-muted/10 border border-border rounded-lg p-3">
               <div className="flex items-center space-x-2 mb-1">
-                <Monitor className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-600">Environment</span>
+                <Monitor className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground">Environment</span>
               </div>
-              <Badge className={`${getEnvironmentColor(log.environment)} text-sm`}>
+              <Badge className={`${getEnvironmentColor(log.environment)} rounded-md text-xs font-medium uppercase mt-1 px-2 py-0`}>
                 {log.environment}
               </Badge>
             </div>
@@ -360,19 +361,19 @@ function AuditLogCard({ log }: { log: AuditLog }) {
         </div>
 
         {/* Technical Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border/50">
           {log.ip_address && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <div className="flex items-center space-x-2 text-sm font-medium text-muted-foreground">
               <Globe className="w-4 h-4" />
-              <span>IP Address: {log.ip_address}</span>
+              <span>IP Address: <span className="text-foreground font-normal">{log.ip_address}</span></span>
             </div>
           )}
 
           {log.user_agent && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <div className="flex items-center space-x-2 text-sm font-medium text-muted-foreground">
               <Monitor className="w-4 h-4" />
               <span title={log.user_agent}>
-                User Agent: {log.user_agent.slice(0, 40)}...
+                User Agent: <span className="text-foreground font-normal">{log.user_agent.slice(0, 40)}...</span>
               </span>
             </div>
           )}
@@ -380,7 +381,9 @@ function AuditLogCard({ log }: { log: AuditLog }) {
 
         {/* Attribute Changes */}
         {hasAttributeChanges && (
-          <AttributeChangesViewer attributes={log.attributes_changed} />
+          <div className="pt-2">
+            <AttributeChangesViewer attributes={log.attributes_changed} />
+          </div>
         )}
       </CardContent>
     </Card>
@@ -416,51 +419,51 @@ export default async function AuditLogsPage({ searchParams }: AuditLogsPageProps
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Audit Logs</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">Audit Logs</h1>
+        <p className="text-muted-foreground text-sm mt-1">
           Track all activities and changes across your organization.
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <Card className="hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200 bg-card/80 backdrop-blur shadow-sm rounded-xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Current Page</p>
-                <p className="text-2xl font-bold text-gray-900">{pagination.currentPage}</p>
+                <p className="text-sm font-medium text-muted-foreground">Current Page</p>
+                <p className="text-3xl font-bold tracking-tight text-foreground mt-1">{pagination.currentPage}</p>
               </div>
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <ScrollText className="w-6 h-6 text-indigo-600" />
+              <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center">
+                <ScrollText className="w-6 h-6 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200 bg-card/80 backdrop-blur shadow-sm rounded-xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Pages</p>
-                <p className="text-2xl font-bold text-gray-900">{pagination.totalPages}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Pages</p>
+                <p className="text-3xl font-bold tracking-tight text-foreground mt-1">{pagination.totalPages}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Database className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center">
+                <Database className="w-6 h-6 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200 bg-card/80 backdrop-blur shadow-sm rounded-xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Items</p>
-                <p className="text-2xl font-bold text-gray-900">{pagination.totalItems}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Items</p>
+                <p className="text-3xl font-bold tracking-tight text-foreground mt-1">{pagination.totalItems}</p>
               </div>
-              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <Activity className="w-6 h-6 text-emerald-600" />
+              <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center">
+                <Activity className="w-6 h-6 text-primary" />
               </div>
             </div>
           </CardContent>

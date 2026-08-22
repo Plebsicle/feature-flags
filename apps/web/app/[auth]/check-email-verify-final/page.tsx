@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { motion,easeOut } from "framer-motion"
 import Link from "next/link"
-import { CheckCircle2, ShieldCheck, AlertTriangle, Loader2, Flag } from "lucide-react"
+import { CheckCircle2, ShieldCheck, AlertTriangle, Loader2, Flag } from "@/components/ui/icons"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import axios from "axios"
@@ -31,7 +31,7 @@ export default function CheckEmailVerifyFinalPage() {
         // Manual Email Verification
         const fetchDetails = async () => {
             try {
-                const results = await axios.post(`/${BACKEND_URL}/auth/verifyEmailManual`,{
+                const results = await axios.post(`${BACKEND_URL}/auth/verifyEmailManual`,{
                     token
                 });
                 if(results.status === 200){
@@ -58,7 +58,7 @@ export default function CheckEmailVerifyFinalPage() {
         // Signup Email Verification
         const fetchDetails = async ()=>{
             try {
-                const results = await axios.post(`/${BACKEND_URL}/auth/verifyEmailSignup`,{
+                const results = await axios.post(`${BACKEND_URL}/auth/verifyEmailSignup`,{
                     orgName,token
                 });
                 if(results.status === 200){
@@ -93,8 +93,8 @@ export default function CheckEmailVerifyFinalPage() {
   }
 
   let IconComponent = Loader2
-  let iconColorClass = "text-indigo-600 animate-spin"
-  let bgColorClass = "bg-indigo-100"
+  let iconColorClass = "text-primary animate-spin"
+  let bgColorClass = "bg-primary/10"
 
   if (status === "success") {
     IconComponent = ShieldCheck
@@ -109,9 +109,9 @@ export default function CheckEmailVerifyFinalPage() {
   return (
     <>
       <Toaster />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
-          <Card className="shadow-lg border border-gray-200">
+          <Card className="shadow-lg border border-border bg-card">
             <CardHeader className="text-center pb-6 pt-8">
               <motion.div
                 key={status} // Re-trigger animation on status change
@@ -123,15 +123,15 @@ export default function CheckEmailVerifyFinalPage() {
                 <IconComponent className={`w-10 h-10 ${iconColorClass}`} />
               </motion.div>
               <div className="flex items-center justify-center mb-4">
-                <Flag className="w-6 h-6 text-indigo-600 mr-2" />
-                <span className="text-lg font-semibold text-gray-900">Bitswitch</span>
+                <Flag className="w-6 h-6 text-primary mr-2" />
+                <span className="text-lg font-semibold text-foreground">Bitswitch</span>
               </div>
-              <CardTitle className={`text-2xl font-bold text-gray-900`}>
+              <CardTitle className={`text-2xl font-bold text-foreground`}>
                 {status === "verifying" && "Verifying Email"}
                 {status === "success" && "Email Verified!"}
                 {status === "error" && "Verification Failed"}
               </CardTitle>
-              <CardDescription className="text-gray-600 mt-3 text-base">{message}</CardDescription>
+              <CardDescription className="text-muted-foreground mt-3 text-base">{message}</CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-6">
               {status === "success" && (
@@ -140,7 +140,7 @@ export default function CheckEmailVerifyFinalPage() {
                     Your email has been successfully verified. You can now access all features of your account.
                   </p>
                   <Link href="/auth/signin">
-                    <Button className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white">
+                    <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground">
                       Proceed to Sign In
                       <CheckCircle2 className="ml-2 h-4 w-4" />
                     </Button>
@@ -163,8 +163,8 @@ export default function CheckEmailVerifyFinalPage() {
                 </div>
               )}
               {status === "verifying" && (
-                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                  <p className="text-indigo-700 text-sm">
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                  <p className="text-primary text-sm">
                     Please wait while we verify your email address...
                   </p>
                 </div>

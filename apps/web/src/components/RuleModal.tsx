@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
-import { Plus, X, Target, Info, Edit, Save, Loader2, ChevronDown } from "lucide-react"
+import { Plus, X, Target, Info, Edit, Save, Loader2, ChevronDown } from "@/components/ui/icons"
 import { Toaster, toast } from 'react-hot-toast'
 import * as semver from 'semver'
 import { LightDateTimePicker } from './LightDateTimePicker'
@@ -90,8 +90,7 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
             // If it's a single object, wrap it in an array
             parsedConditions = [existingRule.conditions]
           }
-        } catch (error) {
-          // console.error('Error parsing conditions:', error)
+        } catch (error) { // console.error(error)
           parsedConditions = []
         }
       }
@@ -365,7 +364,7 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
     toast.loading(mode === 'create' ? 'Creating rule...' : 'Updating rule...')
     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
     
-    let url = `/${BACKEND_URL}/flag/addRules`
+    let url = `${BACKEND_URL}/flag/addRules`
     let method = 'POST'
     const body: any = {
       name: ruleName,
@@ -376,7 +375,7 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
     }
 
     if (mode === 'edit' && existingRule) {
-      url = `/${BACKEND_URL}/flag/updateFlagRule`
+      url = `${BACKEND_URL}/flag/updateFlagRule`
       method = 'PUT'
       body.ruleId = existingRule.id
     }
@@ -413,8 +412,7 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
       } else {
         throw new Error(data.message || 'Failed to save rule')
       }
-    } catch (error) {
-      // console.error('Error:', error)
+    } catch (error) { // console.error(error)
       toast.dismiss()
       setErrors({ submit: 'Failed to save rule. Please try again.' })
       toast.error('Failed to save rule. Please try again.')
@@ -449,12 +447,12 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           {mode === 'create' ? (
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm rounded-lg">
               <Plus className="w-4 h-4 mr-2" />
               Add Rule
             </Button>
           ) : (
-            <Button size="sm" variant="outline" className="border-indigo-300 text-indigo-600 hover:bg-indigo-50">
+            <Button size="sm" variant="outline" className="border-border text-foreground hover:bg-muted font-medium text-xs rounded-md">
               <Edit className="w-4 h-4 mr-2" />
               Edit
             </Button>
@@ -462,13 +460,13 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
         </DialogTrigger>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center text-gray-900">
-              <div className="bg-amber-100 p-2 rounded-md mr-3">
-                <Target className="w-5 h-5 text-amber-600" />
+            <DialogTitle className="flex items-center text-foreground font-semibold text-2xl">
+              <div className="bg-primary/10 p-2 rounded-lg mr-3 border border-primary/20">
+                <Target className="w-5 h-5 text-primary" />
               </div>
               {mode === 'create' ? 'Create New Rule' : 'Edit Rule'}
             </DialogTitle>
-            <DialogDescription className="text-gray-600">
+            <DialogDescription className="text-muted-foreground text-sm">
               {mode === 'create' 
                 ? 'Define conditions that determine when your flag should be evaluated'
                 : 'Update the conditions and settings for this rule'
@@ -509,14 +507,14 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
             </div>
 
             {/* Rule Enabled Toggle */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg border border-border">
               <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded ${isEnabled ? 'bg-emerald-100' : 'bg-gray-100'}`}>
-                  <Target className={`w-5 h-5 ${isEnabled ? 'text-emerald-600' : 'text-gray-600'}`} />
+                <div className={`p-2 rounded-lg border ${isEnabled ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-muted border-border'}`}>
+                  <Target className={`w-5 h-5 ${isEnabled ? 'text-emerald-500' : 'text-muted-foreground'}`} />
                 </div>
                 <div>
-                  <Label className="text-gray-900 font-medium">Rule Status</Label>
-                  <p className="text-sm text-gray-600">
+                  <Label className="text-foreground font-semibold text-sm">Rule Status</Label>
+                  <p className="text-sm text-muted-foreground mt-1">
                     {isEnabled ? 'Rule is enabled and will be evaluated' : 'Rule is disabled and will be ignored'}
                   </p>
                 </div>
@@ -530,11 +528,11 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
             {/* Conditions */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-gray-900 font-medium">Conditions</Label>
+                <Label className="text-foreground font-semibold text-sm">Conditions</Label>
                 <Button
                   onClick={addCondition}
                   size="sm"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs rounded-md"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Condition
@@ -775,18 +773,19 @@ export default function RuleModal({ mode, environmentId, existingRule }: RuleMod
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+            <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
               <Button 
                 variant="outline" 
                 onClick={() => setOpen(false)}
                 disabled={loading}
+                className="rounded-lg font-medium text-sm border-border text-foreground hover:bg-muted"
               >
                 Cancel
               </Button>
               <Button 
                 onClick={handleSubmit} 
                 disabled={loading}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="rounded-lg font-medium text-sm bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
               >
                 {loading ? (
                   <>

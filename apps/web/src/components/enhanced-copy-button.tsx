@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Copy, Check } from "lucide-react"
+import { Copy, Check } from "@/components/ui/icons"
 import { Button } from "@/components/ui/button"
 
 interface EnhancedCopyButtonProps {
@@ -20,8 +20,7 @@ export function EnhancedCopyButton({
       await navigator.clipboard.writeText(text)
       setCopied(true)
       setTimeout(() => setCopied(false), 3000)
-    } catch (err) {
-      // console.error('Failed to copy text: ', err)
+    } catch (err) { // console.error(err)
     }
   }
 

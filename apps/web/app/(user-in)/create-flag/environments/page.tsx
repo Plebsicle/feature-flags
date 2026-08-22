@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { environment_type } from '@repo/db/client'
 import { ABValue} from '@repo/types/value-config'
-import { ArrowRight, ArrowLeft, Server, Plus, Minus, Info, Check } from "lucide-react"
+import { ArrowRight, ArrowLeft, Server, Plus, Minus, Info, Check } from "@/components/ui/icons"
 import { Toaster, toast } from "react-hot-toast"
 
 // Types for API responses
@@ -71,7 +71,7 @@ export default function EnvironmentsPage() {
         try {
           const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"
           // Fetch flag metadata
-          const flagResponse = await fetch(`/${BACKEND_URL}/flag/getFeatureFlagData/${flagKey}`, {
+          const flagResponse = await fetch(`${BACKEND_URL}/flag/getFeatureFlagData/${flagKey}`, {
             credentials: 'include'
           });
           if (!flagResponse.ok) {
@@ -83,7 +83,7 @@ export default function EnvironmentsPage() {
           // console.log('Flag data received:', flagData);
           
           // Fetch existing environments for this flag
-          const envResponse = await fetch(`/${BACKEND_URL}/flag/getFlagEnvironmentData/${flagKey}`, {
+          const envResponse = await fetch(`${BACKEND_URL}/flag/getFlagEnvironmentData/${flagKey}`, {
             credentials: 'include'
           })
 
@@ -123,8 +123,7 @@ export default function EnvironmentsPage() {
           // state.flag_type = environmentArray[0]?.flag_type;
           // Store existing environments in local state
           setExistingEnvironments(environmentArray)
-        } catch (error) {
-          // console.error('Error fetching existing flag data:', error);
+        } catch (error) { // console.error(error);
           toast.error('Error fetching existing flag data')
           setExistingEnvironments([]) // Set to empty array on error
         } finally {
@@ -316,13 +315,13 @@ export default function EnvironmentsPage() {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium text-gray-700">Variants</Label>
+          <Label className="text-sm font-medium text-foreground">Variants</Label>
           {state.flag_type === 'MULTIVARIATE' && (
             <Button
               onClick={addVariant}
               size="sm"
               variant="outline"
-              className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 h-8 px-3"
+              className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary h-8 px-3 text-xs font-medium rounded-md"
             >
               <Plus className="w-3 h-3 mr-1" />
               Add
@@ -333,8 +332,8 @@ export default function EnvironmentsPage() {
         {/* Variant restrictions info */}
         <div className={`p-3 rounded-lg border text-sm ${
           state.flag_type === 'AB_TEST' 
-            ? 'bg-amber-50 border-amber-200 text-amber-800' 
-            : 'bg-blue-50 border-blue-200 text-blue-800'
+            ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' 
+            : 'bg-primary/10 border-primary/30 text-primary'
         }`}>
           <div className="flex items-center space-x-2">
             <Info className="w-4 h-4 flex-shrink-0" />
@@ -349,15 +348,15 @@ export default function EnvironmentsPage() {
         </div>
         
         {variants.map((variant, index) => (
-          <div key={index} className="p-3 border border-gray-200 rounded-md bg-gray-50">
+          <div key={index} className="p-3 border border-border rounded-lg bg-muted/30">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-gray-900 text-sm">Variant {String.fromCharCode(65 + index)}</h4>
+              <h4 className="font-semibold text-foreground text-sm">Variant {String.fromCharCode(65 + index)}</h4>
               {state.flag_type === 'MULTIVARIATE' && variants.length > 2 && (
                 <Button
                   onClick={() => removeVariant(index)}
                   size="sm"
                   variant="ghost"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-6 w-6 p-0 rounded-md"
                 >
                   <Minus className="w-3 h-3" />
                 </Button>
@@ -366,34 +365,34 @@ export default function EnvironmentsPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-gray-700">Name</Label>
+                <Label className="text-xs font-medium text-muted-foreground">Name</Label>
                 <Input
                   value={variant.name}
                   onChange={(e) => handleVariantChange(index, 'name', e.target.value)}
                   placeholder="Variant name"
-                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                  className="h-8 border-border bg-background rounded-md text-sm focus:border-primary"
                 />
               </div>
               
               <div className="space-y-1">
-                <Label className="text-xs font-medium text-gray-700">Value</Label>
+                <Label className="text-xs font-medium text-muted-foreground">Value</Label>
                 {(state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') ? (
                   <Textarea
                     value={variant.value}
                     onChange={(e) => handleVariantChange(index, 'value', e.target.value)}
                     placeholder='Enter any value: "string", 123, true, or {"key": "value"}'
-                    className="h-16 font-mono text-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 resize-none"
+                    className="h-16 text-sm border-border bg-background rounded-md focus:border-primary resize-none"
                   />
                 ) : (
                   <Input
                     value={variant.value}
                     onChange={(e) => handleVariantChange(index, 'value', e.target.value)}
                     placeholder="Variant value"
-                    className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                    className="h-8 border-border bg-background rounded-md text-sm focus:border-primary"
                   />
                 )}
                 {(state.flag_type === 'AB_TEST' || state.flag_type === 'MULTIVARIATE') && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Enter any value - strings, numbers, booleans, or JSON for complex data structures
                   </p>
                 )}
@@ -417,7 +416,7 @@ export default function EnvironmentsPage() {
               value={defaultValue}
               onChange={(e) => handleDefaultValueChange(e.target.value)}
               placeholder="Default fallback value"
-              className="h-9 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+              className="h-9 border-border bg-background rounded-md text-sm focus:border-primary"
             />
           </div>
         )
@@ -434,9 +433,9 @@ export default function EnvironmentsPage() {
             <Switch
               checked={currentValue === true}
               onCheckedChange={(checked) => handleValueChange(field, checked)}
-              className="data-[state=checked]:bg-indigo-600"
+              className="data-[state=checked]:bg-primary rounded-full"
             />
-            <Label className="text-sm text-gray-600">
+            <Label className="text-sm font-medium text-foreground">
               {currentValue === true ? 'True' : 'False'}
             </Label>
           </div>
@@ -449,7 +448,7 @@ export default function EnvironmentsPage() {
             value={currentValue || ''}
             onChange={(e) => handleValueChange(field, Number(e.target.value) || 0)}
             placeholder="Enter a number"
-            className="h-9 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+            className="h-9 border-border bg-background rounded-md text-sm focus:border-primary"
           />
         )
 
@@ -466,7 +465,7 @@ export default function EnvironmentsPage() {
               }
             }}
             placeholder='{"key": "value"}'
-            className="min-h-[80px] font-mono text-sm border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+            className="min-h-[80px] text-sm border-border bg-background rounded-md focus:border-primary resize-none"
           />
         )
 
@@ -477,7 +476,7 @@ export default function EnvironmentsPage() {
             value={currentValue || ''}
             onChange={(e) => handleValueChange(field, e.target.value)}
             placeholder="Enter a string value"
-            className="h-9 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+            className="h-9 border-border bg-background rounded-md text-sm focus:border-primary"
           />
         )
     }
@@ -594,19 +593,22 @@ export default function EnvironmentsPage() {
   return (
     <>
       <Toaster />
-      <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
-        <div className="max-w-3xl mx-auto">
+      <div className="min-h-screen bg-transparent p-4 lg:p-6 relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, var(--border) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+        
+        <div className="max-w-3xl mx-auto relative z-10">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
-                <Server className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Server className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">
                   {state.isCreatingEnvironmentOnly ? 'Add Environment' : 'Environment Configuration'}
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm font-medium text-muted-foreground">
                   {state.isCreatingEnvironmentOnly ? 'Configure a new environment for your feature flag' : 'Step 2 of 4 - Configure environment settings'}
                 </p>
               </div>
@@ -615,19 +617,19 @@ export default function EnvironmentsPage() {
             {/* Progress indicator */}
             {!state.isCreatingEnvironmentOnly && (
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-medium shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary">
                   <Check className="w-4 h-4" />
                 </div>
-                <div className="h-1 w-16 bg-emerald-500 rounded-full"></div>
-                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium shadow-sm">
+                <div className="h-0.5 w-16 bg-primary/50"></div>
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
                   2
                 </div>
-                <div className="h-1 w-16 bg-gray-200 rounded-full"></div>
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">
+                <div className="h-0.5 w-16 bg-border"></div>
+                <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground text-sm font-medium">
                   3
                 </div>
-                <div className="h-1 w-16 bg-gray-200 rounded-full"></div>
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">
+                <div className="h-0.5 w-16 bg-border"></div>
+                <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground text-sm font-medium">
                   4
                 </div>
               </div>
@@ -635,29 +637,29 @@ export default function EnvironmentsPage() {
           </div>
 
           {/* Form */}
-          <Card className="shadow-lg border-gray-200 bg-white rounded-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl font-semibold text-gray-900">Environment Configuration</CardTitle>
-              <CardDescription className="text-gray-600">
+          <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+            <CardHeader className="pb-4 border-b border-border/50">
+              <CardTitle className="text-xl font-semibold text-foreground">Environment Configuration</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
                 {state.isCreatingEnvironmentOnly 
                   ? `Add a new environment configuration for your ${state.flag_type?.toLowerCase()} flag`
                   : `Select an environment and configure values for your ${state.flag_type?.toLowerCase()} flag`
                 }
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-6 pt-6">
               {/* Existing Environments Info (only in add environment mode) */}
               {state.isCreatingEnvironmentOnly && existingEnvironments.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                  <h3 className="font-semibold text-gray-900 mb-2">Existing Environments</h3>
+                <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                  <h3 className="font-semibold text-foreground text-sm mb-2">Existing Environments</h3>
                   <div className="flex flex-wrap gap-2">
                     {existingEnvironments.map((env) => (
-                      <div key={env.id} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                      <div key={env.id} className="bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded-md text-xs font-medium">
                         {environmentOptions.find(opt => opt.value === env.environment)?.label || env.environment}
                       </div>
                     ))}
                   </div>
-                  <p className="text-gray-600 text-sm mt-2">
+                  <p className="text-muted-foreground text-xs mt-2">
                     These environments are already configured for this feature flag.
                   </p>
                 </div>
@@ -665,20 +667,20 @@ export default function EnvironmentsPage() {
 
               {/* Environment Selection */}
               <div className="space-y-2">
-                <Label htmlFor="environment" className="text-sm font-medium text-gray-700">Environment *</Label>
+                <Label htmlFor="environment" className="text-sm font-medium text-foreground">Environment *</Label>
                 {isLoading ? (
-                  <div className="bg-gray-50 border border-gray-300 text-gray-600 p-3 rounded-md">
+                  <div className="bg-muted border border-border text-muted-foreground p-3 rounded-lg text-sm">
                     Loading available environments...
                   </div>
                 ) : availableEnvironments.length === 0 && state.isCreatingEnvironmentOnly ? (
-                  <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg">
-                    <p className="font-medium">All environments have been configured for this feature flag.</p>
+                  <div className="bg-amber-500/10 border border-amber-500/30 text-amber-500 p-4 rounded-lg">
+                    <p className="text-sm font-medium">All environments have been configured for this feature flag.</p>
                     <div className="mt-3">
                       <Button 
                         onClick={() => router.back()}
                         variant="outline"
                         size="sm"
-                        className="border-amber-300 text-amber-800 hover:bg-amber-100"
+                        className="border-dashed hover:border-solid transition-all text-xs h-9 rounded-md font-medium"
                       >
                         Go Back
                       </Button>
@@ -686,19 +688,19 @@ export default function EnvironmentsPage() {
                   </div>
                 ) : (
                   <Select value={state.environments.environment} onValueChange={handleEnvironmentChange}>
-                    <SelectTrigger className="h-10 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+                    <SelectTrigger className="h-10 border-border rounded-lg bg-background text-sm focus:border-primary">
                       <SelectValue placeholder="Select environment" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border-gray-200 shadow-lg">
+                    <SelectContent className="bg-card border-border rounded-lg shadow-sm text-sm">
                       {availableEnvironments.map((option) => (
                         <SelectItem 
                           key={option.value} 
                           value={option.value}
-                          className="py-2 pl-3 pr-8 hover:bg-gray-50 focus:bg-gray-50"
+                          className="py-2 pl-3 pr-8 hover:bg-muted focus:bg-muted cursor-pointer rounded-md"
                         >
                           <div className="flex flex-col">
-                            <span className="font-medium text-gray-900">{option.label}</span>
-                            <span className="text-xs text-gray-500">{option.description}</span>
+                            <span className="font-semibold text-foreground">{option.label}</span>
+                            <span className="text-xs text-muted-foreground">{option.description}</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -708,9 +710,9 @@ export default function EnvironmentsPage() {
               </div>
 
               {/* Flag Type Info */}
-              <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-1">Flag Type: {state.flag_type}</h3>
-                <p className="text-gray-600 text-sm">
+              <div className="bg-muted/50 border border-border p-4 rounded-lg">
+                <h3 className="font-semibold text-foreground text-sm mb-1">Flag Type: {state.flag_type}</h3>
+                <p className="text-muted-foreground text-sm">
                   {state.flag_type === 'BOOLEAN' && 'Configure true/false values for this toggle flag.'}
                   {state.flag_type === 'STRING' && 'Configure text values for this string flag.'}
                   {state.flag_type === 'NUMBER' && 'Configure numeric values for this number flag.'}
@@ -722,21 +724,21 @@ export default function EnvironmentsPage() {
 
               {/* Value Configuration - Only show if environment selection is available */}
               {availableEnvironments.length > 0 && (
-                <div className="space-y-5">
+                <div className="space-y-6">
                   {/* Value Configuration */}
                   <div className="space-y-3">
-                    <Label className="font-semibold text-gray-900">Value Configuration</Label>
+                    <Label className="text-sm font-medium text-foreground">Value Configuration</Label>
                     {renderValueInput('value')}
                     {!['AB_TEST', 'MULTIVARIATE'].includes(state.flag_type) && (
-                      <p className="text-xs text-gray-500">The value returned when the flag is enabled</p>
+                      <p className="text-xs text-muted-foreground">The value returned when the flag is enabled</p>
                     )}
                   </div>
 
                   {/* Default Value - Always available */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">Default Value</Label>
+                    <Label className="text-sm font-medium text-foreground">Default Value</Label>
                     {renderValueInput('default_value')}
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       The fallback value when the flag is disabled or when an error occurs
                     </p>
                   </div>
@@ -744,23 +746,23 @@ export default function EnvironmentsPage() {
               )}
 
               {/* Additional Environments Note */}
-              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
-                  <Info className="w-5 h-5 text-cyan-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-cyan-800">
-                    <p className="font-medium mb-1">Adding More Environments Later</p>
+                  <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-muted-foreground">
+                    <p className="font-semibold text-foreground mb-1">Adding More Environments Later</p>
                     <p>You can add additional environments later by navigating to the specific flag page where you want to configure more environments.</p>
                   </div>
                 </div>
               </div>
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between pt-4 border-t border-gray-200">
+              <div className="flex justify-between pt-6 border-t border-border/50">
                 {!state.isCreatingEnvironmentOnly && (
                   <Button 
                     onClick={handlePrevious}
                     variant="outline"
-                    className="border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2"
+                    className="border-dashed hover:border-solid transition-all text-sm h-10 rounded-lg font-medium"
                   >
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Previous
@@ -770,7 +772,7 @@ export default function EnvironmentsPage() {
                 <Button 
                   onClick={handleNext}
                   disabled={availableEnvironments.length === 0}
-                  className={`bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 font-medium rounded-md shadow-sm transition-all duration-200 hover:shadow-md ${state.isCreatingEnvironmentOnly ? 'ml-auto' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`font-medium text-sm h-10 rounded-lg ${state.isCreatingEnvironmentOnly ? 'ml-auto' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   Next Step
                   <ArrowRight className="w-4 h-4 ml-2" />

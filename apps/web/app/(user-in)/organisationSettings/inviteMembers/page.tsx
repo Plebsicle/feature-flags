@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { Users, Bell, Building } from 'lucide-react'
+import { Users, Bell, Building } from "@/components/ui/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { OrganisationMembersClient } from './OrganisationMembersClient'
 import { EnhancedCopyButton } from "@/components/enhanced-copy-button"
@@ -60,8 +60,7 @@ async function getMembersData(): Promise<MembersResponse | null> {
     }
 
     return data as MembersResponse
-  } catch (err) {
-    // console.error('Error fetching members data:', err)
+  } catch (err) { // console.error(err)
     return null
   }
 }
@@ -74,19 +73,19 @@ export default async function OrganisationMembersPage() {
       <div className="space-y-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Organisation Members</h1>
-            <p className="text-gray-600 text-lg">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">Organisation Members</h1>
+            <p className="text-muted-foreground text-sm">
               Manage your team and control access to your organization
             </p>
           </div>
 
-          <Card className="border-red-200 bg-red-50">
+          <Card className="rounded-xl border-destructive/50 bg-destructive/10 backdrop-blur">
             <CardHeader>
-              <CardTitle className="text-red-900 flex items-center gap-2">
+              <CardTitle className="text-destructive flex items-center gap-2 font-semibold">
                 <Users className="w-5 h-5" />
                 Unable to Load Members
               </CardTitle>
-              <CardDescription className="text-red-700">
+              <CardDescription className="text-destructive/80 text-sm">
                 There was an error loading the member data. Please try refreshing the page.
               </CardDescription>
             </CardHeader>
@@ -103,13 +102,13 @@ export default async function OrganisationMembersPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Organisation Members</h1>
-              <p className="text-gray-600 text-lg">
+              <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">Organisation Members</h1>
+              <p className="text-muted-foreground text-sm">
                 Manage your team and control access to your organization
               </p>
             </div>
             <Link href="/organisationSettings/alertPreferences">
-              <button className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2">
+              <button className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium text-sm transition-all duration-200 flex items-center gap-2 shadow-sm">
                 <Bell className="w-4 h-4" />
                 Alert Preferences
               </button>
@@ -118,21 +117,21 @@ export default async function OrganisationMembersPage() {
         </div>
 
         {/* Organization Slug Card */}
-        <Card className="hover:shadow-md transition-shadow duration-200 mb-8 border-indigo-200 bg-indigo-50">
-          <CardHeader>
-            <CardTitle className="text-gray-900 flex items-center gap-2">
-              <Building className="w-5 h-5 text-indigo-600" />
+        <Card className="hover:shadow-md transition-shadow duration-200 mb-8 rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="text-foreground flex items-center gap-2 font-semibold text-lg">
+              <Building className="w-5 h-5 text-primary" />
               Organization Details
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground text-sm">
               Your organization&apos;s unique identifier
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-indigo-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between bg-muted/10 p-4 border border-border rounded-lg">
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-1">Organization Slug</h3>
-                <code className="text-lg font-mono text-indigo-700">
+                <h3 className="text-xs font-medium text-muted-foreground mb-1">Organization Slug</h3>
+                <code className="text-sm font-medium text-foreground bg-muted px-2 py-1 rounded-md">
                   {typeof response.orgSlug === 'string' 
                     ? response.orgSlug 
                     : response.orgSlug?.slug || 'Not available'}
@@ -149,41 +148,41 @@ export default async function OrganisationMembersPage() {
         </Card>
 
         {/* Stats Card */}
-        <Card className="hover:shadow-md transition-shadow duration-200 mb-8">
-          <CardHeader>
-            <CardTitle className="text-gray-900 flex items-center gap-2">
-              <Users className="w-5 h-5" />
+        <Card className="hover:shadow-md transition-shadow duration-200 mb-8 rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="text-foreground flex items-center gap-2 font-semibold text-lg">
+              <Users className="w-5 h-5 text-primary" />
               Team Overview
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground text-sm">
               Current team composition and roles
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+              <div className="text-center p-4 bg-muted/10 border border-border/50 hover:border-border transition-colors group rounded-lg">
+                <div className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
                   {response.data.length}
                 </div>
-                <div className="text-sm text-gray-600">Total Members</div>
+                <div className="text-xs font-medium text-muted-foreground mt-1">Total Members</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
+              <div className="text-center p-4 bg-muted/10 border border-border/50 hover:border-border transition-colors group rounded-lg">
+                <div className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
                   {response.data.filter(m => m.role === "OWNER").length}
                 </div>
-                <div className="text-sm text-gray-600">Owners</div>
+                <div className="text-xs font-medium text-muted-foreground mt-1">Owners</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-indigo-600">
+              <div className="text-center p-4 bg-muted/10 border border-border/50 hover:border-border transition-colors group rounded-lg">
+                <div className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
                   {response.data.filter(m => m.role === "ADMIN").length}
                 </div>
-                <div className="text-sm text-gray-600">Admins</div>
+                <div className="text-xs font-medium text-muted-foreground mt-1">Admins</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-600">
+              <div className="text-center p-4 bg-muted/10 border border-border/50 hover:border-border transition-colors group rounded-lg">
+                <div className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
                   {response.data.filter(m => m.role === "MEMBER").length + response.data.filter(m => m.role === "VIEWER").length}
                 </div>
-                <div className="text-sm text-gray-600">Members & Viewers</div>
+                <div className="text-xs font-medium text-muted-foreground mt-1">Members & Viewers</div>
               </div>
             </div>
           </CardContent>

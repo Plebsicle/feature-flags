@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Edit2, Trash2, Check, X } from "lucide-react"
+import { Edit2, Trash2, Check, X } from "@/components/ui/icons"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { EditRoleDropdown } from "./EditRoleDropdown"
@@ -43,7 +43,7 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
         setIsEditing(false)
         return "Role updated successfully!"
       },
-      error: (err) => {
+      error: () => {
         // console.error("Failed to update role:", err)
         setSelectedRole(member.role)
         return "Failed to update role."
@@ -61,13 +61,13 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
   return (
     <>
       <Toaster />
-      <Card className="hover:shadow-md transition-shadow duration-200">
+      <Card className="hover:shadow-md transition-shadow duration-200 rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-4">
                 {/* Avatar */}
-                <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-primary/10 border border-primary/20 text-primary rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="font-semibold text-lg">
                     {member.name.charAt(0).toUpperCase()}
                   </span>
@@ -75,10 +75,10 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
                 
                 {/* Member Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate">
+                  <h3 className="text-lg font-semibold text-foreground truncate">
                     {member.name}
                   </h3>
-                  <p className="text-gray-600 text-sm truncate">
+                  <p className="text-muted-foreground text-sm truncate">
                     {member.email}
                   </p>
                   <div className="mt-2 flex items-center gap-3">
@@ -93,7 +93,7 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
                           size="sm"
                           onClick={handleSave}
                           disabled={isLoading}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white h-8 px-3"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 px-3 rounded-md shadow-sm"
                         >
                           <Check className="w-4 h-4" />
                         </Button>
@@ -102,21 +102,21 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
                           variant="outline"
                           onClick={handleCancel}
                           disabled={isLoading}
-                          className="h-8 px-3"
+                          className="h-8 px-3 rounded-md border-border text-foreground hover:bg-muted"
                         >
                           <X className="w-4 h-4" />
                         </Button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border-0 ${
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium uppercase border ${
                           member.role === "OWNER" 
-                            ? "bg-purple-100 text-purple-700" 
+                            ? "bg-primary/10 text-primary border-primary/20" 
                             : member.role === "ADMIN"
-                            ? "bg-indigo-100 text-indigo-700"
+                            ? "bg-primary/10 text-primary border-primary/20"
                             : member.role === "MEMBER"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-gray-100 text-gray-700"
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                            : "bg-muted text-muted-foreground border-border"
                         }`}>
                           {member.role}
                         </span>
@@ -136,7 +136,7 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
                     variant="outline"
                     onClick={() => setIsEditing(true)}
                     disabled={isUpdating}
-                    className="h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 rounded-md border-border text-foreground hover:bg-muted"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -145,7 +145,7 @@ export function MemberCard({ member, onRoleUpdate, onDelete, isUpdating = false 
                     variant="outline"
                     onClick={() => onDelete(member.id)}
                     disabled={isUpdating}
-                    className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 rounded-md border-destructive text-destructive hover:bg-destructive/10"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

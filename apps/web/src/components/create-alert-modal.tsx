@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, Save, Loader2 } from 'lucide-react'
+import { Bell, Save, Loader2 } from "@/components/ui/icons"
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -69,7 +69,7 @@ export function CreateAlertModal({ metricId }: CreateAlertModalProps) {
     setIsSubmitting(true)
     
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-    const promise = fetch(`/${backendUrl}/alerts`, {
+    const promise = fetch(`${backendUrl}/alerts`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -98,7 +98,7 @@ export function CreateAlertModal({ metricId }: CreateAlertModalProps) {
             })
             return 'Alert created successfully!'
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error creating alert:', err)
             return 'Failed to create alert. Please try again.'
         }

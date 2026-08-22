@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Edit, Save, X, Loader2, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Edit, Save, X, Loader2, ToggleLeft, ToggleRight } from "@/components/ui/icons"
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -144,7 +144,7 @@ export function EditEnvironmentModal({
     const parsedValue = wrapValue(valueValidation.parsedValue)
     const parsedDefaultValue = wrapValue(defaultValueValidation.parsedValue)
 
-    const promise = fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/updateEnvironment`, {
+    const promise = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/updateEnvironment`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -175,7 +175,7 @@ export function EditEnvironmentModal({
             })
             return 'Environment updated successfully'
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error updating environment:', err)
             return 'Failed to update environment. Please check your values and try again.'
         }

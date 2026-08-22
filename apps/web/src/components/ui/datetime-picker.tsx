@@ -4,8 +4,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { add, format } from 'date-fns';
 import { type Locale, enUS } from 'date-fns/locale';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "@/components/ui/icons";
+import { Clock } from "@/components/ui/icons";
 import * as React from 'react';
 import { useImperativeHandle, useRef } from 'react';
 

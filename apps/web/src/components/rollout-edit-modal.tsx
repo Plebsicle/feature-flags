@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { rollout_type } from '@repo/db/client'
-import { Edit, Save, Loader2, Rocket, Plus, X } from "lucide-react"
+import { Edit, Save, Loader2, Rocket, Plus, X } from "@/components/ui/icons"
 import { Toaster, toast } from "react-hot-toast"
 import { LightDateTimePicker } from './LightDateTimePicker'
 
@@ -156,7 +156,7 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
       rollout_config: rolloutConfig
     }
 
-    const promise = fetch(`/${BACKEND_URL}/flag/updateFlagRollout`, {
+    const promise = fetch(`${BACKEND_URL}/flag/updateFlagRollout`, {
       method: 'PUT',
       credentials: 'include',
       headers: {
@@ -182,7 +182,7 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
         })
         return 'Rollout updated successfully!'
       },
-      error: (err) => {
+      error: () => {
         // console.error('Error updating rollout:', err)
         setErrors({ submit: 'Failed to update rollout. Please try again.' })
         return 'Failed to update rollout. Please try again.'
@@ -413,7 +413,7 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
           <Button
             size="sm"
             variant="outline"
-            className="border-indigo-300 text-indigo-600 hover:bg-indigo-50"
+            className="border-border text-foreground hover:bg-muted font-medium text-xs rounded-md"
           >
             <Edit className="w-4 h-4 mr-2" />
             Edit Rollout
@@ -422,13 +422,13 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
         
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center text-gray-900">
-              <div className="bg-indigo-100 p-2 rounded-md mr-3">
-                <Rocket className="w-5 h-5 text-indigo-600" />
+            <DialogTitle className="flex items-center text-foreground font-semibold text-2xl">
+              <div className="bg-primary/10 p-2 rounded-lg mr-3 border border-primary/20">
+                <Rocket className="w-5 h-5 text-primary" />
               </div>
               Edit Rollout Configuration
             </DialogTitle>
-            <DialogDescription className="text-gray-600">
+            <DialogDescription className="text-muted-foreground text-sm">
               Update the rollout strategy for this feature flag environment.
             </DialogDescription>
           </DialogHeader>
@@ -456,10 +456,10 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
             </div>
 
             {/* Configuration */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-gray-900">Configuration</CardTitle>
-                <CardDescription className="text-gray-600">
+            <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+              <CardHeader className="border-b border-border/50 pb-4">
+                <CardTitle className="text-lg font-semibold text-foreground">Configuration</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
                   Configure the parameters for your selected rollout type.
                 </CardDescription>
               </CardHeader>
@@ -474,18 +474,19 @@ export default function RolloutEditModal({ rolloutData, environmentId }: Rollout
             </Card>
 
             {/* Actions */}
-            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <div className="flex justify-end space-x-3 pt-4 border-t border-border/50">
               <Button 
                 variant="outline"
                 onClick={() => setOpen(false)}
                 disabled={loading}
+                className="rounded-lg font-medium text-sm border-border text-foreground hover:bg-muted"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="rounded-lg font-medium text-sm bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
               >
                 {loading ? (
                   <>

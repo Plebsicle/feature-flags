@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Edit, Save, Loader2 } from 'lucide-react'
+import { Edit, Save, Loader2 } from "@/components/ui/icons"
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -78,7 +78,7 @@ export function UpdateAlertModal({ alert, metricId }: UpdateAlertModalProps) {
     setIsSubmitting(true)
     
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-    const promise = fetch(`/${backendUrl}/alerts`, {
+    const promise = fetch(`${backendUrl}/alerts`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -107,7 +107,7 @@ export function UpdateAlertModal({ alert, metricId }: UpdateAlertModalProps) {
             })
             return 'Alert updated successfully!'
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error updating alert:', err)
             return 'Failed to update alert. Please try again.'
         }

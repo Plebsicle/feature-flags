@@ -33,56 +33,32 @@ jobs:
             source ~/.bashrc
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-            nvm use 22.22.0
+            nvm use 22
 
             export PNPM_HOME="/home/deploy/.local/share/pnpm"
             export PATH="$PNPM_HOME:$PATH"
 
             cd /home/deploy/app/feature-flags || exit 1
-            pwd
-            ls -la
 
             echo "Pulling latest changes..."
             git fetch origin main
-
-            BEFORE_COMMIT=$(git rev-parse HEAD)
             git pull origin main
-            CHANGED_FILES=$(git diff --name-only "$BEFORE_COMMIT"..HEAD)
-
-            echo "Changed files:"
-            echo "$CHANGED_FILES"
 
             echo "Installing dependencies..."
             pnpm install
 
-            if echo "$CHANGED_FILES" | grep -q '^packages/db/'; then
-              echo "Building packages/db"
-              cd packages/db && pnpm build && pnpm prisma generate && cd -
-            fi
+            echo "Generating Prisma Client..."
+            cd packages/db && pnpm prisma generate && cd -
 
-            if echo "$CHANGED_FILES" | grep -q '^packages/config-types/'; then
-              echo "Building packages/config-types"
-              cd packages/config-types && pnpm build && cd -
-            fi
+            echo "Building Monorepo (via Turborepo)..."
+            # Turborepo will automatically detect what changed and only build those apps
+            pnpm build
 
-            if echo "$CHANGED_FILES" | grep -q '^apps/server/'; then
-              echo "Restarting server"
-              cd apps/server && pnpm build && cd -
-              pm2 restart server || pm2 start ecosystem.config.js --only server
-            fi
-
-            if echo "$CHANGED_FILES" | grep -q '^apps/web/'; then
-              echo "Restarting web"
-              cd apps/web && pnpm build && cd -
-              pm2 restart web || pm2 start ecosystem.config.js --only web
-            fi
-
-            if echo "$CHANGED_FILES" | grep -q '^apps/landing/'; then
-              echo "Restarting landing"
-              cd apps/landing && pnpm build && cd -
-              pm2 restart landing || pm2 start ecosystem.config.js --only landing
-            fi
-
+            echo "Starting/Reloading PM2..."
+            # Starts apps if they aren't running, gracefully reloads them if they are
+            pm2 start ecosystem.config.js
+            pm2 reload ecosystem.config.js --env production
             pm2 save
+
             echo "Deployment Completed"
           EOF

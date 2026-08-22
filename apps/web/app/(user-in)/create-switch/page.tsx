@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Minus, Loader2 } from "lucide-react";
+import { Plus, Minus, Loader2 } from "@/components/ui/icons";
 import { Toaster, toast } from "react-hot-toast";
 
 // TypeScript types
@@ -160,7 +160,7 @@ export default function CreateKillSwitchPage() {
         router.push("/killSwitch");
         return 'Kill Switch created successfully!';
       },
-      error: (err) => err.message || "Error creating kill switch"
+      error: (err: any) => err.message || "Error creating kill switch"
     });
   };
 
@@ -170,49 +170,49 @@ export default function CreateKillSwitchPage() {
     <div className="space-y-8">
       <div className="max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-8">
-          <Card className="hover:shadow-md transition-shadow duration-200">
-            <CardHeader>
-              <CardTitle className="text-gray-900 text-2xl">Create Kill Switch</CardTitle>
-              <CardDescription>
+          <Card className="hover:shadow-md transition-shadow duration-200 rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+            <CardHeader className="border-b border-border/50 pb-4">
+              <CardTitle className="text-foreground text-2xl font-semibold tracking-tight">Create Kill Switch</CardTitle>
+              <CardDescription className="text-muted-foreground text-sm mt-1">
                 Fill in the details to create a new kill switch. You can map multiple flags and environments.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               <div>
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name" className="text-sm font-medium text-foreground">Name</Label>
                 <Input
                   id="name"
                   name="name"
                   value={form.name}
                   onChange={handleChange}
-                  className="mt-1"
+                  className="mt-1 rounded-lg border-border bg-muted/10 text-sm focus-visible:ring-0 focus-visible:border-primary"
                   placeholder="Enter kill switch name"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="killSwitchKey">Kill Switch Key (auto-generated)</Label>
+                <Label htmlFor="killSwitchKey" className="text-sm font-medium text-foreground">Kill Switch Key (auto-generated)</Label>
                 <Input
                   id="killSwitchKey"
                   name="killSwitchKey"
                   value={form.killSwitchKey}
                   readOnly
-                  className="mt-1 bg-gray-50 border-gray-300 text-gray-600 cursor-not-allowed"
+                  className="mt-1 rounded-lg bg-muted/30 border-border text-muted-foreground cursor-not-allowed text-sm focus-visible:ring-0"
                   placeholder="Auto-generated from name with unique suffix"
                   required
                 />
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Auto-generated from name with a unique 6-digit suffix. This key cannot be edited.
                 </p>
               </div>
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description" className="text-sm font-medium text-foreground">Description</Label>
                 <Textarea
                   id="description"
                   name="description"
                   value={form.description}
                   onChange={handleChange}
-                  className="mt-1"
+                  className="mt-1 rounded-lg border-border bg-muted/10 text-sm focus-visible:ring-0 focus-visible:border-primary"
                   placeholder="Describe the purpose of this kill switch"
                   rows={3}
                   required
@@ -220,43 +220,43 @@ export default function CreateKillSwitchPage() {
               </div>
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <Label className="text-lg font-medium text-gray-900">Flags</Label>
-                  <Button type="button" onClick={addFlag} size="sm">
+                  <Label className="font-semibold text-lg text-foreground">Flags</Label>
+                  <Button type="button" onClick={addFlag} size="sm" className="rounded-md text-xs font-medium">
                     <Plus className="w-4 h-4 mr-2" /> Add Flag
                   </Button>
                 </div>
                 <div className="space-y-4">
                   {form.flags.length === 0 && (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                      <p className="text-gray-600">No flags added. Click &quot;Add Flag&quot; to get started.</p>
+                    <div className="text-center py-8 bg-muted/10 rounded-lg border border-dashed border-border">
+                      <p className="text-sm text-muted-foreground">No flags added. Click &quot;Add Flag&quot; to get started.</p>
                     </div>
                   )}
                   {form.flags.map((flag, idx) => (
-                    <div key={idx} className="p-4 border border-gray-200 rounded-lg space-y-4 bg-gray-50">
+                    <div key={idx} className="p-4 border border-border rounded-lg space-y-4 bg-muted/5">
                       <div className="flex items-center justify-between">
-                        <Label className="text-gray-900 font-medium">Flag {idx + 1}</Label>
+                        <Label className="text-foreground font-semibold text-base">Flag {idx + 1}</Label>
                         <Button
                           type="button"
                           onClick={() => removeFlag(idx)}
                           size="sm"
                           variant="outline"
-                          className="border-red-300 text-red-600 hover:bg-red-50"
+                          className="rounded-md text-xs font-medium border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
                         >
                           <Minus className="w-4 h-4" />
                         </Button>
                       </div>
                       <div>
-                        <Label className="text-sm">Flag Key</Label>
+                        <Label className="text-sm font-medium text-muted-foreground">Flag Key</Label>
                         <Input
                           value={flag.flagKey}
                           onChange={e => updateFlagKey(idx, e.target.value)}
-                          className="mt-1"
+                          className="mt-1 rounded-md border-border bg-muted/10 text-sm focus-visible:ring-0 focus-visible:border-primary"
                           placeholder="Enter flag key"
                           required
                         />
                       </div>
                       <div>
-                        <Label className="text-sm">Environments</Label>
+                        <Label className="text-sm font-medium text-muted-foreground">Environments</Label>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {ENV_OPTIONS.map(env => (
                             <Button
@@ -265,17 +265,18 @@ export default function CreateKillSwitchPage() {
                               size="sm"
                               variant={flag.environments.includes(env) ? "default" : "outline"}
                               onClick={() => toggleEnvironment(idx, env)}
-                              className={flag.environments.includes(env)
-                                ? ""
-                                : ""
-                              }
+                              className={`rounded-md text-xs font-medium ${
+                                flag.environments.includes(env)
+                                  ? ""
+                                  : "border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                              }`}
                             >
                               {env}
                             </Button>
                           ))}
                         </div>
                         {flag.environments.length === 0 && (
-                          <p className="text-xs text-red-600 mt-1">Select at least one environment.</p>
+                          <p className="text-xs font-medium text-destructive mt-1">Select at least one environment.</p>
                         )}
                       </div>
                     </div>
@@ -285,7 +286,7 @@ export default function CreateKillSwitchPage() {
               <div className="flex justify-end pt-4">
                 <Button
                   type="submit"
-                  className="bg-red-600 hover:bg-red-700 text-white"
+                  className="rounded-md font-medium text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (

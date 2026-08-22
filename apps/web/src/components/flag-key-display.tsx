@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Copy, Check, Code } from "lucide-react"
+import { Copy, Check, Code } from "@/components/ui/icons"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -17,8 +17,7 @@ export function FlagKeyDisplay({ flagId }: FlagKeyDisplayProps) {
       await navigator.clipboard.writeText(flagId)
       setCopied(true)
       setTimeout(() => setCopied(false), 3000)
-    } catch (err) {
-      // console.error('Failed to copy text: ', err)
+    } catch (err) { // console.error(err)
     }
   }
 

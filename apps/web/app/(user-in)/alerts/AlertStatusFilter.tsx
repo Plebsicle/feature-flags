@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Filter } from "lucide-react";
+import { Filter } from "@/components/ui/icons";
 
 type AlertStatus = 'TRIGGERED' | 'ACKNOWLEDGED' | 'RESOLVED';
 
@@ -46,30 +46,30 @@ export function AlertStatusFilter({ currentStatus }: AlertStatusFilterProps) {
 
   return (
     <div className="flex items-center space-x-2">
-      <Filter className="w-4 h-4 text-gray-500" />
+      <Filter className="w-4 h-4 text-muted-foreground" />
       <Select
         value={displayStatus}
         onValueChange={handleStatusChange}
       >
-        <SelectTrigger className="w-64 min-w-max">
+        <SelectTrigger className="w-64 min-w-max rounded-lg border-border bg-card/80 backdrop-blur">
           <SelectValue placeholder="Filter by status">
             <div className="flex flex-col text-left">
-              <span className="font-medium">{statusLabels[displayStatus]}</span>
-              <span className="text-xs text-gray-500 truncate">
-                {statusDescriptions[displayStatus]}
+              <span className="font-semibold text-sm">{statusLabels[displayStatus as AlertStatus | 'ALL']}</span>
+              <span className="text-xs text-muted-foreground truncate">
+                {statusDescriptions[displayStatus as AlertStatus | 'ALL']}
               </span>
             </div>
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="w-64">
+        <SelectContent className="w-64 rounded-xl border-border bg-card/80 backdrop-blur">
           <SelectItem 
             key="ALL" 
             value="ALL"
-            className="h-auto py-2"
+            className="h-auto py-2 focus:bg-muted/50 rounded-lg cursor-pointer"
           >
             <div className="flex flex-col w-full">
-              <span className="font-medium">All Alerts</span>
-              <span className="text-xs text-gray-500 mt-0.5">
+              <span className="font-semibold text-sm">All Alerts</span>
+              <span className="text-xs text-muted-foreground mt-0.5">
                 View all alerts regardless of status
               </span>
             </div>
@@ -78,11 +78,11 @@ export function AlertStatusFilter({ currentStatus }: AlertStatusFilterProps) {
             <SelectItem 
               key={status} 
               value={status}
-              className="h-auto py-2"
+              className="h-auto py-2 focus:bg-muted/50 rounded-lg cursor-pointer"
             >
               <div className="flex flex-col w-full">
-                <span className="font-medium">{label}</span>
-                <span className="text-xs text-gray-500 mt-0.5">
+                <span className="font-semibold text-sm">{label}</span>
+                <span className="text-xs text-muted-foreground mt-0.5">
                   {statusDescriptions[status as AlertStatus]}
                 </span>
               </div>

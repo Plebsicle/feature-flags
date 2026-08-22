@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2, Loader2 } from 'lucide-react'
+import { Trash2, Loader2 } from "@/components/ui/icons"
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -30,7 +30,7 @@ export function DeleteKillSwitchButton({ killSwitchId, killSwitchName }: DeleteK
   const handleDelete = async () => {
     setIsDeleting(true)
     
-    const promise = fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/killSwitch`, {
+    const promise = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/killSwitch`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -56,7 +56,7 @@ export function DeleteKillSwitchButton({ killSwitchId, killSwitchName }: DeleteK
         })
         return 'Kill switch deleted successfully'
       },
-      error: (err) => {
+      error: () => {
         // console.error('Error deleting kill switch:', err)
         return 'Failed to delete kill switch. Please try again.'
       },

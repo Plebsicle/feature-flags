@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { useFlagCreation } from "../../../../contexts/flag-creation"
 import { Condition } from '@repo/types/rule-config'
 import { DataType, OPERATORS_BY_TYPE, BASE_ATTRIBUTES } from '@repo/types/attribute-config'
-import { ArrowRight, ArrowLeft, Plus, X, Target, Info, ChevronDown, Check} from "lucide-react"
+import { ArrowRight, ArrowLeft, Plus, X, Target, Info, ChevronDown, Check} from "@/components/ui/icons"
 import { Toaster, toast } from 'react-hot-toast'
 import * as semver from 'semver'
 import { LightDateTimePicker } from '@/components/LightDateTimePicker'
@@ -333,68 +333,71 @@ export default function RulesPage() {
   return (
     <>
       <Toaster />
-      <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
-        <div className="max-w-3xl mx-auto">
+      <div className="min-h-screen bg-transparent p-4 lg:p-6 relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, var(--border) 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+
+        <div className="max-w-3xl mx-auto relative z-10">
           {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-md">
-                <Target className="w-4 h-4 text-white" />
+          <div className="mb-8">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Target className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Targeting Rules</h1>
-                <p className="text-sm text-gray-600">Step 3 of 4 - Define who sees this flag</p>
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">Targeting Rules</h1>
+                <p className="text-sm font-medium text-muted-foreground">Step 3 of 4 - Define who sees this flag</p>
               </div>
             </div>
             
             {/* Progress indicator */}
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
-                <Check className="w-3 h-3" />
+              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary">
+                <Check className="w-4 h-4" />
               </div>
-              <div className="h-1 w-12 bg-emerald-500 rounded-full"></div>
-              <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-medium shadow-sm">
-                <Check className="w-3 h-3" />
+              <div className="h-0.5 w-16 bg-primary/50"></div>
+              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary">
+                <Check className="w-4 h-4" />
               </div>
-              <div className="h-1 w-12 bg-emerald-500 rounded-full"></div>
-              <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-medium shadow-sm">
+              <div className="h-0.5 w-16 bg-primary/50"></div>
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium">
                 3
               </div>
-              <div className="h-1 w-12 bg-gray-200 rounded-full"></div>
-              <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs font-medium">
+              <div className="h-0.5 w-16 bg-border"></div>
+              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground text-sm font-medium">
                 4
               </div>
             </div>
           </div>
 
           {/* Evaluation Logic Info */}
-          <Card className="bg-blue-50 border border-blue-200 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-gray-900 flex items-center">
-                <Target className="w-5 h-5 mr-2 text-blue-600" />
+          <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm mb-8">
+            <CardHeader className="pb-3 border-b border-border/50">
+              <CardTitle className="text-lg font-semibold text-foreground flex items-center">
+                <Target className="w-5 h-5 mr-3 text-primary" />
                 Rule Evaluation Logic
               </CardTitle>
-              <CardDescription className="text-gray-600 text-sm">
+              <CardDescription className="text-sm text-muted-foreground">
                 Understanding how targeting rules are evaluated
               </CardDescription>
             </CardHeader>
-            <CardContent className="pb-4">
+            <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white border border-gray-200 rounded-lg p-3">
-                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center text-sm">
-                    <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 mr-2 text-xs">AND</Badge>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                  <h4 className="font-semibold text-foreground mb-3 flex items-center text-sm">
+                    <Badge className="bg-primary/20 text-primary border-primary/30 rounded-md mr-2 font-medium">AND</Badge>
                     Within Rules
                   </h4>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     All conditions within a single rule must be true for that rule to match
                   </p>
                 </div>
-                <div className="bg-white border border-gray-200 rounded-lg p-3">
-                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center text-sm">
-                    <Badge className="bg-blue-100 text-blue-800 border-blue-200 mr-2 text-xs">OR</Badge>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                  <h4 className="font-semibold text-foreground mb-3 flex items-center text-sm">
+                    <Badge className="bg-primary/20 text-primary border-primary/30 rounded-md mr-2 font-medium">OR</Badge>
                     Between Rules
                   </h4>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     If any rule matches, the feature flag will be enabled for that user
                   </p>
                 </div>
@@ -403,17 +406,17 @@ export default function RulesPage() {
           </Card>
 
           {/* Form */}
-          <Card className="shadow-md border-gray-200 bg-white rounded-lg">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-semibold text-gray-900">Targeting Rules</CardTitle>
-              <CardDescription className="text-gray-600 text-sm">
+          <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+            <CardHeader className="pb-4 border-b border-border/50">
+              <CardTitle className="text-xl font-semibold text-foreground">Targeting Rules</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
                 Define conditions to determine when this feature flag should be enabled
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 pt-6">
               {/* Rule Name */}
-              <div className="space-y-1">
-                <Label htmlFor="rule-name" className="text-sm font-medium text-gray-700">
+              <div className="space-y-2">
+                <Label htmlFor="rule-name" className="text-sm font-medium text-foreground">
                   Rule Name *
                 </Label>
                 <Input
@@ -421,13 +424,13 @@ export default function RulesPage() {
                   value={state.rules.name}
                   onChange={handleNameChange}
                   placeholder="e.g., Premium Users Only"
-                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                  className="h-10 border-border bg-background rounded-lg text-sm focus:border-primary"
                 />
               </div>
 
               {/* Rule Description */}
-              <div className="space-y-1">
-                <Label htmlFor="rule-description" className="text-sm font-medium text-gray-700">
+              <div className="space-y-2">
+                <Label htmlFor="rule-description" className="text-sm font-medium text-foreground">
                   Description
                 </Label>
                 <Textarea
@@ -435,19 +438,19 @@ export default function RulesPage() {
                   value={state.rules.description}
                   onChange={handleDescriptionChange}
                   placeholder="Describe the purpose of this targeting rule..."
-                  className="min-h-[60px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 resize-none text-sm"
+                  className="min-h-[80px] border-border bg-background rounded-lg text-sm focus:border-primary resize-none"
                 />
               </div>
 
               {/* Conditions */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="font-medium text-gray-900">Conditions</Label>
+                  <Label className="text-sm font-semibold text-foreground">Conditions</Label>
                   <Button
                     onClick={addCondition}
                     size="sm"
                     variant="outline"
-                    className="border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 h-7 px-2 text-xs"
+                    className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary h-8 px-3 text-xs font-medium rounded-md"
                   >
                     <Plus className="w-3 h-3 mr-1" />
                     Add Condition
@@ -455,42 +458,42 @@ export default function RulesPage() {
                 </div>
 
                 {state.rules.conditions.length === 0 ? (
-                  <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                    <Target className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-600 font-medium mb-1 text-sm">No conditions defined</p>
-                    <p className="text-gray-500 text-xs mb-3">Add conditions to control when this flag is enabled</p>
+                  <div className="text-center py-8 bg-muted/30 border border-border rounded-lg">
+                    <Target className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-foreground font-semibold mb-1 text-sm">No conditions defined</p>
+                    <p className="text-muted-foreground text-xs mb-4">Add conditions to control when this flag is enabled</p>
                     <Button
                       onClick={addCondition}
                       size="sm"
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                      className="text-xs font-medium h-8 rounded-md"
                     >
                       <Plus className="w-3 h-3 mr-1" />
                       Add First Condition
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {state.rules.conditions.map((condition, index) => (
-                      <Card key={index} className="border-gray-200 shadow-sm">
-                        <CardHeader className="pb-2">
+                      <Card key={index} className="border-border rounded-lg bg-card shadow-sm">
+                        <CardHeader className="pb-2 border-b border-border/50">
                           <div className="flex items-center justify-between">
-                            <CardTitle className="text-sm font-medium text-gray-900">
+                            <CardTitle className="text-sm font-semibold text-foreground">
                               Condition {index + 1}
                             </CardTitle>
                             <Button
                               onClick={() => removeCondition(index)}
                               size="sm"
                               variant="ghost"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10 h-6 w-6 p-0 rounded-md"
                             >
                               <X className="w-3 h-3" />
                             </Button>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-3">
+                        <CardContent className="space-y-4 pt-4">
                           {/* Attribute Name */}
                           <div className="space-y-1">
-                            <Label className="text-xs font-medium text-gray-700">Attribute Name *</Label>
+                            <Label className="text-xs font-medium text-muted-foreground">Attribute Name *</Label>
                             <div className="relative" ref={(el) => { dropdownRefs.current[index] = el }}>
                               <div className="flex">
                                 <Input
@@ -499,22 +502,22 @@ export default function RulesPage() {
                                     handleAttributeNameChange(index, e.target.value)
                                   }}
                                   placeholder="Type custom attribute or select from dropdown"
-                                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                  className="h-8 border-border bg-background rounded-md rounded-r-none text-sm focus:border-primary"
                                 />
                                 <Button
                                   type="button"
                                   onClick={() => toggleAttributeDropdown(index)}
-                                  className="ml-1 bg-gray-100 border-gray-300 hover:bg-gray-200 h-8 w-8 p-0"
+                                  className="ml-0 bg-muted border border-l-0 border-border hover:bg-muted/80 rounded-md rounded-l-none h-8 w-8 p-0"
                                   size="sm"
                                 >
-                                  <ChevronDown className="w-3 h-3 text-gray-600" />
+                                  <ChevronDown className="w-3 h-3 text-muted-foreground" />
                                 </Button>
                               </div>
                               
                               {/* Dropdown for base attributes */}
                               {showAttributeDropdowns[index] && (
-                                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                                  <div className="p-2 text-xs text-gray-600 border-b border-gray-100 bg-gray-50">
+                                <div className="absolute z-10 mt-1 w-full bg-card border border-border rounded-md shadow-md max-h-40 overflow-y-auto">
+                                  <div className="p-2 text-xs font-medium text-muted-foreground border-b border-border/50 bg-muted/50">
                                     Base Attributes (Fixed Data Types)
                                   </div>
                                   {Object.entries(BASE_ATTRIBUTES).map(([key, attr]) => (
@@ -522,13 +525,13 @@ export default function RulesPage() {
                                       key={key}
                                       type="button"
                                       onClick={() => handleAttributeNameChange(index, key)}
-                                      className="w-full px-2 py-1.5 text-left text-gray-900 hover:bg-gray-50 focus:bg-gray-50 flex justify-between items-center text-xs"
+                                      className="w-full px-2 py-2 text-left text-foreground hover:bg-muted focus:bg-muted flex justify-between items-center text-sm cursor-pointer"
                                     >
                                       <div>
                                         <div className="font-medium">{key}</div>
-                                        <div className="text-xs text-gray-500">{attr.description}</div>
+                                        <div className="text-xs text-muted-foreground">{attr.description}</div>
                                       </div>
-                                      <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
+                                      <Badge variant="outline" className="text-[10px] font-medium border-border text-foreground rounded-md">
                                         {attr.type}
                                       </Badge>
                                     </button>
@@ -538,32 +541,32 @@ export default function RulesPage() {
                             </div>
                             
                             {/* Helper text */}
-                            <div className="flex items-start space-x-1 text-xs text-gray-500">
+                            <div className="flex items-start space-x-1 text-xs text-muted-foreground pt-1">
                               <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
                               <div>
                                 <p>Use dropdown for base attributes (fixed types) or type custom names.</p>
-                                <p className="text-amber-600">Note: Avoid naming custom attributes the same as existing base attributes.</p>
+                                <p className="text-amber-500">Note: Avoid naming custom attributes the same as existing base attributes.</p>
                               </div>
                             </div>
                           </div>
 
                           {/* Attribute Type */}
                           <div className="space-y-1">
-                            <Label className="text-xs font-medium text-gray-700">Data Type</Label>
+                            <Label className="text-xs font-medium text-muted-foreground">Data Type</Label>
                             <Select
                               value={condition.attribute_type}
                               onValueChange={(value) => handleAttributeTypeChange(index, value as DataType)}
                               disabled={isBaseAttribute(condition.attribute_name)}
                             >
-                              <SelectTrigger className={`h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm ${isBaseAttribute(condition.attribute_name) ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}>
+                              <SelectTrigger className={`h-8 border-border rounded-md bg-background text-sm focus:border-primary ${isBaseAttribute(condition.attribute_name) ? 'opacity-60 cursor-not-allowed bg-muted/50' : ''}`}>
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-white border-gray-200 shadow-lg">
+                              <SelectContent className="bg-card border-border rounded-md shadow-sm text-sm">
                                 {dataTypeOptions.map((option) => (
                                   <SelectItem
                                     key={option.value}
                                     value={option.value}
-                                    className="py-1.5 px-2 hover:bg-gray-50 focus:bg-gray-50 text-sm"
+                                    className="py-1.5 px-2 hover:bg-muted focus:bg-muted text-sm cursor-pointer rounded-sm"
                                   >
                                     {option.label}
                                   </SelectItem>
@@ -571,7 +574,7 @@ export default function RulesPage() {
                               </SelectContent>
                             </Select>
                             {isBaseAttribute(condition.attribute_name) && (
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-muted-foreground pt-1">
                                 Data type is fixed for base attributes
                               </p>
                             )}
@@ -579,20 +582,20 @@ export default function RulesPage() {
 
                           {/* Operator */}
                           <div className="space-y-1">
-                            <Label className="text-xs font-medium text-gray-700">Operator</Label>
+                            <Label className="text-xs font-medium text-muted-foreground">Operator</Label>
                             <Select
                               value={condition.operator_selected}
                               onValueChange={(value) => handleOperatorChange(index, value)}
                             >
-                              <SelectTrigger className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                              <SelectTrigger className="h-8 border-border rounded-md bg-background text-sm focus:border-primary">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-white border-gray-200 shadow-lg">
+                              <SelectContent className="bg-card border-border rounded-md shadow-sm text-sm">
                                 {OPERATORS_BY_TYPE[condition.attribute_type].map((operator) => (
                                   <SelectItem
                                     key={operator}
                                     value={operator}
-                                    className="py-1.5 px-2 hover:bg-gray-50 focus:bg-gray-50 text-sm"
+                                    className="py-1.5 px-2 hover:bg-muted focus:bg-muted text-sm cursor-pointer rounded-sm capitalize"
                                   >
                                     {operator.replace(/_/g, ' ')}
                                   </SelectItem>
@@ -603,7 +606,7 @@ export default function RulesPage() {
 
                           {/* Values */}
                           <div className="space-y-1">
-                            <Label className="text-xs font-medium text-gray-700">
+                            <Label className="text-xs font-medium text-muted-foreground">
                               {condition.attribute_type === 'ARRAY' ? 'Values' : 'Value'}
                             </Label>
                             <div className="space-y-2">
@@ -612,12 +615,12 @@ export default function RulesPage() {
                                   value={undefined}
                                   onChange={(date: Date | undefined) => addDateValue(index, date)}
                                   placeholder={getValuePlaceholder(condition.attribute_type)}
-                                  className="w-full h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm bg-white rounded-md"
+                                  className="w-full h-8 border-border bg-background rounded-md text-sm focus:border-primary"
                                 />
                               ) : (
                                 <Input
                                   placeholder={getValuePlaceholder(condition.attribute_type)}
-                                  className="h-8 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+                                  className="h-8 border-border bg-background rounded-md text-sm focus:border-primary"
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                       e.preventDefault()
@@ -639,31 +642,31 @@ export default function RulesPage() {
                                 />
                               )}
                               {condition.attribute_type === 'ARRAY' ? (
-                                <div className="flex items-center space-x-1 text-xs text-indigo-600 bg-indigo-50 p-2 rounded">
+                                <div className="flex items-center space-x-1 text-xs text-primary bg-primary/10 border border-primary/20 p-2 rounded-md">
                                   <Info className="w-3 h-3" />
                                   <span>{getValueHelperText(condition.attribute_type)}</span>
                                 </div>
                               ) : (
-                                <div className="flex items-center space-x-1 text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                                <div className="flex items-center space-x-1 text-xs text-amber-500 bg-amber-500/10 border border-amber-500/20 p-2 rounded-md">
                                   <Info className="w-3 h-3" />
                                   <span>{getValueHelperText(condition.attribute_type)}</span>
                                 </div>
                               )}
                               {condition.attribute_values.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
+                                <div className="flex flex-wrap gap-1 mt-2">
                                   {condition.attribute_values.map((value, valueIndex) => (
                                     <Badge
                                       key={valueIndex}
                                       variant="secondary"
-                                      className="bg-indigo-100 text-indigo-800 hover:bg-indigo-200 px-2 py-0.5 text-xs"
+                                      className="bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 px-2 py-0.5 text-xs font-medium rounded-md"
                                     >
                                       {value}
                                       <button
                                         onClick={() => removeValue(index, valueIndex)}
-                                        className="ml-1 hover:bg-red-100 rounded-full p-0.5"
+                                        className="ml-1 hover:bg-primary/40 rounded-md p-0.5"
                                         title="Remove value"
                                       >
-                                        <X className="w-2 h-2" />
+                                        <X className="w-3 h-3" />
                                       </button>
                                     </Badge>
                                   ))}
@@ -679,33 +682,33 @@ export default function RulesPage() {
               </div>
 
               {/* Additional Rules Note */}
-              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3">
-                <div className="flex items-start space-x-2">
-                  <Info className="w-4 h-4 text-cyan-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-cyan-800">
-                    <p className="font-medium mb-1">Adding More Rules Later</p>
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mt-6">
+                <div className="flex items-start space-x-3">
+                  <Info className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-muted-foreground">
+                    <p className="font-semibold text-foreground mb-1">Adding More Rules Later</p>
                     <p>You can add additional targeting rules later by navigating to the specific environment page where you want to apply more rules.</p>
                   </div>
                 </div>
               </div>
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between pt-3 border-t border-gray-200">
+              <div className="flex justify-between pt-6 border-t border-border/50">
                 <Button 
                   onClick={handlePrevious}
                   variant="outline"
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1.5 text-sm"
+                  className="border-dashed hover:border-solid transition-all text-sm h-10 px-4 rounded-lg font-medium"
                 >
-                  <ArrowLeft className="w-3 h-3 mr-1" />
+                  <ArrowLeft className="w-4 h-4 mr-2" />
                   Previous
                 </Button>
                 
                 <Button 
                   onClick={handleNext}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 font-medium rounded-md shadow-sm transition-all duration-200 hover:shadow-md text-sm"
+                  className="font-medium text-sm h-10 px-6 rounded-lg"
                 >
                   Next Step
-                  <ArrowRight className="w-3 h-3 ml-1" />
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </CardContent>

@@ -48,7 +48,7 @@ export class BitSwitchSDK {
   private backendUrl: string;
 
   constructor() {
-    this.backendUrl = 'https://api.bitswitch.tech';
+    this.backendUrl = 'https://api.bitswitch.site';
   }
 
   /**

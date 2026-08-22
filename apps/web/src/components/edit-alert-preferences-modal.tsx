@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Edit, Save, Loader2, Mail, MessageSquare, Users } from 'lucide-react'
+import { Edit, Save, Loader2, Mail, MessageSquare, Users } from "@/components/ui/icons"
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -67,7 +67,7 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
     setIsSubmitting(true)
 
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-    const promise = fetch(`/${backendUrl}/organisation/preferences`, {
+    const promise = fetch(`${backendUrl}/organisation/preferences`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -93,7 +93,7 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
             })
             return 'Alert preferences updated successfully!'
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error updating alert preferences:', err)
             return 'Failed to update alert preferences. Please try again.'
         }
@@ -192,8 +192,8 @@ export function EditAlertPreferencesModal({ preferences }: EditAlertPreferencesM
             <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="bg-purple-100 p-1 rounded">
-                    <MessageSquare className="w-4 h-4 text-purple-600" />
+                  <div className="bg-primary/10 p-1 rounded">
+                    <MessageSquare className="w-4 h-4 text-primary" />
                   </div>
                   <div>
                     <Label className="text-gray-900 font-medium">Slack Notifications</Label>

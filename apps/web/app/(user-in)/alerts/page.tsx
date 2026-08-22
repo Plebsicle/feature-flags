@@ -4,7 +4,7 @@ import {
   CheckCircle, 
   Clock,
   BarChart3,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertStatusFilter } from "./AlertStatusFilter";
 import { AlertCard } from "./AlertCard";
@@ -83,8 +83,7 @@ async function getAlertsData(status: string | undefined): Promise<AlertData[] | 
     }
 
     return data.data;
-  } catch (err) {
-    console.error('Error fetching alerts data:', err);
+  } catch (err) { console.error(err);
     return null;
   }
 }
@@ -93,17 +92,17 @@ function EmptyState({ status }: { status: string | undefined }) {
   const statusText = status?.toLowerCase() || 'active';
   
   return (
-    <Card className="text-center py-12">
+    <Card className="text-center py-12 rounded-none border-border bg-card/80 backdrop-blur shadow-xs">
       <CardContent>
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-            <BarChart3 className="w-8 h-8 text-gray-400" />
+        <div className="flex flex-col items-center space-y-4 pt-6">
+          <div className="w-16 h-16 bg-muted/20 border border-border rounded-none flex items-center justify-center">
+            <BarChart3 className="w-8 h-8 text-muted-foreground" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-1">
               No {statusText} alerts
             </h3>
-            <p className="text-gray-600 max-w-md">
+            <p className="text-muted-foreground text-sm max-w-md">
               {status === 'TRIGGERED' 
                 ? "Great! You don't have any active alerts requiring attention."
                 : status 
@@ -145,8 +144,8 @@ export default async function AlertsPage({ searchParams }: AlertsPageProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Alerts</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Alerts</h1>
+          <p className="text-muted-foreground text-sm mt-1">
             Monitor and manage your metric alerts across all environments.
           </p>
         </div>
@@ -156,43 +155,43 @@ export default async function AlertsPage({ searchParams }: AlertsPageProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <Card className="hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200 bg-card/80 backdrop-blur shadow-sm rounded-xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Triggered</p>
-                <p className="text-2xl font-bold text-red-600">{alertCounts.triggered}</p>
+                <p className="text-sm font-medium text-muted-foreground">Triggered</p>
+                <p className="text-3xl font-bold tracking-tight text-destructive mt-1">{alertCounts.triggered}</p>
               </div>
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+              <div className="w-12 h-12 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200 bg-card/80 backdrop-blur shadow-sm rounded-xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Acknowledged</p>
-                <p className="text-2xl font-bold text-amber-600">{alertCounts.acknowledged}</p>
+                <p className="text-sm font-medium text-muted-foreground">Acknowledged</p>
+                <p className="text-3xl font-bold tracking-tight text-amber-500 mt-1">{alertCounts.acknowledged}</p>
               </div>
-              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-amber-600" />
+              <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center justify-center">
+                <Clock className="w-6 h-6 text-amber-500" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow duration-200">
+        <Card className="hover:shadow-md transition-shadow duration-200 bg-card/80 backdrop-blur shadow-sm rounded-xl">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Resolved</p>
-                <p className="text-2xl font-bold text-emerald-600">{alertCounts.resolved}</p>
+                <p className="text-sm font-medium text-muted-foreground">Resolved</p>
+                <p className="text-3xl font-bold tracking-tight text-emerald-500 mt-1">{alertCounts.resolved}</p>
               </div>
-              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-emerald-600" />
+              <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-emerald-500" />
               </div>
             </div>
           </CardContent>

@@ -13,7 +13,7 @@ import {
   Code,
   Target,
   BarChart3,
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -78,31 +78,30 @@ async function getFlagEnvironmentData(flagId: string): Promise<Response | null> 
     } else {
       throw new Error(result.message || 'Failed to fetch environment data')
     }
-  } catch (error) {
-    console.error('Error fetching flag environment data:', error)
+  } catch (error) { console.error(error)
     return null
   }
 }
 
 // Loading component
 const EnvironmentLoading = () => (
-  <div className="min-h-screen bg-gray-50">
+  <div className="min-h-screen bg-background">
     <div className="max-w-7xl mx-auto p-6 lg:p-8">
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-300 rounded w-1/3 mb-4" />
-          <div className="h-4 bg-gray-200 rounded w-2/3" />
+          <div className="h-8 bg-muted rounded-xl w-1/3 mb-4" />
+          <div className="h-4 bg-muted/50 rounded-lg w-2/3" />
         </div>
         <div className="grid gap-6">
           {[...Array(3)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i} className="animate-pulse rounded-xl border-border bg-card/80 backdrop-blur">
               <CardHeader>
-                <div className="h-6 bg-gray-300 rounded w-1/3" />
+                <div className="h-6 bg-muted rounded-lg w-1/3" />
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-full" />
-                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-4 bg-muted/50 rounded-lg w-full" />
+                  <div className="h-4 bg-muted/50 rounded-lg w-3/4" />
                 </div>
               </CardContent>
             </Card>
@@ -164,14 +163,14 @@ const ValueDisplay = ({ valueObj, label, flagType }: {
   console.log(formattedValue);
   return (
     <div>
-      <label className="text-sm font-medium text-gray-700 mb-2 block">
+      <label className="text-xs font-medium text-muted-foreground mb-2 block">
         {label}
-        <Badge variant="outline" className="ml-2 text-xs">
+        <Badge variant="outline" className="ml-2 text-xs font-medium rounded-md">
           {flagType}
         </Badge>
       </label>
-      <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
-        <pre className="text-sm text-gray-800 whitespace-pre-wrap break-all">
+      <div className="bg-muted/10 border border-border rounded-lg p-3">
+        <pre className="text-sm font-mono text-foreground whitespace-pre-wrap break-all">
           {formattedValue}
         </pre>
       </div>
@@ -195,18 +194,18 @@ const EnvironmentCard = ({ environment, flag_id, flag_type }: { environment: Fla
     switch (env.toLowerCase()) {
       case 'production':
       case 'prod':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-500/10 text-red-500 border border-red-500/20 rounded-md text-xs font-medium'
       case 'staging':
       case 'stage':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded-md text-xs font-medium'
       case 'development':
       case 'dev':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-md text-xs font-medium'
       case 'testing':
       case 'test':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-teal-500/10 text-teal-500 border border-teal-500/20 rounded-md text-xs font-medium'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-muted/10 text-foreground border border-border rounded-md text-xs font-medium'
     }
   }
 
@@ -214,28 +213,28 @@ const EnvironmentCard = ({ environment, flag_id, flag_type }: { environment: Fla
     switch (env.toLowerCase()) {
       case 'production':
       case 'prod':
-        return 'bg-red-100'
+        return 'bg-red-500/10 border border-red-500/20 text-red-500'
       case 'staging':
       case 'stage':
-        return 'bg-yellow-100'
+        return 'bg-yellow-500/10 border border-yellow-500/20 text-yellow-500'
       case 'development':
       case 'dev':
-        return 'bg-blue-100'
+        return 'bg-blue-500/10 border border-blue-500/20 text-blue-500'
       case 'testing':
       case 'test':
-        return 'bg-purple-100'
+        return 'bg-teal-500/10 border border-teal-500/20 text-teal-500'
       default:
-        return 'bg-gray-100'
+        return 'bg-muted/10 border border-border text-foreground'
     }
   }
 
   return (
-    <Card className="hover:shadow-md transition-all duration-200">
+    <Card className="hover:shadow-md transition-all duration-200 rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className={`w-10 h-10 ${getEnvironmentIcon(environment.environment)} rounded-lg flex items-center justify-center`}>
-              <Database className="w-5 h-5 text-gray-600" />
+            <div className={`w-10 h-10 ${getEnvironmentIcon(environment.environment)} rounded-xl flex items-center justify-center`}>
+              <Database className="w-5 h-5" />
             </div>
             <div className="flex items-center space-x-3">
               <Badge className={getEnvironmentColor(environment.environment)}>
@@ -245,9 +244,9 @@ const EnvironmentCard = ({ environment, flag_id, flag_type }: { environment: Fla
                 {environment.is_enabled ? (
                   <ToggleRight className="w-5 h-5 text-emerald-500" />
                 ) : (
-                  <ToggleLeft className="w-5 h-5 text-gray-400" />
+                  <ToggleLeft className="w-5 h-5 text-muted-foreground" />
                 )}
-                <span className={`text-sm font-medium ${environment.is_enabled ? 'text-emerald-600' : 'text-gray-600'}`}>
+                <span className={`text-xs font-medium ${environment.is_enabled ? 'text-emerald-500' : 'text-muted-foreground'}`}>
                   {environment.is_enabled ? 'Enabled' : 'Disabled'}
                 </span>
               </div>
@@ -278,45 +277,45 @@ const EnvironmentCard = ({ environment, flag_id, flag_type }: { environment: Fla
         <div className="flex flex-wrap gap-3">
           <Link href={`/flags/rules/${flag_id}?environmentId=${environment.id}`}>
             <Button 
-              className="bg-[#6366F1] hover:bg-[#4F46E5] text-white h-10 font-medium transition-all duration-200"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 rounded-md text-xs font-medium transition-all duration-200"
             >
-              <Target className="w-5 h-5 mr-2" />
+              <Target className="w-4 h-4 mr-2" />
               View Rules
             </Button>
           </Link>
           <Link href={`/flags/rollout/${flag_id}?environmentId=${environment.id}`}>
             <Button 
-              className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white h-10 font-medium transition-all duration-200"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 rounded-md text-xs font-medium transition-all duration-200"
             >
-              <BarChart3 className="w-5 h-5 mr-2" />
+              <BarChart3 className="w-4 h-4 mr-2" />
               View Rollout
             </Button>
           </Link>
           <Link href={`/create-metrics/${environment.id}`}>
             <Button 
-              className="bg-[#06B6D4] hover:bg-[#0891B2] text-white h-10 font-medium transition-all duration-200"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 rounded-md text-xs font-medium transition-all duration-200"
             >
-              <BarChart3 className="w-5 h-5 mr-2" />
+              <BarChart3 className="w-4 h-4 mr-2" />
               Add Metric
             </Button>
           </Link>
         </div>
         
-        <Separator />
+        <Separator className="bg-border/50" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           
           <div>
-            <label className="text-sm font-medium text-gray-700">Created</label>
+            <label className="text-xs font-medium text-muted-foreground">Created</label>
             <div className="flex items-center space-x-1 mt-1">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span className="text-sm text-gray-900">{formatDate(environment.created_at)}</span>
+              <Calendar className="w-3 h-3 text-muted-foreground/70" />
+              <span className="text-sm font-medium text-foreground">{formatDate(environment.created_at)}</span>
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Updated</label>
+            <label className="text-xs font-medium text-muted-foreground">Updated</label>
             <div className="flex items-center space-x-1 mt-1">
-              <Calendar className="w-3 h-3 text-gray-400" />
-              <span className="text-sm text-gray-900">{formatDate(environment.updated_at)}</span>
+              <Calendar className="w-3 h-3 text-muted-foreground/70" />
+              <span className="text-sm font-medium text-foreground">{formatDate(environment.updated_at)}</span>
             </div>
           </div>
         </div>
@@ -340,7 +339,7 @@ export default async function FlagEnvironmentPage({
   const environments = totalData.environmentData;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6 lg:p-8">
         <Suspense fallback={<EnvironmentLoading />}>
           <div className="space-y-6">
@@ -348,23 +347,23 @@ export default async function FlagEnvironmentPage({
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
               <div className="flex items-center space-x-4">
                 <Link href={`/flags/${flagId}`}>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="rounded-md text-xs font-medium border-border hover:bg-muted/50">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Flag Details
                   </Button>
                 </Link>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center">
-                    <Database className="w-6 h-6 mr-3 text-indigo-600" />
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight flex items-center">
+                    <Database className="w-6 h-6 mr-3 text-primary" />
                     Environment Settings
                   </h1>
-                  <p className="text-gray-600 text-base sm:text-lg mt-1">
+                  <p className="text-muted-foreground text-sm font-medium mt-1">
                     Manage flag values across different environments
                   </p>
                 </div>
               </div>
               <Link href={`/create-flag/environments?flagKey=${flagId}`}>
-                <Button>
+                <Button className="rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90">
                   <Plus className="w-4 h-4 mr-2" />
                   Add New Environment
                 </Button>
@@ -373,47 +372,47 @@ export default async function FlagEnvironmentPage({
 
             {/* Environment Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card>
+              <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                      <Database className="w-5 h-5 text-indigo-600" />
+                    <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center">
+                      <Database className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">{environments.length}</p>
-                      <p className="text-sm text-gray-600">Total Environments</p>
+                      <p className="text-2xl font-bold text-foreground">{environments.length}</p>
+                      <p className="text-xs font-medium text-muted-foreground">Total Environments</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                      <ToggleRight className="w-5 h-5 text-emerald-600" />
+                    <div className="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center">
+                      <ToggleRight className="w-5 h-5 text-emerald-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-foreground">
                         {environments.filter(env => env.is_enabled).length}
                       </p>
-                      <p className="text-sm text-gray-600">Enabled</p>
+                      <p className="text-xs font-medium text-muted-foreground">Enabled</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <ToggleLeft className="w-5 h-5 text-gray-600" />
+                    <div className="w-10 h-10 bg-muted/10 border border-border rounded-xl flex items-center justify-center">
+                      <ToggleLeft className="w-5 h-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-foreground">
                         {environments.filter(env => !env.is_enabled).length}
                       </p>
-                      <p className="text-sm text-gray-600">Disabled</p>
+                      <p className="text-xs font-medium text-muted-foreground">Disabled</p>
                     </div>
                   </div>
                 </CardContent>
@@ -423,20 +422,20 @@ export default async function FlagEnvironmentPage({
             {/* Environments List */}
             <div className="space-y-6">
               <div className="flex items-center space-x-2">
-                <Settings className="w-5 h-5 text-indigo-600" />
-                <h2 className="text-xl font-semibold text-gray-900">Environment Configurations</h2>
+                <Settings className="w-5 h-5 text-primary" />
+                <h2 className="text-xl font-bold text-foreground tracking-tight">Environment Configurations</h2>
               </div>
               
               {environments.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <Database className="w-6 h-6 text-gray-400" />
+                  <div className="w-12 h-12 bg-muted/10 border border-border rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Database className="w-6 h-6 text-muted-foreground" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Environments Found</h3>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  <h3 className="text-xl font-bold text-foreground tracking-tight mb-2">No Environments Found</h3>
+                  <p className="text-sm font-medium text-muted-foreground mb-6 max-w-md mx-auto">
                     This flag doesn&apos;t have any environment configurations yet. Create your first environment to get started.
                   </p>
-                  <Button>
+                  <Button className="rounded-md text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90">
                     <Plus className="w-4 h-4 mr-2" />
                     Create First Environment
                   </Button>
@@ -452,16 +451,16 @@ export default async function FlagEnvironmentPage({
 
             {/* Action Bar */}
             {environments.length > 0 && (
-              <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
-                <Button variant="outline">
+              <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border/50">
+                <Button variant="outline" className="rounded-md text-xs font-medium border-border hover:bg-muted/50">
                   <Copy className="w-4 h-4 mr-2" />
                   Bulk Copy Settings
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" className="rounded-md text-xs font-medium border-border hover:bg-muted/50">
                   <Code className="w-4 h-4 mr-2" />
                   Export Configuration
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" className="rounded-md text-xs font-medium border-border hover:bg-muted/50">
                   <Settings className="w-4 h-4 mr-2" />
                   Bulk Operations
                 </Button>

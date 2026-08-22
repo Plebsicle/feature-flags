@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
     try {
           if(password){
-            const response = await axios.post(`/${BACKEND_URL}/auth/emailSignin`,{
+            const response = await axios.post(`${BACKEND_URL}/auth/emailSignin`,{
               email,password
             },{withCredentials:true});
             if(response.status === 200){
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
           else{
-            const response = await axios.post(`/${BACKEND_URL}/auth/googleSignin`,{
+            const response = await axios.post(`${BACKEND_URL}/auth/googleSignin`,{
               googleId : googleToken
             },{withCredentials:true});
             if(response.status === 200){
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { name, email, password,googleToken } = partialSignupDetails
       if(!password){
-        const response = await axios.post(`/${BACKEND_URL}/auth/googleSignup`,{
+        const response = await axios.post(`${BACKEND_URL}/auth/googleSignup`,{
           googleId : googleToken,orgName : organizationName
         },{withCredentials:true});
         if(response.status === 200){
@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       else{
-        const response = await axios.post(`/${BACKEND_URL}/auth/emailSignup`,{
+        const response = await axios.post(`${BACKEND_URL}/auth/emailSignup`,{
           name , email , password , orgName : organizationName
         },{withCredentials:true});
         if(response.status === 200){

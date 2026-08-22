@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2, Loader2 } from 'lucide-react'
+import { Trash2, Loader2 } from "@/components/ui/icons"
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -30,7 +30,7 @@ export function DeleteEnvironmentButton({ environmentId, environmentName }: Dele
   const handleDelete = async () => {
     setIsDeleting(true)
     
-    const promise = fetch(`/${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/deleteEnvironment/${environmentId}`, {
+    const promise = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'}/flag/deleteEnvironment/${environmentId}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -55,7 +55,7 @@ export function DeleteEnvironmentButton({ environmentId, environmentName }: Dele
             })
             return 'Environment deleted successfully'
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error deleting environment:', err)
             return 'Failed to delete environment. Please try again.'
         },

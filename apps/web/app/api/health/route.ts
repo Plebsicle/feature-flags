@@ -26,8 +26,7 @@ export async function GET() {
         'Content-Type': 'application/json'
       }
     });
-  } catch (error) {
-    console.error('Health check failed:', error);
+  } catch (error) { console.error(error);
     
     return Response.json({
       status: 'unhealthy',
@@ -48,8 +47,7 @@ export async function GET() {
 export async function HEAD() {
   try {
     return new Response(null, { status: 200 });
-  } catch (_error) {
-    console.error('Health check failed:', _error);
+  } catch (_error) { console.error(_error);
     return new Response(null, { status: 503 });
   }
 } 

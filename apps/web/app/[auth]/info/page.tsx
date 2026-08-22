@@ -4,7 +4,7 @@ import type React from "react"
 
 import {useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowRight, User, Lock, Shield, Eye, EyeOff, CheckCircle, XCircle, Flag } from "lucide-react"
+import { ArrowRight, User, Lock, Shield, Eye, EyeOff, CheckCircle, XCircle, Flag } from "@/components/ui/icons"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -61,7 +61,7 @@ export default function InfoPage() {
       return
     }
 
-    const promise = axios.post(`/${BACKEND_URL}/auth/memberSignupVerification`,{
+    const promise = axios.post(`${BACKEND_URL}/auth/memberSignupVerification`,{
         name , password, token
     });
 
@@ -77,7 +77,7 @@ export default function InfoPage() {
           throw new Error('Account setup failed');
         }
       },
-      error: (err) => {
+      error: () => {
         // console.error(err);
         setTimeout(() => {
           router.push('/auth/signin');
@@ -107,27 +107,27 @@ export default function InfoPage() {
   return (
     <>
       <Toaster />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-md">
           <motion.div variants={itemVariants}>
-            <Card className="shadow-lg border border-gray-200">
+            <Card className="shadow-lg border border-border bg-card">
               <CardHeader className="text-center pb-6 pt-6 sm:pt-8">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-16 h-16 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+                  className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4"
                 >
-                  <Shield className="w-8 h-8 text-indigo-600" />
+                  <Shield className="w-8 h-8 text-primary" />
                 </motion.div>
                 <div className="flex items-center justify-center mb-4">
-                  <Flag className="w-6 h-6 text-indigo-600 mr-2" />
-                  <span className="text-lg font-semibold text-gray-900">Bitswitch</span>
+                  <Flag className="w-6 h-6 text-primary mr-2" />
+                  <span className="text-lg font-semibold text-foreground">Bitswitch</span>
                 </div>
-                <CardTitle className="text-2xl font-bold text-gray-900">
+                <CardTitle className="text-2xl font-bold text-foreground">
                   Additional Information
                 </CardTitle>
-                <CardDescription className="text-gray-600">
+                <CardDescription className="text-muted-foreground">
                   Please provide your details to complete the process
                 </CardDescription>
               </CardHeader>
@@ -135,11 +135,11 @@ export default function InfoPage() {
               <CardContent>
                 <motion.form variants={itemVariants} onSubmit={handleSubmit} className="space-y-6">
                   <motion.div variants={itemVariants} className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-medium text-gray-900">
+                    <Label htmlFor="name" className="text-sm font-medium text-foreground">
                       Full Name
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                       <Input
                         id="name"
                         type="text"
@@ -154,10 +154,10 @@ export default function InfoPage() {
                   </motion.div>
 
                   <motion.div variants={itemVariants} className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-900">
+                    <Label htmlFor="password" className="text-sm font-medium text-foreground">
                       Password
                     </Label>
-                    <div className="mt-1 mb-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="mt-1 mb-2 p-3 bg-muted rounded-lg border border-border">
                       <ul className="space-y-1">
                         <PasswordRequirement met={passwordRequirements.minLength} text="At least 8 characters long" />
                         <PasswordRequirement met={passwordRequirements.uppercase} text="1 uppercase letter (A-Z)" />
@@ -167,7 +167,7 @@ export default function InfoPage() {
                       </ul>
                     </div>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
@@ -182,13 +182,13 @@ export default function InfoPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         aria-label={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Choose a strong and secure password.
                     </p>
                   </motion.div>
@@ -200,13 +200,13 @@ export default function InfoPage() {
                   <Button
                     onClick={handleSubmit}
                     disabled={!name.trim() || !allPasswordRequirementsMet || isLoading}
-                    className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     {isLoading ? (
                       <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                        className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                        className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
                       />
                     ) : (
                       <>

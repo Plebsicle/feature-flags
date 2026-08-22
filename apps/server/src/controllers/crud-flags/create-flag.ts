@@ -137,8 +137,7 @@ class CreateFlagController {
             } else {
                                                                 
                     const nextStage = rollout_config.stages.find(
-                        //@ts-ignore
-                        s => s.stage === rollout_config.currentStage.stage + 1
+                        (s: { stage: number; stageDate: string | Date }) => s.stage === rollout_config.currentStage.stage + 1
                     );
                     if (nextStage) {
                         rollout_config.currentStage.nextProgressAt = new Date(nextStage.stageDate);
@@ -340,8 +339,7 @@ class CreateFlagController {
                 );
             }else{                                          
                     const nextStage = rollout_config.stages.find(
-                        //@ts-ignore
-                        s => s.stage === rollout_config.currentStage.stage + 1
+                        (s: { stage: number; stageDate: string | Date }) => s.stage === rollout_config.currentStage.stage + 1
                     );
                     if (nextStage) {
                         rollout_config.currentStage.nextProgressAt = new Date(nextStage.stageDate);

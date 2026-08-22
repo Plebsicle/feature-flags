@@ -16,7 +16,7 @@ import {
   Minus,
   Loader2,
   Key
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -101,7 +101,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
     const fetchKillSwitch = async () => {
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-        const response = await fetch(`/${backendUrl}/killSwitch/${killSwitchId}`, {
+        const response = await fetch(`${backendUrl}/killSwitch/${killSwitchId}`, {
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
@@ -129,8 +129,8 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
         } else {
           throw new Error(result.message || 'Failed to fetch kill switch')  
         }
-      } catch (error) {
-        console.error('Error fetching kill switch:', error)
+      } catch {
+        console.error('Error fetching kill switch')
         setError('Failed to fetch kill switch')
       } finally {
         setLoading(false)
@@ -156,15 +156,15 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
   const getEnvironmentColor = (env: $Enums.environment_type) => {
     switch (env) {
       case 'DEV':
-        return 'bg-blue-100 text-blue-700 border-blue-200'
+        return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
       case 'STAGING':
-        return 'bg-amber-100 text-amber-700 border-amber-200'
+        return 'bg-amber-500/10 text-amber-400 border-amber-500/20'
       case 'PROD':
-        return 'bg-red-100 text-red-700 border-red-200'
+        return 'bg-red-500/10 text-red-400 border-red-500/20'
       case 'TEST':
-        return 'bg-purple-100 text-purple-700 border-purple-200'
+        return 'bg-teal-500/10 text-teal-400 border-teal-500/20'
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200'
+        return 'bg-muted text-muted-foreground border-border'
     }
   }
 
@@ -203,7 +203,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
     setIsSaving(true)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
     
-    const promise = fetch(`/${backendUrl}/killSwitch/${killSwitchId}`, {
+    const promise = fetch(`${backendUrl}/killSwitch/${killSwitchId}`, {
       method: 'PUT',
       credentials: 'include',
       headers: {
@@ -235,7 +235,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
         })
         return 'Kill switch updated successfully!'
       },
-      error: (err) => {
+      error: () => {
         // console.error('Error updating kill switch:', err)
         return 'Failed to update kill switch. Please try again.'
       }
@@ -248,7 +248,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
     setIsDeleting(true)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
     
-    const promise = fetch(`/${backendUrl}/killSwitch/${killSwitchId}`, {
+    const promise = fetch(`${backendUrl}/killSwitch/${killSwitchId}`, {
       method: 'DELETE',
       credentials: 'include',
       headers: {
@@ -272,7 +272,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
         })
         return 'Kill switch deleted successfully!'
       },
-      error: (err) => {
+      error: () => {
         // console.error('Error deleting kill switch:', err)
         return 'Failed to delete kill switch. Please try again.'
       }
@@ -323,26 +323,26 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
   if (loading) {
     return (
       <div className="space-y-8">
-        <div className="flex items-center space-x-3">
-          <div className="bg-red-100 p-2 rounded-lg">
-            <Skull className="w-6 h-6 text-red-600" />
+        <div className="flex items-center space-x-4">
+          <div className="bg-muted p-3 rounded-xl">
+            <Skull className="w-8 h-8 text-muted-foreground" />
           </div>
           <div>
-            <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-            <div className="h-4 bg-gray-100 rounded w-32 mt-2 animate-pulse"></div>
+            <div className="h-8 bg-muted rounded-lg w-48 animate-pulse mb-2"></div>
+            <div className="h-4 bg-muted/50 rounded-lg w-32 animate-pulse"></div>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-100 rounded w-1/2"></div>
+            <Card key={i} className="animate-pulse rounded-xl border-border bg-card/50">
+              <CardHeader className="border-b border-border/50">
+                <div className="h-6 bg-muted rounded-lg w-3/4"></div>
+                <div className="h-4 bg-muted/50 rounded-lg w-1/2"></div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="space-y-3">
-                  <div className="h-4 bg-gray-100 rounded"></div>
-                  <div className="h-4 bg-gray-100 rounded w-2/3"></div>
+                  <div className="h-4 bg-muted/50 rounded-lg"></div>
+                  <div className="h-4 bg-muted/50 rounded-lg w-2/3"></div>
                 </div>
               </CardContent>
             </Card>
@@ -354,15 +354,15 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Kill Switch</h3>
-          <p className="text-red-700 mb-4">{error}</p>
+      <div className="text-center py-16">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-8 max-w-md mx-auto shadow-sm">
+          <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-foreground mb-2">Error Loading Kill Switch</h3>
+          <p className="text-sm text-destructive/80 mb-6">{error}</p>
           <Button 
             onClick={() => window.location.reload()}
             variant="outline"
-            className="border-red-300 text-red-600 hover:bg-red-50"
+            className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive font-medium text-sm rounded-lg h-10 px-6"
           >
             Try Again
           </Button>
@@ -373,14 +373,14 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
 
   if (!killSwitch) {
     return (
-      <div className="text-center py-12">
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 max-w-md mx-auto">
-          <Skull className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Kill Switch Not Found</h3>
-          <p className="text-gray-600 mb-4">The kill switch you&apos;re looking for doesn&apos;t exist or has been deleted.</p>
+      <div className="text-center py-16">
+        <div className="bg-card/50 border border-border border-dashed rounded-xl p-10 max-w-md mx-auto backdrop-blur">
+          <Skull className="w-12 h-12 text-muted-foreground mx-auto mb-6 opacity-50" />
+          <h3 className="text-xl font-semibold text-foreground mb-3">Kill Switch Not Found</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-8">The kill switch you're looking for doesn't exist or has been deleted.</p>
           <Button 
             onClick={() => router.push('/killSwitch')}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="font-medium text-sm h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
           >
             Back to Kill Switches
           </Button>
@@ -395,14 +395,14 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
       
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className={`p-2 rounded-lg ${killSwitch.is_active ? 'bg-red-100' : 'bg-gray-100'}`}>
-            <Skull className={`w-6 h-6 ${killSwitch.is_active ? 'text-red-600' : 'text-gray-600'}`} />
+        <div className="flex items-center space-x-4">
+          <div className={`p-3 rounded-xl shadow-sm ${killSwitch.is_active ? 'bg-red-500/10 border border-red-500/20' : 'bg-muted border border-border'}`}>
+            <Skull className={`w-8 h-8 ${killSwitch.is_active ? 'text-red-500' : 'text-muted-foreground'}`} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{killSwitch.name}</h1>
-            <div className="flex items-center space-x-2 mt-1">
-              <Badge variant={killSwitch.is_active ? "destructive" : "secondary"}>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight mb-1">{killSwitch.name}</h1>
+            <div className="flex items-center space-x-2">
+              <Badge variant={killSwitch.is_active ? "destructive" : "secondary"} className="rounded-md text-xs font-medium uppercase">
                 {killSwitch.is_active ? 'ACTIVE' : 'INACTIVE'}
               </Badge>
             </div>
@@ -415,6 +415,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
               <Button 
                 variant="outline" 
                 onClick={handleEdit}
+                className="font-medium text-sm rounded-lg h-10 px-4"
               >
                 <Edit3 className="w-4 h-4 mr-2" />
                 Edit
@@ -423,25 +424,25 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="outline"
-                    className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                    className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive font-medium text-sm rounded-lg h-10 px-4"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     Delete
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="rounded-xl border-border bg-card/90 backdrop-blur-xl">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Kill Switch</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogTitle className="font-semibold text-xl text-foreground">Delete Kill Switch</AlertDialogTitle>
+                    <AlertDialogDescription className="text-sm text-muted-foreground leading-relaxed">
                       Are you sure you want to delete this kill switch? This action cannot be undone and will permanently remove all associated flag mappings.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="font-medium text-sm rounded-lg h-10 px-6">Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDelete}
                       disabled={isDeleting}
-                      className="bg-red-600 hover:bg-red-700 text-white"
+                      className="bg-destructive hover:bg-destructive/90 text-destructive-foreground font-medium text-sm rounded-lg h-10 px-6 shadow-sm"
                     >
                       {isDeleting ? (
                         <>
@@ -464,6 +465,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
                 variant="outline" 
                 onClick={handleCancelEdit}
                 disabled={isSaving}
+                className="font-medium text-sm rounded-lg h-10 px-4"
               >
                 <X className="w-4 h-4 mr-2" />
                 Cancel
@@ -471,7 +473,7 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
               <Button 
                 onClick={handleSave}
                 disabled={isSaving}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm rounded-lg h-10 px-6 shadow-sm"
               >
                 {isSaving ? (
                   <>
@@ -491,53 +493,54 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
       </div>
 
       {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <div className="bg-indigo-100 p-2 rounded-md mr-3">
-                <Activity className="w-5 h-5 text-indigo-600" />
+        <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="flex items-center text-lg font-semibold text-foreground">
+              <div className="bg-primary/10 p-2 rounded-lg mr-3 border border-primary/20">
+                <Activity className="w-5 h-5 text-primary" />
               </div>
               Basic Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             {isEditing ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-gray-900 font-medium">Name *</Label>
+                  <Label htmlFor="name" className="text-sm font-medium text-muted-foreground">Name *</Label>
                   <Input
                     id="name"
                     value={editForm.name}
                     onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Kill switch name"
+                    className="h-10 border-border bg-background rounded-lg text-sm focus:border-primary"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="description" className="text-gray-900 font-medium">Description *</Label>
+                  <Label htmlFor="description" className="text-sm font-medium text-muted-foreground">Description *</Label>
                   <Textarea
                     id="description"
                     value={editForm.description}
                     onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Describe what this kill switch controls"
-                    className="min-h-[100px]"
+                    className="min-h-[100px] border-border bg-background rounded-lg text-sm focus:border-primary resize-none"
                   />
                 </div>
                 
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded ${editForm.is_active ? 'bg-red-100' : 'bg-gray-100'}`}>
+                <div className="flex items-center justify-between p-4 bg-muted/30 border border-border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className={`p-2 rounded-lg border ${editForm.is_active ? 'bg-red-500/10 border-red-500/20' : 'bg-muted border-border'}`}>
                       {editForm.is_active ? (
-                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                        <AlertTriangle className="w-5 h-5 text-red-500" />
                       ) : (
-                        <Activity className="w-5 h-5 text-gray-600" />
+                        <Activity className="w-5 h-5 text-muted-foreground" />
                       )}
                     </div>
                     <div>
-                      <Label className="text-gray-900 font-medium">Active Status</Label>
-                      <p className="text-sm text-gray-600">
+                      <Label className="text-sm font-semibold text-foreground block mb-1">Active Status</Label>
+                      <p className="text-xs text-muted-foreground">
                         {editForm.is_active ? 'Kill switch is currently active' : 'Kill switch is currently inactive'}
                       </p>
                     </div>
@@ -549,53 +552,53 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
                 </div>
               </>
             ) : (
-              <>
+              <div className="space-y-6">
                 <div>
-                  <Label className="text-gray-500 text-sm">Name</Label>
-                  <p className="text-gray-900 font-medium">{killSwitch.name}</p>
+                  <Label className="text-xs font-medium text-muted-foreground block mb-1">Name</Label>
+                  <p className="text-sm text-foreground font-semibold">{killSwitch.name}</p>
                 </div>
                 
                 <div>
-                  <Label className="text-gray-500 text-sm">Description</Label>
-                  <p className="text-gray-900">{killSwitch.description || 'No description provided'}</p>
+                  <Label className="text-xs font-medium text-muted-foreground block mb-1">Description</Label>
+                  <p className="text-sm text-foreground leading-relaxed">{killSwitch.description || 'No description provided'}</p>
                 </div>
                 
                 <div>
-                  <Label className="text-gray-500 text-sm">Status</Label>
-                  <div className="flex items-center space-x-2 mt-1">
+                  <Label className="text-xs font-medium text-muted-foreground block mb-2">Status</Label>
+                  <div className="flex items-center space-x-2">
                     {killSwitch.is_active ? (
-                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                      <AlertTriangle className="w-4 h-4 text-red-500" />
                     ) : (
-                      <Activity className="w-5 h-5 text-gray-400" />
+                      <Activity className="w-4 h-4 text-muted-foreground" />
                     )}
-                    <span className={`font-medium ${killSwitch.is_active ? 'text-red-600' : 'text-gray-600'}`}>
+                    <span className={`text-sm font-semibold ${killSwitch.is_active ? 'text-red-500' : 'text-muted-foreground'}`}>
                       {killSwitch.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </CardContent>
         </Card>
 
         {/* Metadata */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <div className="bg-purple-100 p-2 rounded-md mr-3">
-                <Calendar className="w-5 h-5 text-purple-600" />
+        <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="flex items-center text-lg font-semibold text-foreground">
+              <div className="bg-primary/10 p-2 rounded-lg mr-3 border border-primary/20">
+                <Calendar className="w-5 h-5 text-primary" />
               </div>
               Metadata
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6 pt-6">
             {killSwitch.killSwitchKey && (
-              <div className="mb-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                <Label className="text-gray-500 text-sm mb-2 block">Kill Switch Key</Label>
+              <div className="mb-2 p-4 bg-muted/30 border border-border rounded-lg">
+                <Label className="text-xs font-medium text-muted-foreground block mb-2">Kill Switch Key</Label>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Key className="w-4 h-4 text-indigo-600" />
-                    <code className="font-mono text-sm bg-gray-100 px-2 py-1 rounded text-gray-800">
+                  <div className="flex items-center space-x-3">
+                    <Key className="w-4 h-4 text-primary" />
+                    <code className="font-mono text-xs bg-muted px-2 py-1 rounded-md text-foreground border border-border">
                       {killSwitch.killSwitchKey}
                     </code>
                   </div>
@@ -607,31 +610,33 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
               </div>
             )}
             
-            <div>
-              <Label className="text-gray-500 text-sm">Created</Label>
-              <p className="text-gray-900">{formatDate(killSwitch.created_at)}</p>
-            </div>
-            
-            <div>
-              <Label className="text-gray-500 text-sm">Last Updated</Label>
-              <p className="text-gray-900">{formatDate(killSwitch.updated_at)}</p>
-            </div>
-            
-            <div>
-              <Label className="text-gray-500 text-sm">Last Activated</Label>
-              <p className="text-gray-900">{formatDate(killSwitch.activated_at)}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground block mb-1">Created</Label>
+                <p className="text-sm text-foreground">{formatDate(killSwitch.created_at)}</p>
+              </div>
+              
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground block mb-1">Last Updated</Label>
+                <p className="text-sm text-foreground">{formatDate(killSwitch.updated_at)}</p>
+              </div>
+              
+              <div>
+                <Label className="text-xs font-medium text-muted-foreground block mb-1">Last Activated</Label>
+                <p className="text-sm text-foreground">{formatDate(killSwitch.activated_at)}</p>
+              </div>
             </div>
             
           </CardContent>
         </Card>
 
         {/* Flag Mappings */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+        <Card className="lg:col-span-2 rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="flex items-center justify-between text-lg font-semibold text-foreground">
               <div className="flex items-center">
-                <div className="bg-emerald-100 p-2 rounded-md mr-3">
-                  <Flag className="w-5 h-5 text-emerald-600" />
+                <div className="bg-primary/10 p-2 rounded-lg mr-3 border border-primary/20">
+                  <Flag className="w-5 h-5 text-primary" />
                 </div>
                 Flag Mappings
               </div>
@@ -639,56 +644,57 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
                 <Button
                   size="sm"
                   onClick={addFlag}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="font-medium text-xs h-8 px-4 rounded-md"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="w-3 h-3 mr-2" />
                   Add Flag
                 </Button>
               )}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm text-muted-foreground mt-2">
               Feature flags controlled by this kill switch
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {isEditing ? (
               <div className="space-y-4">
                 {editForm.flags.map((flag, index) => (
-                  <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-4">
+                  <div key={index} className="p-4 bg-muted/20 border border-border rounded-lg space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label className="text-gray-900 font-medium">Flag {index + 1}</Label>
+                      <Label className="text-sm font-semibold text-foreground">Flag {index + 1}</Label>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => removeFlag(index)}
-                        className="border-red-300 text-red-600 hover:bg-red-50"
+                        className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive h-8 w-8 p-0 rounded-md"
                       >
-                        <Minus className="w-4 h-4" />
+                        <Minus className="w-3 h-3" />
                       </Button>
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor={`flag-key-${index}`} className="text-gray-900">Flag Key *</Label>
+                      <Label htmlFor={`flag-key-${index}`} className="text-xs font-medium text-muted-foreground">Flag Key *</Label>
                       <Input
                         id={`flag-key-${index}`}
                         value={flag.flagKey}
                         onChange={(e) => updateFlagKey(index, e.target.value)}
                         placeholder="Enter flag key"
+                        className="h-10 border-border bg-background rounded-md text-sm focus:border-primary"
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label className="text-gray-900">Environments *</Label>
+                      <Label className="text-xs font-medium text-muted-foreground block mb-2">Environments *</Label>
                       <div className="flex flex-wrap gap-2">
                         {ENV_OPTIONS.map((env) => (
                           <button
                             key={env}
                             type="button"
                             onClick={() => toggleEnvironment(index, env)}
-                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                            className={`px-3 py-1.5 text-xs font-medium uppercase transition-colors rounded-md border ${
                               flag.environments.includes(env)
-                                ? getEnvironmentColor(env)
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? `${getEnvironmentColor(env)} border-current`
+                                : 'bg-background text-muted-foreground border-border hover:bg-muted/50'
                             }`}
                           >
                             {env}
@@ -700,14 +706,15 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
                 ))}
                 
                 {editForm.flags.length === 0 && (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                    <Flag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">No flags configured yet</p>
+                  <div className="text-center py-12 bg-muted/30 border border-dashed border-border rounded-lg">
+                    <Flag className="w-10 h-10 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-sm text-muted-foreground mb-4">No flags configured yet</p>
                     <Button
                       onClick={addFlag}
                       variant="outline"
+                      className="font-medium text-sm rounded-lg border-dashed hover:border-solid transition-all"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
+                      <Plus className="w-3 h-3 mr-2" />
                       Add First Flag
                     </Button>
                   </div>
@@ -717,19 +724,19 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
               <div className="space-y-4">
                 {killSwitch.flag_mappings && killSwitch.flag_mappings.length > 0 ? (
                   killSwitch.flag_mappings.map((mapping, index) => (
-                    <div key={mapping.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-medium text-gray-900">Flag {index + 1}</h4>
-                        <Badge variant="outline" className="font-mono text-xs">
+                    <div key={mapping.id} className="p-4 bg-muted/10 border border-border rounded-lg transition-colors hover:bg-muted/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-sm font-semibold text-foreground">Flag {index + 1}</h4>
+                        <Badge variant="outline" className="text-xs rounded-md border-border">
                           {mapping.flag_id}
                         </Badge>
                       </div>
                       
                       <div className="space-y-2">
-                        <Label className="text-gray-500 text-sm">Environments</Label>
+                        <Label className="text-xs font-medium text-muted-foreground block mb-2">Environments</Label>
                         <div className="flex flex-wrap gap-2">
                           {mapping.environments.map((env) => (
-                            <Badge key={env} className={getEnvironmentColor(env)}>
+                            <Badge key={env} className={`${getEnvironmentColor(env)} rounded-md text-xs font-medium uppercase`}>
                               {env}
                             </Badge>
                           ))}
@@ -738,9 +745,9 @@ export default function KillSwitchDetailClient({ killSwitchId }: KillSwitchDetai
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-                    <Flag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No flags mapped to this kill switch</p>
+                  <div className="text-center py-12 bg-muted/30 border border-dashed border-border rounded-lg">
+                    <Flag className="w-10 h-10 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-sm text-muted-foreground">No flags mapped to this kill switch</p>
                   </div>
                 )}
               </div>

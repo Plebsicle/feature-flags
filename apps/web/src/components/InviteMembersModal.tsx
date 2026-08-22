@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { UserPlus} from "lucide-react"
+import { UserPlus} from "@/components/ui/icons"
 import { Button } from "@/components/ui/button"
 import { 
   Dialog, 
@@ -92,7 +92,7 @@ export function InviteMembersModal({ isOpen, onClose, onInvite }: InviteMembersM
             onClose()
             return 'Invitations sent successfully!'
         },
-        error: (err: any) => {
+        error: () => {
             // console.error("Failed to send invitations:", err)
             return 'Failed to send invitations. Please try again.'
         }

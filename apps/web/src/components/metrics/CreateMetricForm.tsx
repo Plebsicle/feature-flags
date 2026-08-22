@@ -13,7 +13,7 @@ import {
   Tag,
   Plus,
   Loader2
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -168,8 +168,8 @@ export default function CreateMetricForm() {
             aggregation_method: formData.aggregation_method
         })
     }
-    // console.log(`/${backendUrl}/metrics`);
-    const promise = fetch(`/${backendUrl}/metrics`, {
+    // console.log(`${backendUrl}/metrics`);
+    const promise = fetch(`${backendUrl}/metrics`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -194,7 +194,7 @@ export default function CreateMetricForm() {
             })
             return 'Metric created successfully!'
         },
-        error: (err) => {
+        error: () => {
             // console.error('Error creating metric:', err)
             return 'Failed to create metric. Please try again.'
         }
@@ -225,18 +225,19 @@ export default function CreateMetricForm() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="bg-indigo-100 p-2 rounded-lg">
-            <BarChart3 className="w-6 h-6 text-indigo-600" />
+          <div className="bg-primary/10 border border-primary/20 p-2 rounded-xl">
+            <BarChart3 className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Create Metric</h1>
-            <p className="text-gray-600">Define a new metric to track your application&apos;s performance</p>
+            <h1 className="text-4xl font-bold text-foreground tracking-tight">Create Metric</h1>
+            <p className="text-muted-foreground text-sm mt-1">Define a new metric to track your application&apos;s performance</p>
           </div>
         </div>
         
         <Button 
           variant="outline" 
           onClick={() => router.back()}
+          className="rounded-lg font-medium text-sm"
         >
           <X className="w-4 h-4 mr-2" />
           Cancel
@@ -246,23 +247,23 @@ export default function CreateMetricForm() {
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <div className="bg-indigo-100 p-2 rounded-md mr-3">
-                <BarChart3 className="w-5 h-5 text-indigo-600" />
+        <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="flex items-center text-foreground font-semibold text-2xl">
+              <div className="bg-primary/10 border border-primary/20 p-2 rounded-lg mr-3">
+                <BarChart3 className="w-5 h-5 text-primary" />
               </div>
               Basic Information
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground text-sm mt-1">
               Configure the basic details for your metric
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             {/* Metric Name & Key */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="metric_name" className="text-gray-900 font-medium">
+                <Label htmlFor="metric_name" className="text-sm font-medium text-muted-foreground">
                   Metric Name *
                 </Label>
                 <Input
@@ -271,15 +272,16 @@ export default function CreateMetricForm() {
                   value={formData.metric_name}
                   onChange={(e) => handleInputChange('metric_name', e.target.value)}
                   placeholder="e.g., User Signups"
+                  className="rounded-lg border-border bg-muted/10 text-sm focus-visible:ring-0 focus-visible:border-primary"
                   required
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground opacity-70">
                   A human-readable name for your metric
                 </p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="metric_key" className="text-gray-900 font-medium">
+                <Label htmlFor="metric_key" className="text-sm font-medium text-muted-foreground">
                   Metric Key (auto-generated)
                 </Label>
                 <Input
@@ -288,9 +290,9 @@ export default function CreateMetricForm() {
                   value={formData.metric_key}
                   readOnly
                   placeholder="e.g., user-signups-123456"
-                  className="bg-gray-50 border-gray-300 text-gray-600 cursor-not-allowed"
+                  className="bg-muted/30 border-border text-muted-foreground cursor-not-allowed rounded-lg font-mono text-sm focus-visible:ring-0"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground opacity-70">
                   A unique identifier automatically generated from the metric name with a unique suffix
                 </p>
               </div>
@@ -298,7 +300,7 @@ export default function CreateMetricForm() {
 
             {/* Metric Type */}
             <div className="space-y-2">
-              <Label className="text-gray-900 font-medium">Metric Type *</Label>
+              <Label className="text-sm font-medium text-muted-foreground">Metric Type *</Label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {Object.values(metric_type).map((type) => {
                   const IconComponent = getMetricTypeIcon(type)
@@ -309,21 +311,21 @@ export default function CreateMetricForm() {
                       key={type}
                       type="button"
                       onClick={() => handleInputChange('metric_type', type)}
-                      className={`p-4 rounded-lg border-2 transition-all ${
+                      className={`p-4 rounded-xl border transition-all ${
                         isSelected
-                          ? 'border-indigo-300 bg-indigo-50'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-muted/10 hover:border-primary/50'
                       }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded ${isSelected ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                          <IconComponent className={`w-5 h-5 ${isSelected ? 'text-indigo-600' : 'text-gray-600'}`} />
+                        <div className={`p-2 rounded-lg border ${isSelected ? 'bg-primary/20 border-primary/50' : 'bg-muted/30 border-border'}`}>
+                          <IconComponent className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="text-left">
-                          <div className={`font-medium ${isSelected ? 'text-indigo-900' : 'text-gray-900'}`}>
+                          <div className={`font-semibold tracking-tight text-lg ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {type}
                           </div>
-                          <div className={`text-sm ${isSelected ? 'text-indigo-600' : 'text-gray-500'}`}>
+                          <div className={`text-xs mt-1 ${isSelected ? 'text-primary' : 'text-muted-foreground opacity-70'}`}>
                             {type === metric_type.CONVERSION && 'Track conversion rates'}
                             {type === metric_type.COUNT && 'Count events or actions'}
                             {type === metric_type.NUMERIC && 'Track numeric values'}
@@ -339,7 +341,7 @@ export default function CreateMetricForm() {
             {/* Unit & Aggregation */}
             <div className={`grid grid-cols-1 ${formData.metric_type === metric_type.NUMERIC ? 'md:grid-cols-2' : ''} gap-6`}>
               <div className="space-y-2">
-                <Label htmlFor="unit_measurement" className="text-gray-900 font-medium">
+                <Label htmlFor="unit_measurement" className="text-sm font-medium text-muted-foreground">
                   Unit of Measurement *
                 </Label>
                 <Input
@@ -348,34 +350,35 @@ export default function CreateMetricForm() {
                   value={formData.unit_measurement}
                   onChange={(e) => handleInputChange('unit_measurement', e.target.value)}
                   placeholder="e.g., users, clicks, dollars"
+                  className="rounded-lg border-border bg-muted/10 text-sm focus-visible:ring-0 focus-visible:border-primary"
                   required
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground opacity-70">
                   The unit this metric measures
                 </p>
               </div>
               
               {formData.metric_type === metric_type.NUMERIC && (
                 <div className="space-y-2">
-                  <Label htmlFor="aggregation_method" className="text-gray-900 font-medium">
+                  <Label htmlFor="aggregation_method" className="text-sm font-medium text-muted-foreground">
                     Aggregation Method *
                   </Label>
                   <Select
                     value={formData.aggregation_method}
                     onValueChange={(value) => handleInputChange('aggregation_method', value as metric_aggregation_method)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-lg border-border bg-muted/10 text-sm focus-visible:ring-0 focus-visible:border-primary">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-lg border-border bg-card">
                       {Object.values(metric_aggregation_method).map((method) => (
-                        <SelectItem key={method} value={method}>
+                        <SelectItem key={method} value={method} className="focus:bg-muted cursor-pointer rounded-md">
                           {method}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground opacity-70">
                     How to aggregate numeric values over time
                   </p>
                 </div>
@@ -384,7 +387,7 @@ export default function CreateMetricForm() {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-gray-900 font-medium">
+              <Label htmlFor="description" className="text-sm font-medium text-muted-foreground">
                 Description *
               </Label>
               <Textarea
@@ -392,10 +395,10 @@ export default function CreateMetricForm() {
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Describe what this metric tracks and how it's used..."
-                className="min-h-[100px]"
+                className="min-h-[100px] rounded-lg border-border bg-muted/10 text-sm focus-visible:ring-0 focus-visible:border-primary"
                 required
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground opacity-70">
                 Provide context about this metric for your team
               </p>
             </div>
@@ -403,28 +406,28 @@ export default function CreateMetricForm() {
         </Card>
 
         {/* Configuration */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <div className="bg-purple-100 p-2 rounded-md mr-3">
-                <Activity className="w-5 h-5 text-purple-600" />
+        <Card className="rounded-xl border-border bg-card/80 backdrop-blur shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="flex items-center text-foreground font-semibold text-2xl">
+              <div className="bg-primary/10 border border-primary/20 p-2 rounded-lg mr-3">
+                <Activity className="w-5 h-5 text-primary" />
               </div>
               Configuration
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground text-sm mt-1">
               Configure metric settings and organization
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             {/* Active Status */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between p-4 bg-muted/10 border border-border rounded-lg">
               <div className="flex items-center space-x-3">
-                <div className="bg-emerald-100 p-2 rounded">
-                  <Activity className="w-5 h-5 text-emerald-600" />
+                <div className="bg-primary/10 border border-primary/20 p-2 rounded-lg">
+                  <Activity className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <Label className="text-gray-900 font-medium">Active Status</Label>
-                  <p className="text-sm text-gray-600">
+                  <Label className="text-sm font-semibold text-muted-foreground">Active Status</Label>
+                  <p className="text-sm font-medium text-foreground mt-1">
                     {formData.is_active ? 'This metric is currently active' : 'This metric is currently inactive'}
                   </p>
                 </div>
@@ -437,7 +440,7 @@ export default function CreateMetricForm() {
 
             {/* Tags */}
             <div className="space-y-2">
-              <Label className="text-gray-900 font-medium flex items-center">
+              <Label className="text-sm font-medium text-muted-foreground flex items-center">
                 <Tag className="w-4 h-4 mr-2" />
                 Tags
               </Label>
@@ -448,6 +451,7 @@ export default function CreateMetricForm() {
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleTagInputKeyDown}
                   placeholder="Add a tag..."
+                  className="rounded-lg border-border bg-muted/10 text-sm focus-visible:ring-0 focus-visible:border-primary"
                   disabled={isSubmitting}
                 />
                 <Button
@@ -455,19 +459,19 @@ export default function CreateMetricForm() {
                   size="sm"
                   onClick={addTag}
                   disabled={!tagInput.trim() || isSubmitting}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="rounded-lg font-medium text-sm bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
               
               {formData.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-2 bg-gray-50 rounded-md border">
+                <div className="flex flex-wrap gap-2 p-2 bg-muted/5 border border-border rounded-lg">
                   {formData.tags.map((tag, index) => (
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="cursor-pointer hover:bg-gray-200"
+                      className="cursor-pointer hover:bg-muted/50 rounded-md text-xs font-medium bg-muted/20 text-muted-foreground"
                       onClick={() => removeTag(tag)}
                     >
                       {tag}
@@ -477,7 +481,7 @@ export default function CreateMetricForm() {
                 </div>
               )}
               
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground opacity-70">
                 Use tags to categorize and organize your metrics. Click on a tag to remove it.
               </p>
             </div>
@@ -491,13 +495,14 @@ export default function CreateMetricForm() {
             variant="outline" 
             onClick={() => router.back()}
             disabled={isSubmitting}
+            className="rounded-lg font-medium text-sm"
           >
             Cancel
           </Button>
           <Button 
             type="submit" 
             disabled={isSubmitting}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="rounded-lg font-medium text-sm bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {isSubmitting ? (
               <>
