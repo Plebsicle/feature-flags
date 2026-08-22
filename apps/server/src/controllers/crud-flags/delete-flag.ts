@@ -45,7 +45,7 @@ class DeleteFlagController {
             
             if (!this.checkUserAuthorization(req, res, true)) return;
 
-            const flagId = req.params.flagId;
+            const flagId = req.params.flagId as string;
             const userId = req.session.user?.userId;
 
             // Get the flag data before deletion for audit logging
@@ -112,7 +112,7 @@ class DeleteFlagController {
             
             if (!this.checkUserAuthorization(req, res, true)) return;
 
-            const environmentId = req.params.environmentId;
+            const environmentId = req.params.environmentId as string;
             const userId = req.session.user?.userId;
 
             // Get the environment data before deletion for audit logging

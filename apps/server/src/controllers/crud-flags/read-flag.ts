@@ -230,7 +230,7 @@ class ReadFlagController {
 
             if (!this.checkUserAuthorization(req, res)) return;
 
-            const environmentId = req.params.environmentId;
+            const environmentId = req.params.environmentId as string;
 
             // Get flag environment with flag details
             const environmentData = await this.prisma.flag_environments.findUnique({
@@ -298,7 +298,7 @@ class ReadFlagController {
 
             if (!this.checkUserAuthorization(req, res)) return;
 
-            const environmentId = req.params.environmentId;
+            const environmentId = req.params.environmentId as string;
 
             // Get flag environment with flag details and rollout
             const environmentData = await this.prisma.flag_environments.findUnique({

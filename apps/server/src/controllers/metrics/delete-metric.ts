@@ -46,7 +46,7 @@ class DeleteMetricController {
             const organisationId = req.session.user?.userOrganisationId!;
             const userId = req.session.user?.userId;
             const userRole = req.session.user?.userRole;
-            const metricId = req.params.metricId;
+            const metricId = req.params.metricId as string;
             
             // Get metric details before deletion for audit logging
             const metricToDelete = await this.prisma.metrics.findUnique({

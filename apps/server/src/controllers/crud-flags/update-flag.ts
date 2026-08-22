@@ -8,7 +8,7 @@ import {
     validateBody 
 } from '../../util/zod';
 import { convertToMilliseconds } from '../../util/convertToMs';
-import { rollout_type, environment_type } from '@repo/db/node_modules/@prisma/client'
+import { rollout_type, environment_type } from '@repo/db'
 import { Conditions } from '@repo/types/rule-config';
 
 import { extractCustomAttributes } from '../../util/extract-attributes';
