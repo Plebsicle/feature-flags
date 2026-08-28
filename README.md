@@ -2,12 +2,6 @@
 
 A comprehensive feature flag management platform built with modern web technologies, enabling teams to safely deploy and control feature rollouts across their applications.
 
-## Deployment Status Notice
-
-**Temporary Service Outage**
-
-The hosted deployment of this project is currently offline due to a security incident detected on the infrastructure.
-
 ## Overview
 
 This feature flag system provides a complete solution for managing feature toggles, A/B testing, and gradual rollouts. Built as a monorepo using Turborepo, it consists of a robust backend API, a modern web dashboard, and shared packages for database management and UI components.
